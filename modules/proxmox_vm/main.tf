@@ -93,7 +93,7 @@ resource "proxmox_virtual_environment_vm" "vms" {
 
     user_account {
       username = "rocky"
-      keys     = [file(var.ssh_public_key)]
+      keys     = [trimspace(file(var.sh_public_key_path))]
     }
 
     ip_config {
@@ -111,7 +111,8 @@ resource "proxmox_virtual_environment_vm" "vms" {
 
 resource "local_file" "ansible_inventory" {
   filename        = var.ansible_inventory_path
-  file_permission = "0777"
+  file_permission = "0774"
+  directory_permission = "0774"
   content = templatefile("${path.module}/templates/inventory.tpl", {
     node_ips = [for i in range(var.vm_count) : "192.168.0.${var.vm_ip_start + i}"]
     offset    = local.vm_count_offset

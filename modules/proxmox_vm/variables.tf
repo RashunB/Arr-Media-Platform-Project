@@ -34,7 +34,7 @@ variable "vm_ip_start" {
   type = number
 }
 
-variable "ssh_public_key" {
+variable "sh_public_key_path" {
   type    = string
   default = "/home/terraform/workspace/keys/ansible_id.pub"
 }
