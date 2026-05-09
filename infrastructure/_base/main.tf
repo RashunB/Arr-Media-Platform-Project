@@ -54,7 +54,7 @@ resource "proxmox_virtual_environment_vm" "ubuntu24_template" {
   started   = false
   tags      = ["terraform", "template", "ubuntu24", "default"]
 
-  lifecycle { prevent_destroy = false }
+  lifecycle { prevent_destroy = true }
   operating_system { type = "l26" }
   agent { enabled = true }
 
@@ -86,6 +86,7 @@ resource "proxmox_download_file" "rocky9" {
   datastore_id = var.datastore_files
   node_name    = var.proxmox_node_name
   url          = "https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2"
+  file_name    = "Rocky-9-GenericCloud.latest.x86_64.qcow2"
   lifecycle { prevent_destroy = true }
 }
 
@@ -98,7 +99,7 @@ resource "proxmox_virtual_environment_vm" "rocky9_template" {
   started   = false
   tags      = ["terraform", "template", "rocky9"]
 
-  lifecycle { prevent_destroy = false }
+  lifecycle { prevent_destroy = true }
   operating_system { type = "l26" }
   agent { enabled = true }
 

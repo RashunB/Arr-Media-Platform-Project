@@ -36,12 +36,7 @@ variable "vm_group" {
 
 variable "ssh_public_key_path" {
   type    = string
-  default = "/home/terraform/workspace/keys/ansible_id.pub"
-}
-
-variable "ansible_inventory_path" {
-  type    = string
-  default = "/home/ansible/ansible/inventory/"
+  default = "./keys/ansible_id.pub"
 }
 
 variable "cloud_init_user_data_path" {

@@ -66,3 +66,8 @@ variable "template_os_tag" {
   default     = "default"
   description = "os tag of the template to clone. Defaults to default (ubuntu24) from _base."
 }
+
+variable "personal_domain" {
+  type    = string
+  default = "baucummail.com"
+}

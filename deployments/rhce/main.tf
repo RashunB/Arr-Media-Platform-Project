@@ -41,16 +41,18 @@ provider "proxmox" {
 module "rhce_vm" {
   source = "../../modules/proxmox_vm"
 
-  vm_name_prefix       = var.vm_name_prefix
-  template_os_tag      = var.template_os_tag
-  vm_count             = var.vm_count
-  vm_default_user      = var.vm_default_user
-  vm_group             = var.vm_group
-  datastore_infra      = var.datastore_infra
-  datastore_files      = var.datastore_files
-  proxmox_node_name    = var.proxmox_node_name
+  vm_name_prefix            = var.vm_name_prefix
+  template_os_tag           = var.template_os_tag
+  vm_count                  = var.vm_count
+  vm_default_user           = var.vm_default_user
+  vm_group                  = var.vm_group
+  datastore_infra           = var.datastore_infra
+  datastore_files           = var.datastore_files
+  proxmox_node_name         = var.proxmox_node_name
   cloud_init_user_data_path = var.cloud_init_user_data_path
   vm_count_offset           = var.vm_count_offset
+  ssh_public_key_path       = var.ssh_public_key_path
+  personal_domain           = var.personal_domain
 
   providers = {
     proxmox      = proxmox
