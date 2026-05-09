@@ -30,13 +30,9 @@ variable "vm_count_offset" {
 }
 
 variable "vm_group" {
-  type = string
+  type    = string
   default = "managed_nodes"
 }
-
-# variable "vm_ip_start" {
-#   type = number
-# }
 
 variable "ssh_public_key_path" {
   type    = string
@@ -44,14 +40,14 @@ variable "ssh_public_key_path" {
 }
 
 variable "ansible_inventory_path" {
-  type = string
+  type    = string
   default = "/home/ansible/ansible/inventory/"
 }
 
-variable "cloud_init_user_data" {
+variable "cloud_init_user_data_path" {
   type        = string
   default     = null
-  description = "Optional cloud-init #cloud-config YAML string. If null, a default is used."
+  description = "Path to cloun-inint .tpl file. If null, the module default is used."
 }
 
 variable "template_os_tag" {
@@ -64,4 +60,9 @@ variable "template_os_user" {
   type        = string
   default     = "default"
   description = "default user of the template to clone. Defaults to default (ubuntu24) from _base."
+}
+
+variable "personal_domain" {
+  type    = string
+  default = "baucummail.com"
 }

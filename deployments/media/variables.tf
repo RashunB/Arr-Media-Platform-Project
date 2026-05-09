@@ -33,7 +33,7 @@ variable "ssh_public_key_path" {
 }
 
 variable "vm_default_user" {
-  type = string
+  type    = string
   default = "ansible"
 }
 
@@ -48,7 +48,7 @@ variable "vm_count" {
 
 variable "vm_count_offset" {
   type    = number
-  default = 0
+  default = 1
 }
 
 variable "vm_group" {

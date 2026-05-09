@@ -51,10 +51,6 @@ variable "vm_count_offset" {
   default = 0
 }
 
-# variable "vm_ip_start" {
-#   type = number
-# }
-
 variable "vm_group" {
   type = string
 }
@@ -69,4 +65,9 @@ variable "template_os_tag" {
   type        = string
   default     = "default"
   description = "os tag of the template to clone. Defaults to default (ubuntu24) from _base."
+}
+
+variable "personal_domain" {
+  type    = string
+  default = "baucummail.com"
 }

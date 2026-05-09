@@ -49,7 +49,8 @@ module "rhce_vm" {
   datastore_infra      = var.datastore_infra
   datastore_files      = var.datastore_files
   proxmox_node_name    = var.proxmox_node_name
-  cloud_init_user_data = var.cloud_init_user_data_path != null ? file(var.cloud_init_user_data_path) : null
+  cloud_init_user_data_path = var.cloud_init_user_data_path
+  vm_count_offset           = var.vm_count_offset
 
   providers = {
     proxmox      = proxmox
