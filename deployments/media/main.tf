@@ -44,9 +44,8 @@ module "media_vm" {
   vm_name_prefix         = var.vm_name_prefix
   template_os_tag        = var.template_os_tag
   vm_count               = var.vm_count
-  vm_ip_start            = var.vm_ip_start
+  vm_default_user = var.vm_default_user
   vm_group               = var.vm_group
-  ansible_inventory_path = var.ansible_inventory_path
   datastore_infra        = var.datastore_infra
   datastore_files        = var.datastore_files
   proxmox_node_name      = var.proxmox_node_name

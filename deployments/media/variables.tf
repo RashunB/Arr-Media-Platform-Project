@@ -1,4 +1,3 @@
-# --- Proxmox connection ---
 variable "proxmox_endpoint" {
   type = string
 }
@@ -17,7 +16,6 @@ variable "proxmox_password" {
   sensitive = true
 }
 
-# --- Infrastructure ---
 variable "proxmox_node_name" {
   type = string
 }
@@ -34,7 +32,11 @@ variable "ssh_public_key_path" {
   type = string
 }
 
-# --- VM config ---
+variable "vm_default_user" {
+  type = string
+  default = "ansible"
+}
+
 variable "vm_name_prefix" {
   type = string
 }
@@ -49,15 +51,7 @@ variable "vm_count_offset" {
   default = 0
 }
 
-variable "vm_ip_start" {
-  type = number
-}
-
 variable "vm_group" {
-  type = string
-}
-
-variable "ansible_inventory_path" {
   type = string
 }
 

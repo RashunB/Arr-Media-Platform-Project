@@ -13,16 +13,9 @@ data "proxmox_virtual_environment_vms" "templates" {
 
 locals {
 
-  vm_count_offset = var.vm_count_offset + 1
   template_vm_id = data.proxmox_virtual_environment_vms.templates.vms[0].vm_id
-  default_cloud_init = <<-EOF
-    #cloud-config
-    packages:
-      - qemu-guest-agent
-    runcmd:
-      - systemctl enable qemu-guest-agent
-      - systemctl start qemu-guest-agent
-    EOF
+
+  default_cloud_init = "${path.module}/templates/cloud-init.yml.tpl"
 
   cloud_init_data = coalesce(var.cloud_init_user_data, local.default_cloud_init)
 }
@@ -40,7 +33,7 @@ resource "proxmox_virtual_environment_file" "cloud_config" {
 
 resource "proxmox_virtual_environment_vm" "vms" {
   provider        = proxmox.root
-  name            = "${var.vm_name_prefix}-${count.index + local.vm_count_offset}"
+  name            = "${var.vm_name_prefix}-${count.index + var.vm_count_offset}"
   node_name       = var.proxmox_node_name
   count           = var.vm_count
   stop_on_destroy = true
@@ -61,19 +54,6 @@ resource "proxmox_virtual_environment_vm" "vms" {
     dedicated = 2048
   }
 
-
-  # dynamic "disk" {
-  #   for_each = count.index == var.vm_count - 1 ? [1] : []
-
-  #   content {
-  #     datastore_id = var.datastore_infra
-  #     size         = 2
-  #     interface    = "virtio1"
-  #     iothread     = true
-  #     discard      = "on"
-  #   }
-  # }
-
   network_device {
     bridge = "vmbr0"
     model  = "virtio"
@@ -91,32 +71,8 @@ resource "proxmox_virtual_environment_vm" "vms" {
     datastore_id        = var.datastore_infra
     vendor_data_file_id = proxmox_virtual_environment_file.cloud_config.id
 
-    user_account {
-      username = "rocky"
-      keys     = [trimspace(file(var.sh_public_key_path))]
-    }
-
-    ip_config {
-      ipv4 {
-        address = "192.168.0.${var.vm_ip_start + count.index}/24"
-        gateway = "192.168.0.1"
-      }
-    }
-
     dns {
       servers = ["192.168.0.1"]
     }
   }
-}
-
-resource "local_file" "ansible_inventory" {
-  filename        = var.ansible_inventory_path
-  file_permission = "0774"
-  directory_permission = "0774"
-  content = templatefile("${path.module}/templates/inventory.tpl", {
-    node_ips = [for i in range(var.vm_count) : "192.168.0.${var.vm_ip_start + i}"]
-    offset    = local.vm_count_offset
-    group    = var.vm_group
-    prefix   = var.vm_name_prefix
-  })
 }
