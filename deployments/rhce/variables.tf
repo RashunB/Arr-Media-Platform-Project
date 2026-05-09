@@ -48,7 +48,7 @@ variable "vm_count" {
 
 variable "vm_count_offset" {
   type    = number
-  default = 0
+  default = 1
 }
 
 variable "vm_group" {

@@ -42,7 +42,7 @@ variable "ssh_public_key_path" {
 variable "cloud_init_user_data_path" {
   type        = string
   default     = null
-  description = "Path to cloun-inint .tpl file. If null, the module default is used."
+  description = "Path to cloun-init .tpl file. If null, the module default is used."
 }
 
 variable "template_os_tag" {
@@ -61,3 +61,4 @@ variable "personal_domain" {
   type    = string
   default = "baucummail.com"
 }
+
