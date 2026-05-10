@@ -36,7 +36,7 @@ variable "vm_group" {
 
 variable "ssh_public_key_path" {
   type    = string
-  default = "./keys/ansible_id.pub"
+  default = "../../keys/ansible_id.pub"
 }
 
 variable "cloud_init_user_data_path" {

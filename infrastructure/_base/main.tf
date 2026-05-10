@@ -17,7 +17,7 @@ provider "proxmox" {
   ssh {
     agent       = true
     username    = "root"
-    private_key = file("${path.module}/keys/proxmox")
+    private_key = file("../../keys/proxmox")
   }
 }
 
@@ -32,7 +32,7 @@ provider "proxmox" {
   ssh {
     agent       = true
     username    = "root"
-    private_key = file("${path.module}/keys/proxmox")
+    private_key = file("../../keys/proxmox")
   }
 }
 
@@ -49,7 +49,6 @@ resource "proxmox_virtual_environment_vm" "ubuntu24_template" {
   provider  = proxmox.root
   name      = "ubuntu24-template"
   node_name = var.proxmox_node_name
-  vm_id     = 10000
   template  = true
   started   = false
   tags      = ["terraform", "template", "ubuntu24", "default"]
@@ -94,7 +93,6 @@ resource "proxmox_virtual_environment_vm" "rocky9_template" {
   provider  = proxmox.root
   name      = "rocky9-template"
   node_name = var.proxmox_node_name
-  vm_id     = 10001
   template  = true
   started   = false
   tags      = ["terraform", "template", "rocky9"]
