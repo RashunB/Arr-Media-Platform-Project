@@ -59,6 +59,6 @@ variable "template_os_user" {
 
 variable "personal_domain" {
   type    = string
-  default = "baucummail.com"
+  default = "home.lab"
 }
 
