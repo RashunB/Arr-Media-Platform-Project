@@ -6,7 +6,7 @@ preserve_hostname: false
 create_hostname_file: true
 ssh_pwauth: false
 users:
-  - name: ansible
+  - name: ${default_user}
     gecos: ansible automation account
     groups: users,admin,wheel
     shell: /bin/bash

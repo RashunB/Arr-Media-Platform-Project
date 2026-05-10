@@ -33,8 +33,7 @@ variable "ssh_public_key_path" {
 }
 
 variable "vm_default_user" {
-  type    = string
-  default = "ansible"
+  type = string
 }
 
 variable "vm_name_prefix" {
@@ -42,13 +41,11 @@ variable "vm_name_prefix" {
 }
 
 variable "vm_count" {
-  type    = number
-  default = 1
+  type = number
 }
 
 variable "vm_count_offset" {
-  type    = number
-  default = 0
+  type = number
 }
 
 variable "vm_group" {
@@ -68,6 +65,5 @@ variable "template_os_tag" {
 }
 
 variable "personal_domain" {
-  type    = string
-  default = "baucummail.com"
+  type = string
 }

@@ -51,6 +51,8 @@ module "media_vm" {
   proxmox_node_name         = var.proxmox_node_name
   cloud_init_user_data_path = var.cloud_init_user_data_path
   vm_count_offset           = var.vm_count_offset
+  ssh_public_key_path       = var.ssh_public_key_path
+  personal_domain           = var.personal_domain
 
   providers = {
     proxmox      = proxmox

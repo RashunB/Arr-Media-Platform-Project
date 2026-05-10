@@ -33,8 +33,7 @@ variable "ssh_public_key_path" {
 }
 
 variable "vm_default_user" {
-  type    = string
-  default = "ansible"
+  type = string
 }
 
 variable "vm_name_prefix" {
@@ -42,8 +41,7 @@ variable "vm_name_prefix" {
 }
 
 variable "vm_count" {
-  type    = number
-  default = 1
+  type = number
 }
 
 variable "vm_count_offset" {
@@ -65,4 +63,8 @@ variable "template_os_tag" {
   type        = string
   default     = "default"
   description = "os tag of the template to clone. Defaults to default (ubuntu24) from _base."
+}
+
+variable "personal_domain" {
+  type = string
 }

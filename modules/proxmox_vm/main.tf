@@ -21,7 +21,7 @@ locals {
 }
 
 resource "proxmox_virtual_environment_file" "cloud_config" {
-  count = var.vm_count
+  count        = var.vm_count
   content_type = "snippets"
   datastore_id = var.datastore_files
   node_name    = var.proxmox_node_name
@@ -31,7 +31,8 @@ resource "proxmox_virtual_environment_file" "cloud_config" {
     data = templatefile(local.cloud_init_data_path, {
       ssh_public_key = trimspace(file(var.ssh_public_key_path))
       hostname       = "${var.vm_name_prefix}-${count.index + var.vm_count_offset}"
-      domain = var.personal_domain
+      domain         = var.personal_domain
+      default_user   = var.vm_default_user
     })
 
   }
@@ -74,7 +75,7 @@ resource "proxmox_virtual_environment_vm" "vms" {
   }
 
   initialization {
-    datastore_id        = var.datastore_infra
+    datastore_id      = var.datastore_infra
     user_data_file_id = proxmox_virtual_environment_file.cloud_config[count.index].id
 
     ip_config {

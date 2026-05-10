@@ -9,7 +9,7 @@ package_upgrade: true
 package_reboot_if_required: true
 ssh_pwauth: false
 users:
-  - name: ansible
+  - name: ${default_user}
     gecos: ansible automation account
     groups: users,admin,wheel
     shell: /bin/bash
