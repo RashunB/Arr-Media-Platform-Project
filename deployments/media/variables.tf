@@ -33,7 +33,7 @@ variable "ssh_public_key_path" {
 }
 
 variable "vm_default_user" {
-  type    = string
+  type = string
 }
 
 variable "vm_name_prefix" {
@@ -41,7 +41,7 @@ variable "vm_name_prefix" {
 }
 
 variable "vm_count" {
-  type    = number
+  type = number
 }
 
 variable "vm_count_offset" {
@@ -66,5 +66,5 @@ variable "template_os_tag" {
 }
 
 variable "personal_domain" {
-  type    = string
+  type = string
 }
