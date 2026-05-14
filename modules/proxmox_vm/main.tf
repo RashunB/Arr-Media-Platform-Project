@@ -7,16 +7,15 @@ terraform {
   }
 }
 
-data "proxmox_virtual_environment_vms" "templates" {
-  tags = ["template", var.template_os_tag]
-}
+# data "proxmox_virtual_environment_vms" "templates" {
+#   tags = ["template", var.template_os_tag]
+# }
 
 locals {
-
-  template_vm_id = data.proxmox_virtual_environment_vms.templates.vms[0].vm_id
-
+  default_tag_list = distinct(concat(var.vm_default_tag_list, [var.vm_group, var.vm_name_prefix]))
+  tag_list = distinct(concat(local.default_tag_list, var.vm_tag_list))
+  #template_vm_id = data.proxmox_virtual_environment_vms.templates.vms[0].vm_id
   default_cloud_init_path = "${path.module}/templates/cloud-init.yml.tpl"
-
   cloud_init_data_path = coalesce(var.cloud_init_user_data_path, local.default_cloud_init_path)
 }
 
@@ -38,54 +37,53 @@ resource "proxmox_virtual_environment_file" "cloud_config" {
   }
 }
 
-resource "proxmox_virtual_environment_vm" "vms" {
-  provider        = proxmox.root
-  name            = "${var.vm_name_prefix}-${count.index + var.vm_count_offset}"
-  node_name       = var.proxmox_node_name
-  count           = var.vm_count
-  stop_on_destroy = true
-  boot_order      = ["virtio0"]
-  tags            = ["terraform", var.vm_group, var.template_os_tag]
+# resource "proxmox_virtual_environment_vm" "vms" {
+#   provider        = proxmox.root
+#   name            = "${var.vm_name_prefix}-${count.index + var.vm_count_offset}"
+#   node_name       = var.proxmox_node_name
+#   count           = var.vm_count
+#   stop_on_destroy = true
+#   boot_order      = ["virtio0"]
+#   tags            = local.tag_list
+#   clone {
+#     vm_id = local.template_vm_id
+#     full  = false
+#   }
 
-  clone {
-    vm_id = local.template_vm_id
-    full  = false
-  }
+#   cpu {
+#     cores = 2
+#     type  = "host"
+#   }
 
-  cpu {
-    cores = 2
-    type  = "host"
-  }
+#   memory {
+#     dedicated = 2048
+#   }
 
-  memory {
-    dedicated = 2048
-  }
+#   network_device {
+#     bridge = "vmbr0"
+#     model  = "virtio"
+#   }
 
-  network_device {
-    bridge = "vmbr0"
-    model  = "virtio"
-  }
+#   operating_system {
+#     type = "l26"
+#   }
 
-  operating_system {
-    type = "l26"
-  }
+#   agent {
+#     enabled = true
+#   }
 
-  agent {
-    enabled = true
-  }
+#   initialization {
+#     datastore_id      = var.datastore_infra
+#     user_data_file_id = proxmox_virtual_environment_file.cloud_config[count.index].id
 
-  initialization {
-    datastore_id      = var.datastore_infra
-    user_data_file_id = proxmox_virtual_environment_file.cloud_config[count.index].id
+#     ip_config {
+#       ipv4 {
+#         address = "dhcp"
+#       }
+#     }
 
-    ip_config {
-      ipv4 {
-        address = "dhcp"
-      }
-    }
-
-    dns {
-      servers = ["192.168.0.1"]
-    }
-  }
-}
+#     dns {
+#       servers = ["192.168.0.1"]
+#     }
+#   }
+# }

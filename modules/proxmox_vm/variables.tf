@@ -31,7 +31,18 @@ variable "vm_count_offset" {
 
 variable "vm_group" {
   type    = string
-  default = "managed_nodes"
+}
+
+variable "vm_tag_list" {
+  type = list(string)
+  default = []
+  description = "A set of tags used for organizing and grouping for ansible inventory. Terraform tag is used as default tag to signal managed_nodes" 
+}
+
+variable "vm_default_tag_list" {
+  type = list(string)
+  default = ["terraform"]
+  description = "Default set of tags used for organizing and grouping for ansible inventory. Terraform tag is used as default tag to signal managed_nodes" 
 }
 
 variable "ssh_public_key_path" {
