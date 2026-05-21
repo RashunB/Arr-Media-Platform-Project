@@ -38,7 +38,7 @@ provider "proxmox" {
   }
 }
 
-module "media_vm" {
+module "monitoring_vm" {
   source = "../../modules/proxmox_vm"
 
   vm_name_prefix            = var.vm_name_prefix
@@ -46,7 +46,7 @@ module "media_vm" {
   vm_count                  = var.vm_count
   vm_default_user           = var.vm_default_user
   vm_group                  = var.vm_group
-  vm_tag_list = var.vm_tag_list
+  vm_tag_list               = var.vm_tag_list
   datastore_infra           = var.datastore_infra
   datastore_files           = var.datastore_files
   proxmox_node_name         = var.proxmox_node_name
@@ -55,12 +55,9 @@ module "media_vm" {
   ssh_public_key_path       = var.ssh_public_key_path
   personal_domain           = var.personal_domain
 
+  additional_disks = var.additional_disks
   providers = {
     proxmox      = proxmox
     proxmox.root = proxmox.root
   }
-}
-
-output "tag_list" {
-  value = module.media_vm.tag_list
 }
