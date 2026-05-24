@@ -1,0 +1,59 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: "{{ cluster_name }}"
+
+scrape_configs:
+  - job_name: Prometheus
+    static_configs:
+      - targets: ["{{ prometheus_hostname }}:{{ prometheus_con_port }}"]
+
+  - job_name: Control Node-Exporter
+    static_configs:
+      - targets: ["host.docker.internal:{{ node_exporter_host_port }}"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "node-exporter:{{ node_exporter_host_port }}"
+
+  - job_name: Control cAdvisor
+    static_configs:
+      - targets: ["{{ cadvisor_hostname }}:{{ cadvisor_host_port }}"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "cadvisor:{{ cadvisor_host_port }}"
+
+  - job_name: Control Smartctl-Exporter
+    static_configs:
+      - targets: ["{{ smartctl_exporter_hostname }}:{{ smartctl_exporter_host_port }}"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "smartctl-exporter:{{ smartctl_exporter_host_port }}"
+
+  - job_name: PVE PVE-Exporter
+    static_configs:
+      - targets: ["{{ pve_node_ip }}:{{ pve_exporter_host_port }}"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "pve-exporter:{{ pve_exporter_host_port }}"
+
+  - job_name: PVE Node-Exporter
+    static_configs:
+      - targets: ["{{ pve_node_ip }}:{{ node_exporter_host_port }}"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "node-exporter:{{ node_exporter_host_port }}"
+
+  - job_name: PVE cAdvisor
+    static_configs:
+      - targets: ["{{ pve_node_ip }}:{{ cadvisor_host_port }}"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "cadvisor:{{ cadvisor_host_port }}"
+
+  - job_name: PVE Smartctl-Exporter
+    static_configs:
+      - targets: ["{{ pve_node_ip }}:{{ smartctl_exporter_host_port }}"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "smartctl-exporter:{{ smartctl_exporter_host_port }}"
