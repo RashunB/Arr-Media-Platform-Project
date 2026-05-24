@@ -1,0 +1,6 @@
+---
+- name: Setup observability control
+  ansible.builtin.import_playbook: observability_control.yml
+
+- name: Setup observability node
+  ansible.builtin.import_playbook: observability_node.yml

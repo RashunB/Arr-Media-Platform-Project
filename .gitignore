@@ -43,11 +43,16 @@ terraform.rc
 # Uncomment the line below if you want to ignore planout files.
 # planout
 
-# Extra
-keys/
-
 # The default root path for Ansible config files on the controller
 .ansible/
 **/collections
+**/vault
+playbooks/vars
+**/groups_vars
+**/host_vars
 # Retry files generated for failed Ansible playbook runs
 *.retry
+
+# Extra
+keys/
+rhce/

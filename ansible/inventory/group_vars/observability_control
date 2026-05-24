@@ -1,0 +1,50 @@
+---
+cluster_name: homelab
+
+control_host_ip: "192.168.0.60"
+pve_node_ip: "192.168.0.248"
+
+prometheus_name: prometheus
+prometheus_hostname: prometheus
+prometheus_host_port: 9090
+prometheus_con_port: 9090
+
+node_exporter_name: node-exporter
+node_exporter_host_port: 9100
+
+cadvisor_name: cadvisor
+cadvisor_hostname: cadvisor
+cadvisor_host_port: 8080
+
+smartctl_exporter_name: smartctl-exporter
+smartctl_exporter_hostname: smartctl-exporter
+smartctl_exporter_host_port: 9633
+
+pve_exporter_name: pve-exporter
+pve_exporter_hostname: pve-exporter
+pve_exporter_host_port: 9221
+
+grafana_name: grafana
+grafana_hostname: grafana
+grafana_host_port: 3000
+grafana_con_port: 3000
+
+alloy_name: alloy
+alloy_hostname: alloy
+alloy_host_port: 12345
+alloy_con_port: 12345
+alloy_rsyslog_port: 514
+
+loki_name: loki
+loki_hostname: loki
+loki_host_port: 3100
+loki_con_port: 3100
+loki_remote_url: "http://{{ loki_hostname }}:{{ loki_host_port }}/loki/api/v1/push"
+
+dozzle_name: dozzle
+dozzle_hostname: dozzle
+dozzle_host_port: 8080
+dozzle_con_port: 8080
+
+dozzle_agent_pve_ip: "{{ pve_node_ip }}"
+dozzle_agent_port: 7007

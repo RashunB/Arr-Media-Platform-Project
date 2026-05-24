@@ -1,0 +1,176 @@
+---
+- name: Observability Stack Control
+  hosts: observability-control
+  become: true
+  force_handlers: true
+  tasks:
+    - name: Import geerlingguy.docker role
+      ansible.builtin.import_role:
+        name: geerlingguy.docker
+      vars:
+        docker_users: "{{ ansible_facts['user_id'] }}"
+
+    - name: Import geerlingguy.pip role
+      ansible.builtin.import_role:
+        name: geerlingguy.pip
+      vars:
+        pip_install_packages:
+          - name: docker
+
+    - name: Create required directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        owner: ansible
+        group: ansible
+        mode: "0755"
+        state: directory
+      loop:
+        - /opt/docker/observability
+        - /opt/prometheus/data
+        - /opt/prometheus/config
+        - /opt/prometheus/config/rules
+        - /opt/grafana/data
+        - /opt/grafana/provisioning/datasources
+        - /opt/grafana/provisioning/dashboards
+        - /opt/dozzle/data
+        - /opt/loki
+        - /opt/loki/data
+        - /opt/alloy
+
+    - name: Copy compose directory to /opt directory
+      ansible.builtin.copy:
+        src: control/observability/docker-compose.yml
+        dest: /opt/docker/observability/docker-compose.yml
+        owner: ansible
+        group: ansible
+        mode: "0644"
+
+    - name: Copy Prometheus files
+      ansible.builtin.template:
+        src: control/observability/prometheus/prometheus.yml.j2
+        dest: /opt/prometheus
+        owner: ansible
+        group: ansible
+        mode: "0644"
+      notify: Restart Prometheus
+
+    - name: Copy Grafana datasource - prometheus
+      ansible.builtin.template:
+        src: control/observability/grafana/provisioning/datasources/prometheus.yml.j2
+        dest: /opt/grafana/provisioning/datasources/prometheus.yml
+        owner: ansible
+        group: ansible
+        mode: "0644"
+      notify: Restart Grafana
+
+    - name: Copy Grafana datasource - loki
+      ansible.builtin.template:
+        src: control/observability/grafana/provisioning/datasources/loki.yml.j2
+        dest: /opt/grafana/provisioning/datasources/loki.yml
+        owner: ansible
+        group: ansible
+        mode: "0644"
+      notify: Restart Grafana
+
+    - name: Copy Grafana dashboard files
+      ansible.builtin.copy:
+        src: control/observability/grafana/provisioning/dashboards/
+        dest: /opt/grafana/provisioning/dashboards/
+        owner: ansible
+        group: ansible
+        mode: "0644"
+      notify: Restart Grafana
+
+    - name: Copy Dozzle files
+      ansible.builtin.template:
+        src: control/observability/dozzle/dozzle.env.j2
+        dest: /opt/dozzle/.env
+        owner: ansible
+        group: ansible
+        mode: "0644"
+      notify: Restart Dozzle
+
+    - name: Copy Loki files
+      ansible.builtin.template:
+        src: control/observability/loki/loki-config.yml.j2
+        dest: /opt/loki-config.yml
+        owner: ansible
+        group: ansible
+        mode: "0644"
+      notify: Restart Loki
+
+    - name: Copy Alloy files
+      ansible.builtin.template:
+        src: control/observability/alloy/alloy-config.yml.j2
+        dest: /opt/alloy-config.yml.j2
+        owner: ansible
+        group: ansible
+        mode: "0644"
+      notify: Restart Alloy
+
+    - name: Create and start services
+      community.docker.docker_compose_v2:
+        project_src: /opt/docker/observability
+        state: present
+        pull: missing
+
+  handlers:
+    - name: Restart Prometheus
+      community.docker.docker_container:
+        name: prometheus
+        state: started
+        restart: true
+
+    - name: Restart Loki
+      community.docker.docker_container:
+        name: loki
+        state: started
+        restart: true
+
+    - name: Restart Alloy
+      community.docker.docker_container:
+        name: alloy
+        state: started
+        restart: true
+
+    - name: Restart Grafana
+      community.docker.docker_container:
+        name: grafana
+        state: started
+        restart: true
+
+    - name: Restart Dozzle
+      community.docker.docker_container:
+        name: dozzle
+        state: started
+        restart: true
+
+- name: Observability Stack Node - localhost
+  hosts: observability-control
+  become: true
+  tasks:
+    - name: Install Rsyslog
+      ansible.builtin.apt:
+        name: rsyslog
+        state: present
+
+    - name: Enable rsyslog
+      ansible.builtin.systemd:
+        name: rsyslog
+        state: started
+        enabled: true
+
+    - name: Copy rsyslog exporter conf
+      ansible.builtin.template:
+        src: control/observability/pve-alloy-forwarder.conf.j2
+        dest: /etc/rsyslog.d/50-alloy-forward.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart rsyslog
+
+  handlers:
+    - name: Restart rsyslog
+      ansible.builtin.systemd:
+        name: rsyslog
+        state: restarted

@@ -1,0 +1,105 @@
+---
+- name: Observability Stack Nodes
+  hosts: observability-nodes
+  become: true
+  force_handlers: true
+  tasks:
+    - name: Import geerlingguy.docker role
+      ansible.builtin.import_role:
+        name: geerlingguy.docker
+      vars:
+        docker_users: "{{ ansible_facts['user_id'] }}"
+
+    - name: Import geerlingguy.pip role
+      ansible.builtin.import_role:
+        name: geerlingguy.pip
+      vars:
+        pip_install_packages:
+          - name: docker
+
+    - name: Create required directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: ansible
+        group: ansible
+        mode: "0755"
+      loop:
+        - /opt/dozzle/data
+        - /opt/pve-exporter
+        - /opt/docker
+
+    - name: Copy pve-exporter config file
+      ansible.builtin.copy:
+        src: vault/pve.yml
+        owner: ansible
+        group: ansible
+        mode: "0644"
+        dest: /opt/pve-exporter/pve.yml
+      notify: Restart PVE-Exporter
+
+    - name: Deploy Alloy config
+      ansible.builtin.template:
+        src: nodes/observability/alloy/alloy-config.yml.j2
+        dest: /opt/alloy/alloy-config.yaml
+        owner: ansible
+        group: ansible
+        mode: "0644"
+      notify: Restart Alloy
+
+    - name: Copy compose config file
+      ansible.builtin.copy:
+        src: nodes/observability/docker-compose.yml
+        owner: ansible
+        group: ansible
+        mode: "0644"
+        dest: /opt/docker/docker-compose.yml
+
+    - name: Create and start services
+      community.docker.docker_compose_v2:
+        project_src: /opt/docker
+        state: present
+        pull: missing
+
+  handlers:
+    - name: Restart Alloy
+      community.docker.docker_container:
+        name: alloy
+        state: started
+        restart: true
+
+    - name: Restart PVE-Exporter
+      community.docker.docker_container:
+        name: pve-exporter
+        state: started
+        restart: true
+
+- name: Observability Stack Node - PVE
+  hosts: pve
+  become: true
+  tasks:
+    - name: Install Rsyslog
+      ansible.builtin.apt:
+        name: rsyslog
+        state: present
+
+    - name: Enable rsyslog
+      ansible.builtin.systemd:
+        name: rsyslog
+        state: started
+        enabled: true
+
+    - name: Copy rsyslog exporter conf
+      ansible.builtin.template:
+        src: nodes/observability/pve-alloy-forwarder.conf.j2
+        dest: /etc/rsyslog.d/50-alloy-forward.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart rsyslog
+
+  handlers:
+    - name: Restart rsyslog
+      ansible.builtin.systemd:
+        name: rsyslog
+        state: restarted
