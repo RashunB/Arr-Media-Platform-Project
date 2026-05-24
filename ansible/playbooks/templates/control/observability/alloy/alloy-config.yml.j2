@@ -1,6 +1,6 @@
 loki.source.syslog "proxmox" {
   listener {
-    address  = "0.0.0.0:{{ alloy_rsyslog_port }}"
+    address  = "0.0.0.0:{{ rsyslog_port }}"
     protocol = "tcp"
     labels = {
       job    = "control_rsyslog",

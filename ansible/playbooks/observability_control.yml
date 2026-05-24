@@ -48,7 +48,7 @@
     - name: Copy Prometheus files
       ansible.builtin.template:
         src: control/observability/prometheus/prometheus.yml.j2
-        dest: /opt/prometheus
+        dest: /opt/prometheus/prometheus.yml
         owner: ansible
         group: ansible
         mode: "0644"
@@ -93,7 +93,7 @@
     - name: Copy Loki files
       ansible.builtin.template:
         src: control/observability/loki/loki-config.yml.j2
-        dest: /opt/loki-config.yml
+        dest: /opt/loki/loki-config.yml
         owner: ansible
         group: ansible
         mode: "0644"
@@ -102,7 +102,7 @@
     - name: Copy Alloy files
       ansible.builtin.template:
         src: control/observability/alloy/alloy-config.yml.j2
-        dest: /opt/alloy-config.yml.j2
+        dest: /opt/alloy/alloy-config.yml.j2
         owner: ansible
         group: ansible
         mode: "0644"

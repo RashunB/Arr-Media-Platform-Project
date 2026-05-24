@@ -11,9 +11,14 @@ prometheus_con_port: 9090
 node_exporter_name: node-exporter
 node_exporter_host_port: 9100
 
+
 cadvisor_name: cadvisor
 cadvisor_hostname: cadvisor
 cadvisor_host_port: 8080
+
+dozzle_name: dozzle
+dozzle_hostname: dozzle
+dozzle_host_port: 7007
 
 smartctl_exporter_name: smartctl-exporter
 smartctl_exporter_hostname: smartctl-exporter
@@ -27,6 +32,6 @@ alloy_name: alloy
 alloy_hostname: alloy
 alloy_host_port: 12345
 alloy_con_port: 12345
-alloy_rsyslog_port: 514
+rsyslog_port: 514
 
 loki_remote_url: "http://{{ control_host_ip }}:3100/loki/api/v1/push"

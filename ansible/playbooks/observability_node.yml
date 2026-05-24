@@ -25,9 +25,9 @@
         group: ansible
         mode: "0755"
       loop:
-        - /opt/dozzle/data
         - /opt/pve-exporter
         - /opt/docker
+        - /opt/alloy
 
     - name: Copy pve-exporter config file
       ansible.builtin.copy:
@@ -47,13 +47,13 @@
         mode: "0644"
       notify: Restart Alloy
 
-    - name: Copy compose config file
-      ansible.builtin.copy:
-        src: nodes/observability/docker-compose.yml
+    - name: Copy compose file
+      ansible.builtin.template:
+        src: nodes/observability/docker-compose.yml.j2
+        dest: /opt/docker/docker-compose.yml
         owner: ansible
         group: ansible
         mode: "0644"
-        dest: /opt/docker/docker-compose.yml
 
     - name: Create and start services
       community.docker.docker_compose_v2:

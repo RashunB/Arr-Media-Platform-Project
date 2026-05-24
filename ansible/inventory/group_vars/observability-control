@@ -2,6 +2,7 @@
 cluster_name: homelab
 
 control_host_ip: "192.168.0.60"
+rsyslog_port: 514
 pve_node_ip: "192.168.0.248"
 
 prometheus_name: prometheus
@@ -33,7 +34,6 @@ alloy_name: alloy
 alloy_hostname: alloy
 alloy_host_port: 12345
 alloy_con_port: 12345
-alloy_rsyslog_port: 514
 
 loki_name: loki
 loki_hostname: loki

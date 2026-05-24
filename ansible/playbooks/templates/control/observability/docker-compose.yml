@@ -6,14 +6,14 @@ networks:
 services:
   prometheus:
     image: prom/prometheus:latest
-    container_name: prometheus
+    container_name: "{{ prometheus_name }}"
     pull_policy: always
     restart: unless-stopped
     user: "1000:1000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
-      - 9090:9090/tcp
+      - "{{ prometheus_host_port}}:9090/tcp"
     security_opt:
       - no-new-privileges:true
     volumes:
@@ -31,7 +31,7 @@ services:
 
   node-exporter:
     image: quay.io/prometheus/node-exporter:latest
-    container_name: node-exporter
+    container_name: "{{ node_exporter_name }}"
     pull_policy: always
     restart: unless-stopped
     network_mode: host
@@ -48,7 +48,7 @@ services:
 
   smartctl-exporter:
     image: quay.io/prometheuscommunity/smartctl-exporter:latest
-    container_name: smartctl-exporter
+    container_name: "{{ smartctl_exporter_name }}"
     pull_policy: always
     restart: unless-stopped
     user: root
@@ -59,7 +59,7 @@ services:
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
-    container_name: cadvisor
+    container_name: "{{ cadvisor_name }}"
     pull_policy: always
     restart: unless-stopped
     volumes:
@@ -73,13 +73,13 @@ services:
 
   dozzle:
     image: amir20/dozzle:latest
-    container_name: dozzle
+    container_name: "{{ dozzle_name }}"
     pull_policy: always
     restart: unless-stopped
     env_file:
       - /opt/dozzle/dozzle.env
     ports:
-      - 8080:8080/tcp
+      - "{{ dozzle_host_port}}:8080/tcp"
     security_opt:
       - no-new-privileges:true
     volumes:
@@ -90,12 +90,12 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    container_name: grafana
+    container_name: "{{ grafana_name }}"
     user: "1000:1000"
     pull_policy: always
     restart: unless-stopped
     ports:
-      - 3000:3000/tcp
+      - "{{ grafana_host_port}}:3000/tcp"
     security_opt:
       - no-new-privileges:true
     volumes:
@@ -103,7 +103,7 @@ services:
       - /opt/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - /opt/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://{{ grafana_host_port}}:3000/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -113,13 +113,13 @@ services:
 
   alloy:
     image: grafana/alloy:latest
-    container_name: alloy
+    container_name: "{{ alloy_name }}"
     pull_policy: always
     restart: unless-stopped
-    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+    command: run --server.http.listen-addr=0.0.0.0:{{ alloy_con_port }} --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     ports:
-      - 12345:12345
-      - 514:514/tcp
+      - "{{ alloy_host_port }}:{{ alloy_con_port }}"
+      - "{{ rsyslog_port }}:514/tcp"
     volumes:
       - /opt/alloy/alloy-config.yaml:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock
@@ -128,13 +128,13 @@ services:
 
   loki:
     image: grafana/loki:latest
-    container_name: loki
+    container_name: "{{ loki_name }}"
     user: "1000:1000"
     pull_policy: always
     restart: unless-stopped
     command: "-config.file=/etc/loki/config.yaml"
     ports:
-      - 3100:3100/tcp
+      - "{{ loki_host_port }}:3100/tcp"
     volumes:
       - /opt/loki/loki-config.yaml:/etc/loki/config.yaml
       - /opt/loki/data:/loki
