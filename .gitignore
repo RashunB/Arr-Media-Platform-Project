@@ -48,7 +48,7 @@ terraform.rc
 **/collections
 **/vault
 playbooks/vars
-**/groups_vars
+**/group_vars
 **/host_vars
 # Retry files generated for failed Ansible playbook runs
 *.retry
@@ -56,3 +56,5 @@ playbooks/vars
 # Extra
 keys/
 rhce/
+.claude
+resources
