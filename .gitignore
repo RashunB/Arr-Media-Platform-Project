@@ -48,5 +48,6 @@ keys/
 
 # The default root path for Ansible config files on the controller
 .ansible/
+**/collections
 # Retry files generated for failed Ansible playbook runs
 *.retry
