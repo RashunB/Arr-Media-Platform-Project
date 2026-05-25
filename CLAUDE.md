@@ -91,10 +91,10 @@ baremetal
 observability_nodes       → monitoring-1  (standalone VM)
 ```
 
-Group variables are in `inventory/group_vars/` keyed by group name (hyphenated):
-- `observability-control` — full variable set for all control-side services
-- `observability-nodes` — variables for node agents; `loki_remote_url` points to control IP
-- `observability-pve` — minimal flags for PVE host
+Group variables are in `inventory/group_vars/` keyed by group name (underscore):
+- `observability_control` — full variable set for all control-side services
+- `observability_nodes` — variables for node agents; `loki_remote_url` points to control IP
+- `observability_pve` — minimal flags for PVE host
 - `baremetal` — cross-group flags (`alloy_journal_enabled`)
 
 A dynamic Proxmox inventory plugin is configured in `inventory/00_inv.proxmox.yml` but is not yet active; all hosts are currently static.
@@ -146,22 +146,28 @@ Collections are vendored in `collections/ansible_collections/` (gitignored on in
 
 The project is on the `milestone_1` branch. See `milestone_1.md` for the full bug inventory, architectural gaps, security findings, and the phased remediation plan. See `code-review-2026-05-24.md` for the latest code review output (7 confirmed findings, 5-agent parallel review).
 
-**Recently fixed (Phase 2):**
+**Recently fixed (Phase 2, through pass 3 review 2026-05-24):**
 - B2 ✅ — Control compose converted from `copy` to `template`
 - B5 ✅ — Dozzle env path corrected to `/opt/dozzle/dozzle.env`
 - B6 ✅ — Grafana healthcheck URL corrected to `localhost:3000`
+- B8 ✅ — `/opt/dozzle/data` added to node directory creation loop
 - B10 ✅ — `docker-compose.yml` renamed to `docker-compose.yml.j2`
 - B13 ✅ — `.gitignore` typo `groups_vars` → `group_vars`
-- B1 (partial) ✅ — Playbook `hosts:` lines now use underscores matching inventory
+- B1 ✅ — Playbook `hosts:` lines use underscores; `group_vars/` dirs renamed to underscores
+- B3 ✅ — Control compose updated to mount `alloy-config.yml` matching playbook dest
+- B4 ✅ — Control compose updated to mount `loki-config.yml` matching playbook dest
 
-**Current blockers (Phase 2 in progress):**
-- **B1b** — `group_vars/` directories still use hyphens (`observability-control`, `observability-nodes`, `observability-pve`) but groups and playbooks now use underscores — Ansible will load zero vars for all three groups; rename dirs or revert to hyphens throughout
-- **R1** — Regression: `observability_node.yml` Alloy src renamed to `alloy_config.yml.j2` (underscore) but file on disk is `alloy-config.yml.j2`; dest `alloy_config.yaml` no longer matches compose mount `alloy-config.yaml`
-- **B3** — Control Alloy dest is `/opt/alloy/alloy-config.yml.j2`; compose mounts `alloy-config.yaml` — Alloy will not start
-- **B4** — Loki dest is `/opt/loki/loki-config.yml`; compose mounts `loki-config.yaml` — Loki will not start
-- **B18** — `docker_users` passes a bare string UID instead of a list username; use `["{{ ansible_user }}"]`
+**Current blockers (open as of pass 3):**
+- **R1** — `observability_node.yml:45` Alloy src is `alloy_config.yml.j2` (underscore) but file on disk is `alloy-config.yml.j2` (hyphen) — template task fails with file-not-found
+- **Node alloy dest vs mount** — `observability_node.yml:46` deploys `alloy-config.yaml` (`.yaml`) but node compose mounts `alloy-config.yml` (`.yml`) — Alloy starts with no config
+- **B15** — No `when: pve_exporter_enabled` guard on pve-exporter copy task in node playbook — credentials deployed to all nodes regardless of flag
+- **B18** — `docker_users: "{{ ansible_user }}"` is a bare string; `geerlingguy.docker` expects a list — use `["{{ ansible_user }}"]`
 - **B19** — `observability_pve.yml` references non-existent roles `docker_setup` / `node_observability`
 - **B20** — `observability_pve.yml` not imported by `site.yml`; PVE host receives no configuration
+- **B21** — `prometheus.yml.j2` has no scrape targets for `monitoring-1`; VM runs node-exporter, cadvisor, smartctl-exporter but none are scraped
+- **B22** — `observability_nodes` group_vars `loki_remote_url` hardcodes port `3100`; should use `{{ loki_host_port }}` variable
+- **B23** — Node compose Alloy service has no journald volume mounts despite `alloy_journal_enabled: true`; alloy config renders journal block but container can't access `/var/log/journal`
+- **observability_pve.yml hosts** — `hosts: observability-pve` (hyphen) but inventory group is `observability_pve` (underscore) — play targets zero hosts
 
 ## Future homelab vision
 

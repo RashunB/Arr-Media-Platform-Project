@@ -1,0 +1,17 @@
+---
+- name: Create Loki directories
+  ansible.builtin.file:
+    path: /opt/loki
+    owner: ansible
+    group: ansible
+    mode: "0755"
+    state: directory
+
+- name: Copy Loki files
+  ansible.builtin.template:
+    src: observability/loki/loki-config.yml.j2
+    dest: /opt/loki/loki-config.yml
+    owner: ansible
+    group: ansible
+    mode: "0644"
+  notify: Restart Loki

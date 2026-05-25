@@ -1,3 +1,30 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# handlers file for ./roles/observability_control
+- name: Restart Prometheus
+  community.docker.docker_container:
+    name: prometheus
+    state: started
+    restart: true
+
+- name: Restart Loki
+  community.docker.docker_container:
+    name: loki
+    state: started
+    restart: true
+
+- name: Restart Alloy
+  community.docker.docker_container:
+    name: alloy
+    state: started
+    restart: true
+
+- name: Restart Grafana
+  community.docker.docker_container:
+    name: grafana
+    state: started
+    restart: true
+
+- name: Restart Dozzle
+  community.docker.docker_container:
+    name: dozzle
+    state: started
+    restart: true

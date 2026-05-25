@@ -29,19 +29,23 @@ These were bugs on `main` that are resolved on `milestone_1`:
 | 13 | `CLAUDE.md` created at repo root with architecture, vault setup, run commands, and future vision (Phase 0 complete) |
 
 ### Phase 2 Progress (2026-05-24)
-Verified by `/code-review --effort high` — 5-agent parallel review (pass 1) + diff review (pass 2). See `code-review-2026-05-24.md`.
+Verified by `/code-review --effort high` — 5-agent parallel review (pass 1) + diff review (pass 2) + full-file review (pass 3).
 
 | Fix | Status |
 |-----|--------|
 | B2 — Control compose `copy` → `template` module | ✅ CONFIRMED FIXED |
 | B5 — Dozzle env path → `/opt/dozzle/dozzle.env` | ✅ CONFIRMED FIXED |
 | B6 — Grafana healthcheck URL → `localhost:3000` | ✅ CONFIRMED FIXED |
+| B8 — `/opt/dozzle/data` added to node directory loop | ✅ CONFIRMED FIXED (pass 3) |
 | B10 — `docker-compose.yml` renamed to `docker-compose.yml.j2` | ✅ CONFIRMED FIXED |
 | B13 — `.gitignore` typo `groups_vars` → `group_vars` | ✅ CONFIRMED FIXED |
-| B1 — Playbook `hosts:` lines changed to underscore (match inventory) | ✅ FIXED — but exposes B1b (see below) |
-| B14 — `loki_remote_url` now uses `hostvars` lookup | ⚠️ PARTIAL — resolves fully once B1b is fixed |
-| A2 — `alloy_journal_enabled` conditional wired into compose + alloy config | ⚠️ PARTIAL |
-| A3 — `observability_pve.yml` extracted as separate playbook | ⚠️ WIP — broken (B19, B20) |
+| B1 — Playbook `hosts:` lines and `group_vars/` dirs aligned to underscore | ✅ CONFIRMED FIXED (pass 3) |
+| B3 — Control compose updated to mount `alloy-config.yml` (matches dest) | ✅ CONFIRMED FIXED (pass 3) |
+| B4 — Control compose updated to mount `loki-config.yml` (matches dest) | ✅ CONFIRMED FIXED (pass 3) |
+| B14 — `loki_remote_url` uses `hostvars` lookup with correct underscore group name | ✅ CONFIRMED FIXED (pass 3) |
+| B18 — `docker_users` changed from `ansible_facts['user_id']` (numeric UID) to `ansible_user` (username) | ⚠️ PARTIAL — still a bare string; `geerlingguy.docker` expects a list |
+| A2 — `alloy_journal_enabled` conditional wired into alloy config template | ⚠️ PARTIAL — control compose has journald mounts; node compose does not (B23) |
+| A3 — `observability_pve.yml` extracted as separate playbook | ⚠️ WIP — broken (B19, B20, wrong hosts group name) |
 | A5 — `observability_control/` and `observability_node/` role skeletons created | ⚠️ WIP — empty stubs |
 
 ### Still Broken ❌
@@ -50,28 +54,32 @@ Verified by `/code-review --effort high` (5-agent parallel review, 2026-05-24 �
 
 | # | Severity | File | Issue |
 |---|----------|------|-------|
-| B1 | **PARTIAL ⚠️** | `playbooks/observability_control.yml:3`, `observability_node.yml:3` | Playbook `hosts:` lines updated to underscore (match inventory). Remaining gap: `group_vars/` dirs still use hyphens — Ansible will not load any vars for `observability_control`, `observability_nodes`, or `observability_pve` groups. See B1b. |
-| B1b | **CONFIRMED** | `inventory/group_vars/` | `group_vars` directories named `observability-control`, `observability-nodes`, `observability-pve` (hyphens) but groups and playbooks now use underscores. Ansible loads zero vars for all three groups — every service name, port, URL, and flag is undefined. Fix: rename all three dirs to underscores, OR revert everything back to hyphens. |
+| B1 | **FIXED ✅** | `playbooks/observability_control.yml:3`, `observability_node.yml:3` | Playbook `hosts:` lines and `group_vars/` dirs all aligned to underscores. Confirmed in pass 3: `observability_control`, `observability_nodes`, `observability_pve` dirs exist with correct names. |
+| B1b | **FIXED ✅** | `inventory/group_vars/` | `group_vars` directories renamed from hyphens to underscores (`observability_control`, `observability_nodes`, `observability_pve`). Confirmed in pass 3 by reading current file state. |
 | B2 | **FIXED ✅** | `playbooks/observability_control.yml:40` | Control `docker-compose.yml` deployed with `ansible.builtin.copy` but file has Jinja2 variables. Fixed: now uses `ansible.builtin.template` with `docker-compose.yml.j2`. |
-| B3 | **CONFIRMED** | `playbooks/observability_control.yml:105` | Alloy dest `alloy-config.yml.j2` (`.j2` in dest). Compose mounts `/opt/alloy/alloy-config.yaml`. Two different files — Alloy finds no config and crashes. |
-| B4 | **CONFIRMED** | `playbooks/observability_control.yml:96` | Loki dest `/opt/loki/loki-config.yml` (`.yml`). Compose mounts `/opt/loki/loki-config.yaml` (`.yaml`). Extension mismatch — Loki exits with config not found. |
+| B3 | **FIXED ✅** | `playbooks/observability_control.yml:105` | Control compose updated to mount `/opt/alloy/alloy-config.yml` matching playbook dest. Confirmed in pass 3. |
+| B4 | **FIXED ✅** | `playbooks/observability_control.yml:96` | Control compose updated to mount `/opt/loki/loki-config.yml` matching playbook dest. Confirmed in pass 3. |
 | B5 | **FIXED ✅** | `playbooks/observability_control.yml:87` | Dozzle env deployed to `/opt/dozzle/.env`. Fixed: `dest` now `/opt/dozzle/dozzle.env`, matching compose `env_file`. |
 | B6 | **FIXED ✅** | `playbooks/templates/control/observability/docker-compose.yml.j2:106` | Grafana healthcheck rendered to malformed URL. Fixed: healthcheck now uses `http://localhost:3000/api/health`. |
 | B7 | **PLAUSIBLE** | `playbooks/templates/nodes/observability/docker-compose.yml.j2` (cadvisor) | cadvisor has no `ports:` on nodes. `prometheus.yml.j2` scrapes `{{ pve_node_ip }}:{{ cadvisor_host_port }}` (192.168.0.248:8080) — nothing listening on host port. PVE cAdvisor scrape permanently fails. |
-| B8 | **PLAUSIBLE** | `playbooks/observability_node.yml:27` | `/opt/dozzle/data` removed from node directory creation loop. Node compose still mounts it. Docker auto-creates as root-owned — permission conflicts with container user. |
+| B8 | **FIXED ✅** | `playbooks/observability_node.yml:28` | `/opt/dozzle/data` confirmed present in node directory creation loop. Confirmed in pass 3. |
 | B9 | **PLAUSIBLE** | `playbooks/templates/nodes/observability/pve-alloy-forwarder.conf.j2:3` | Hardcoded `hostvars['monitoring-1']['ansible_host']` — if monitoring-1 not in scope when PVE play runs, template render fails with undefined variable. |
 | B10 | **FIXED ✅** | `playbooks/templates/control/observability/` | No `.j2` extension on docker-compose file. Fixed: file renamed to `docker-compose.yml.j2`. |
 | B11 | — | `playbooks/templates/nodes/observability/docker-compose.yml.j2:78` | `pve-exporter` mounts `/var/run/docker.sock` unnecessarily — grants full Docker daemon access to a container that only needs Proxmox API access. |
 | B12 | — | Both alloy templates | `loki.source.syslog` block still present — rsyslog approach not yet replaced with journald. |
 | B13 | **FIXED ✅** | `ansible/.gitignore:51` | Typo `**/groups_vars` → `**/group_vars`. Fixed in root `.gitignore`. |
-| B14 | **PARTIAL ⚠️** | `inventory/group_vars/observability-nodes:8` | `loki_remote_url` hardcoded IP replaced with `hostvars[groups['observability-control'][0]]['ansible_host']` — but `observability-control` (hyphen) does not exist in inventory (group is `observability_control` with underscore). Lookup returns empty list → index error at runtime. Fully fixed once B1 is resolved. |
+| B14 | **FIXED ✅** | `inventory/group_vars/observability_nodes:8` | `control_host_ip` now uses `hostvars[groups['observability_control'][0]]['ansible_host']` (underscore). Confirmed in pass 3 by reading current file. |
 | B15 | **NEW** | `playbooks/observability_node.yml:5` | No `when: pve_exporter_enabled` guard on pve-exporter tasks in the nodes play. The `pve_exporter_enabled: true` flag in group_vars is set but not enforced — pve-exporter deploys to every observability-node regardless of the flag. |
 | B16 | **NEW** | `collections/ansible_collections/` | `fedora.linux_system_roles` (v1.122.0) is installed under `collections/` but absent from `requirements.yml` and unused in any playbook. Either add to `requirements.yml` with an explicit version or remove. Undeclared dependencies break `ansible-galaxy collection install -r requirements.yml` reproducibility. |
 | B17 | **NEW** | `requirements.yml:3` | `community.proxmox` is pinned `>=1.0.0` with no upper bound. v2.0.0 (a major bump) is installed. Pin to `>=1.0.0,<3.0.0` or the installed version to prevent silent breaking changes on next install. |
 | R1 | **REGRESSION** | `playbooks/observability_node.yml:44-45` | Alloy config src renamed to `alloy_config.yml.j2` (underscore) but the file on disk is `alloy-config.yml.j2` (hyphen) — template task fails with file-not-found. Alloy dest renamed to `/opt/alloy/alloy_config.yaml` (underscore) but `docker-compose.yml.j2` mounts `/opt/alloy/alloy-config.yaml` (hyphen) — new path mismatch. Introduced in commit `4c7e6e4`. |
-| B18 | **CONFIRMED** | `playbooks/observability_control.yml:11`, `playbooks/observability_node.yml:12` | `docker_users: "{{ ansible_facts['user_id'] }}"` passes a bare string containing a numeric UID to `geerlingguy.docker`, which expects a list of usernames. `with_items` on a string iterates characters; a UID is not a valid username. Fix: `docker_users: ["{{ ansible_user }}"]`. |
+| B18 | **PARTIAL ⚠️** | `playbooks/observability_control.yml:11`, `playbooks/observability_node.yml:12` | `ansible_facts['user_id']` (numeric UID) replaced with `ansible_user` (username string) — UID problem resolved. Still a bare string; `geerlingguy.docker` documents `docker_users` as a list. Fix: `docker_users: ["{{ ansible_user }}"]`. |
 | B19 | **CONFIRMED** | `playbooks/observability_pve.yml:7-8` | `observability_pve.yml` references roles `docker_setup` and `node_observability` — neither exists in `ansible/roles/`. Playbook hard-fails with "role not found" on any invocation. The comment "inline tasks for now" is incorrect; there are no inline tasks. |
 | B20 | **CONFIRMED** | `playbooks/site.yml` | `observability_pve.yml` is not imported by `site.yml`. Running the full `site.yml` silently skips all PVE host configuration. |
+| B21 | **NEW (pass 3)** | `templates/control/observability/prometheus/prometheus.yml.j2` | No scrape jobs for `monitoring-1`. The VM runs node-exporter (9100), cadvisor (8080), smartctl-exporter (9633), and pve-exporter (9221) but Prometheus never scrapes it. Fix: add four scrape jobs — either static targets from a new `monitoring_nodes_ip` variable, or loop over `groups['observability_nodes']` with `hostvars`. |
+| B22 | **NEW (pass 3)** | `inventory/group_vars/observability_nodes:39` | `loki_remote_url` hardcodes port `3100` instead of using `{{ loki_host_port }}`. `observability_nodes` doesn't inherit control group_vars; if the Loki port changes in `observability_control`, nodes silently diverge. Fix: define `loki_host_port: 3100` in `observability_nodes` group_vars and reference it. |
+| B23 | **NEW (pass 3)** | `templates/nodes/observability/docker-compose.yml.j2` | Node compose Alloy service mounts only config + docker.sock — no journald paths. `observability_nodes` has `alloy_journal_enabled: true`, so the alloy config renders `loki.source.journal` referencing `/var/log/journal`, but the path is not mounted. Alloy on nodes errors on startup and journal collection fails silently. Fix: add the same `{% if alloy_journal_enabled %}` volume block that the control compose already has. |
+| B24 | **NEW (pass 3)** | `playbooks/observability_pve.yml:3` | `hosts: observability-pve` (hyphen) but inventory declares `[observability_pve]` (underscore). Play silently runs against zero hosts even after B19/B20 are fixed. Fix: `hosts: observability_pve`. |
 
 ### Architectural Gaps (not bugs, but blockers for pipeline goal)
 
@@ -85,6 +93,7 @@ Verified by `/code-review --effort high` (5-agent parallel review, 2026-05-24 �
 | A6 | **NEW** | No `.ansible-lint` config file in `ansible/`. Phase 0 tasks called for adding lint config, but the file was never created. A minimal config committing to `yaml[truthy]`, `name[casing]`, and `fqcn[action-core]` rules should be in `ansible/.ansible-lint`. |
 | A7 | **NEW** | Dynamic Proxmox inventory (`inventory/00_inv.proxmox.yml`) is configured and the `community.proxmox` plugin is enabled in `ansible.cfg`, but all hosts remain static. As the VM fleet grows, this becomes the path to zero-touch host onboarding. Document as a planned Phase 4+ migration. |
 | A8 | **NEW** | `inventory/host_vars/` is an empty directory. Either remove it (reduces confusion) or add a `README` or `.gitkeep` noting it's reserved for per-host overrides as the fleet grows. |
+| A9 | **NEW (pass 3)** | `dozzle.env.j2` connects to PVE Dozzle agent only (`{{ dozzle_agent_pve_ip }}:{{ dozzle_agent_port }}`). `monitoring-1` runs Dozzle agent on port 7007 but control Dozzle never points at it — VM container logs are invisible in the UI. Fix: build `DOZZLE_REMOTE_AGENT` from inventory, or add a second agent entry with a `monitoring_1_ip` variable. |
 
 ---
 
@@ -594,28 +603,33 @@ Each stack's Terraform deployment module gains a `network_bridge` variable. PiHo
 
 | Bug | File | Line | Fix | Status |
 |-----|------|------|-----|--------|
-| B1 | `playbooks/observability_control.yml`, `observability_node.yml` | 3 | `hosts:` lines fixed to underscore ✅ — see B1b for remaining gap | PARTIAL |
-| B1b | `inventory/group_vars/` | dirs | Rename `observability-control/`, `observability-nodes/`, `observability-pve/` → underscore; OR revert `hosts:` and inventory to hyphens throughout | OPEN |
-| R1 | `playbooks/observability_node.yml` | 44–45 | Revert `alloy_config` → `alloy-config` in both `src` and `dest` to match the file on disk and the compose mount | OPEN |
+| B1 | `playbooks/observability_control.yml`, `observability_node.yml` | 3 | `hosts:` lines and `group_vars/` dirs aligned to underscore | ✅ FIXED |
+| B1b | `inventory/group_vars/` | dirs | `group_vars` dirs renamed to underscore | ✅ FIXED |
+| R1 | `playbooks/observability_node.yml` | 45 | `src: observability/alloy/alloy-config.yml.j2` (hyphen, matches disk) | OPEN |
+| Node alloy dest | `playbooks/observability_node.yml` | 46 | `dest: /opt/alloy/alloy-config.yml` (`.yml` to match node compose mount) | OPEN |
 | B2 | `playbooks/observability_control.yml` | 40 | `copy:` → `template:`, add `.j2` to src | ✅ FIXED |
-| B3 | `playbooks/observability_control.yml` | 105 | dest: `alloy-config.yaml` (drop `.j2` suffix) | OPEN |
-| B4 | `playbooks/observability_control.yml` | 96 | dest: `loki-config.yaml` (`.yml` → `.yaml`) | OPEN |
+| B3 | `templates/control/.../docker-compose.yml.j2` | 125 | Compose mount updated to `alloy-config.yml` matching dest | ✅ FIXED |
+| B4 | `templates/control/.../docker-compose.yml.j2` | 145 | Compose mount updated to `loki-config.yml` matching dest | ✅ FIXED |
 | B5 | `playbooks/observability_control.yml` | 88 | dest: `dozzle.env` (not `.env`) | ✅ FIXED |
-| B6 | `templates/control/.../docker-compose.yml.j2` | 106 | healthcheck URL: `localhost:3000` | ✅ FIXED |
-| B7 | `templates/nodes/.../docker-compose.yml.j2` | cadvisor | Add `ports:` mapping for cadvisor | OPEN |
-| B8 | `playbooks/observability_node.yml` | dirs loop | Add `/opt/dozzle/data` to directory creation loop | OPEN |
-| B9 | `templates/nodes/.../pve-alloy-forwarder.conf.j2` | 3 | Delete file entirely (rsyslog removed in Phase 3) | OPEN |
+| B6 | `templates/control/.../docker-compose.yml.j2` | 108 | healthcheck URL: `localhost:3000` | ✅ FIXED |
+| B7 | `templates/nodes/.../docker-compose.yml.j2` | cadvisor | Add `ports:` mapping for cadvisor on nodes | OPEN |
+| B8 | `playbooks/observability_node.yml` | dirs loop | `/opt/dozzle/data` now in loop | ✅ FIXED |
+| B9 | `templates/nodes/.../pve-alloy-forwarder.conf.j2` | — | Delete file entirely (rsyslog removed in Phase 3) | OPEN |
 | B10 | `templates/control/.../docker-compose.yml` | — | Rename to `.j2` | ✅ FIXED |
-| B11 | `templates/nodes/.../docker-compose.yml.j2` | 78 | Remove docker.sock from pve-exporter volumes | OPEN |
+| B11 | `templates/nodes/.../docker-compose.yml.j2` | 79 | Remove docker.sock from pve-exporter volumes | OPEN |
 | B12 | Both alloy templates | 1–11 | Remove `loki.source.syslog`; add `loki.source.journal` conditional (Phase 3) | OPEN |
 | B13 | `.gitignore` | 51 | `**/groups_vars` → `**/group_vars` | ✅ FIXED |
-| B14 | `inventory/group_vars/observability-nodes` | 8 | hostvars lookup now present — fix group name to `observability_control` (underscore) when B1 is resolved | PARTIAL |
+| B14 | `inventory/group_vars/observability_nodes` | 8 | `groups['observability_control']` (underscore) confirmed correct | ✅ FIXED |
 | B15 | `playbooks/observability_node.yml` | pve-exporter tasks | Add `when: pve_exporter_enabled \| default(false)` guard | OPEN |
 | B16 | `requirements.yml` | — | Add `fedora.linux_system_roles` or remove from `collections/` | OPEN |
 | B17 | `requirements.yml` | 6 | `community.proxmox: >=1.0.0` → add upper bound `<3.0.0` | OPEN |
-| B18 | `playbooks/observability_control.yml`, `observability_node.yml` | 11/12 | `docker_users: ["{{ ansible_user }}"]` (list of username, not string UID) | OPEN |
+| B18 | `playbooks/observability_control.yml`, `observability_node.yml` | 11/12 | `docker_users: ["{{ ansible_user }}"]` (explicit list) | OPEN |
 | B19 | `playbooks/observability_pve.yml` | 7–8 | Replace role references with inline tasks (roles don't exist yet) | OPEN |
 | B20 | `playbooks/site.yml` | — | Add `import_playbook: observability_pve.yml` | OPEN |
+| B21 | `templates/control/.../prometheus/prometheus.yml.j2` | — | Add scrape jobs for monitoring-1 (node-exporter, cadvisor, smartctl, pve-exporter) | OPEN |
+| B22 | `inventory/group_vars/observability_nodes` | 39 | `loki_remote_url` hardcodes port 3100; define `loki_host_port: 3100` in nodes group_vars and use it | OPEN |
+| B23 | `templates/nodes/observability/docker-compose.yml.j2` | alloy volumes | Add `{% if alloy_journal_enabled %}` journald volume block to node compose Alloy service | OPEN |
+| B24 | `playbooks/observability_pve.yml` | 3 | `hosts: observability_pve` (underscore — matches inventory) | OPEN |
 
 ---
 
@@ -652,6 +666,7 @@ Address HIGH findings before closing milestone 1; MEDIUM findings are acceptable
 
 | # | File | Finding | Fix |
 |---|------|---------|-----|
+| S14 | **NEW (pass 3)** `playbooks/observability_node.yml:37` | `pve.yml` (vault-decrypted PVE API credentials) deployed with `mode: "0644"` — world-readable on the target node. Any local user on the node can read the PVE API token. | Change to `mode: "0600"`. Only the Ansible user and the pve-exporter container (which reads it as a volume) need access. |
 | S10 | `ansible/requirements.yml` | `community.proxmox` collection has no upper version bound (`>=1.0.0` only). A breaking major release auto-installs and silently changes module behaviour or parameter names. | Change to `>=1.0.0,<2.0.0`. Bump the upper bound intentionally after testing, not automatically. |
 | S11 | `ansible/inventory/group_vars/observability-nodes` | Internal IP `192.168.0.248` is committed to git history and will remain there even if the file is later changed. Not a secret, but leaks topology information from any public fork or repo exposure. | Low risk for a private homelab repo. If repo goes public: `git filter-repo --path-glob '*/group_vars/*' --invert-paths` or BFG to rewrite history. Document the IP range is RFC1918 and non-routable. |
 | S12 | `templates/control/observability/docker-compose.yml` | Grafana healthcheck renders to `http://{{ grafana_host_port }}:3000/api/health` → `http://3000:3000/api/health` (port number used as hostname). Covered as B6 in bug table. Security impact: Docker marks Grafana permanently unhealthy, which can trigger automated restarts in production setups. | Fix already tracked in bug table: change to `http://localhost:3000/api/health`. |

@@ -1,0 +1,39 @@
+---
+- name: Create Grafana directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: ansible
+    group: ansible
+    mode: "0755"
+    state: directory
+  loop:
+    - /opt/grafana/data
+    - /opt/grafana/provisioning/datasources
+    - /opt/grafana/provisioning/dashboards
+
+- name: Copy Grafana datasource - prometheus
+  ansible.builtin.template:
+    src: control/observability/grafana/provisioning/datasources/prometheus.yml.j2
+    dest: /opt/grafana/provisioning/datasources/prometheus.yml
+    owner: ansible
+    group: ansible
+    mode: "0644"
+  notify: Restart Grafana
+
+- name: Copy Grafana datasource - loki
+  ansible.builtin.template:
+    src: control/observability/grafana/provisioning/datasources/loki.yml.j2
+    dest: /opt/grafana/provisioning/datasources/loki.yml
+    owner: ansible
+    group: ansible
+    mode: "0644"
+  notify: Restart Grafana
+
+- name: Copy Grafana dashboard files
+  ansible.builtin.copy:
+    src: control/observability/grafana/provisioning/dashboards/
+    dest: /opt/grafana/provisioning/dashboards/
+    owner: ansible
+    group: ansible
+    mode: "0644"
+  notify: Restart Grafana
