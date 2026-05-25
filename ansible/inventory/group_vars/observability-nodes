@@ -1,7 +1,11 @@
 ---
+alloy_journal_enabled: true
+pve_exporter_enabled: true
+rsyslog_port: 514
+
 cluster_name: homelab
 
-control_host_ip: "192.168.0.60"
+control_host_ip: "{{ hostvars[ groups['observability-control'][0] ]['ansible_host'] }}"
 
 prometheus_name: prometheus
 prometheus_hostname: prometheus
@@ -10,7 +14,6 @@ prometheus_con_port: 9090
 
 node_exporter_name: node-exporter
 node_exporter_host_port: 9100
-
 
 cadvisor_name: cadvisor
 cadvisor_hostname: cadvisor
@@ -32,6 +35,5 @@ alloy_name: alloy
 alloy_hostname: alloy
 alloy_host_port: 12345
 alloy_con_port: 12345
-rsyslog_port: 514
 
 loki_remote_url: "http://{{ control_host_ip }}:3100/loki/api/v1/push"

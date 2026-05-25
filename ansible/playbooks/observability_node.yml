@@ -4,6 +4,7 @@
   become: true
   force_handlers: true
   tasks:
+    
     - name: Import geerlingguy.docker role
       ansible.builtin.import_role:
         name: geerlingguy.docker
@@ -40,7 +41,7 @@
 
     - name: Deploy Alloy config
       ansible.builtin.template:
-        src: nodes/observability/alloy/alloy-config.yml.j2
+        src: observability/alloy/alloy-config.yml.j2
         dest: /opt/alloy/alloy-config.yaml
         owner: ansible
         group: ansible
@@ -73,33 +74,3 @@
         name: pve-exporter
         state: started
         restart: true
-
-- name: Observability Stack Node - PVE
-  hosts: pve
-  become: true
-  tasks:
-    - name: Install Rsyslog
-      ansible.builtin.apt:
-        name: rsyslog
-        state: present
-
-    - name: Enable rsyslog
-      ansible.builtin.systemd:
-        name: rsyslog
-        state: started
-        enabled: true
-
-    - name: Copy rsyslog exporter conf
-      ansible.builtin.template:
-        src: nodes/observability/pve-alloy-forwarder.conf.j2
-        dest: /etc/rsyslog.d/50-alloy-forward.conf
-        owner: root
-        group: root
-        mode: "0644"
-      notify: Restart rsyslog
-
-  handlers:
-    - name: Restart rsyslog
-      ansible.builtin.systemd:
-        name: rsyslog
-        state: restarted

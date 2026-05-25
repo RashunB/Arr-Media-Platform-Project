@@ -1,14 +1,14 @@
-loki.source.syslog "proxmox" {
-  listener {
-    address  = "0.0.0.0:{{ rsyslog_port }}"
-    protocol = "tcp"
+{% if alloy_journal_enabled %}
+loki.source.journal "system" {
+    path = "/var/log/journal"
+    max_age = "12h"
     labels = {
-      job    = "control_rsyslog",
-      source = "control-host",
+      job    = "journal",
+      source = "{{ inventory_hostname }}",
     }
-  }
   forward_to = [loki.write.default.receiver]
 }
+{% endif %}
 
 discovery.docker "docker_scrape" {
   host  = "unix:///var/run/docker.sock"
