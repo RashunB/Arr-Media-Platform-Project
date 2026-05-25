@@ -1,0 +1,8 @@
+---
+- name: Observability Stack PVE
+  hosts: observability-pve
+  become: true
+  force_handlers: true
+  roles:
+    - role: docker_setup          # Phase 5 item — inline tasks for now
+    - role: node_observability

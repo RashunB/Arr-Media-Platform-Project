@@ -1,6 +1,6 @@
 ---
 - name: Observability Stack Control
-  hosts: observability-control
+  hosts: observability_control
   become: true
   force_handlers: true
   tasks:

@@ -1,6 +1,6 @@
 ---
 - name: Observability Stack Nodes
-  hosts: observability-nodes
+  hosts: observability_nodes
   become: true
   force_handlers: true
   tasks:
@@ -41,8 +41,8 @@
 
     - name: Deploy Alloy config
       ansible.builtin.template:
-        src: observability/alloy/alloy-config.yml.j2
-        dest: /opt/alloy/alloy-config.yaml
+        src: observability/alloy/alloy_config.yml.j2
+        dest: /opt/alloy/alloy_config.yaml
         owner: ansible
         group: ansible
         mode: "0644"
