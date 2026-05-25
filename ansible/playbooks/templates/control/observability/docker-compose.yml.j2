@@ -62,6 +62,8 @@ services:
     container_name: "{{ cadvisor_name }}"
     pull_policy: always
     restart: unless-stopped
+    ports:
+      - "{{ cadvisor_host_port }}:8080/tcp"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -120,7 +122,7 @@ services:
     ports:
       - "{{ alloy_host_port }}:{{ alloy_con_port }}"
     volumes:
-      - /opt/alloy/alloy-config.yaml:/etc/alloy/config.alloy:ro
+      - /opt/alloy/alloy-config.yml:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock
 {% if alloy_journal_enabled %}
       - /var/log/journal:/var/log/journal:ro
@@ -140,7 +142,7 @@ services:
     ports:
       - "{{ loki_host_port }}:3100/tcp"
     volumes:
-      - /opt/loki/loki-config.yaml:/etc/loki/config.yaml
+      - /opt/loki/loki-config.yml:/etc/loki/config.yaml
       - /opt/loki/data:/loki
     healthcheck:
       test: ["CMD", "/usr/bin/loki", "-health"]

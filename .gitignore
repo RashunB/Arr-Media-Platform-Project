@@ -49,7 +49,10 @@ terraform.rc
 **/vault
 playbooks/vars
 **/group_vars
+**/group_vars/*
 **/host_vars
+**/host_vars/*
+
 # Retry files generated for failed Ansible playbook runs
 *.retry
 

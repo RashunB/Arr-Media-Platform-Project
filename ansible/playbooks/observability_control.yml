@@ -8,7 +8,7 @@
       ansible.builtin.import_role:
         name: geerlingguy.docker
       vars:
-        docker_users: "{{ ansible_facts['user_id'] }}"
+        docker_users: "{{ ansible_user }}"
 
     - name: Import geerlingguy.pip role
       ansible.builtin.import_role:
@@ -102,7 +102,7 @@
     - name: Copy Alloy files
       ansible.builtin.template:
         src: observability/alloy/alloy-config.yml.j2
-        dest: /opt/alloy/alloy-config.yml.j2
+        dest: /opt/alloy/alloy-config.yml
         owner: ansible
         group: ansible
         mode: "0644"

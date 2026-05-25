@@ -9,7 +9,7 @@
       ansible.builtin.import_role:
         name: geerlingguy.docker
       vars:
-        docker_users: "{{ ansible_facts['user_id'] }}"
+        docker_users: "{{ ansible_user }}"
 
     - name: Import geerlingguy.pip role
       ansible.builtin.import_role:
@@ -29,6 +29,7 @@
         - /opt/pve-exporter
         - /opt/docker
         - /opt/alloy
+        - /opt/dozzle/data
 
     - name: Copy pve-exporter config file
       ansible.builtin.copy:
@@ -42,7 +43,7 @@
     - name: Deploy Alloy config
       ansible.builtin.template:
         src: observability/alloy/alloy_config.yml.j2
-        dest: /opt/alloy/alloy_config.yaml
+        dest: /opt/alloy/alloy-config.yaml
         owner: ansible
         group: ansible
         mode: "0644"

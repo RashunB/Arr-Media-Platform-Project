@@ -29,7 +29,7 @@ These were bugs on `main` that are resolved on `milestone_1`:
 | 13 | `CLAUDE.md` created at repo root with architecture, vault setup, run commands, and future vision (Phase 0 complete) |
 
 ### Phase 2 Progress (2026-05-24)
-Verified by `/code-review --effort high` — 5-agent parallel review. See `code-review-2026-05-24.md`.
+Verified by `/code-review --effort high` — 5-agent parallel review (pass 1) + diff review (pass 2). See `code-review-2026-05-24.md`.
 
 | Fix | Status |
 |-----|--------|
@@ -38,7 +38,8 @@ Verified by `/code-review --effort high` — 5-agent parallel review. See `code-
 | B6 — Grafana healthcheck URL → `localhost:3000` | ✅ CONFIRMED FIXED |
 | B10 — `docker-compose.yml` renamed to `docker-compose.yml.j2` | ✅ CONFIRMED FIXED |
 | B13 — `.gitignore` typo `groups_vars` → `group_vars` | ✅ CONFIRMED FIXED |
-| B14 — `loki_remote_url` now uses `hostvars` lookup | ⚠️ PARTIAL — group name still wrong (B1 dependency) |
+| B1 — Playbook `hosts:` lines changed to underscore (match inventory) | ✅ FIXED — but exposes B1b (see below) |
+| B14 — `loki_remote_url` now uses `hostvars` lookup | ⚠️ PARTIAL — resolves fully once B1b is fixed |
 | A2 — `alloy_journal_enabled` conditional wired into compose + alloy config | ⚠️ PARTIAL |
 | A3 — `observability_pve.yml` extracted as separate playbook | ⚠️ WIP — broken (B19, B20) |
 | A5 — `observability_control/` and `observability_node/` role skeletons created | ⚠️ WIP — empty stubs |
@@ -49,7 +50,8 @@ Verified by `/code-review --effort high` (5-agent parallel review, 2026-05-24 �
 
 | # | Severity | File | Issue |
 |---|----------|------|-------|
-| B1 | **CONFIRMED** | `inventory/10_observability.ini:1` | Group declared as `[observability_control:children]` (underscore) but playbook targets `hosts: observability-control` (hyphen) and group_vars file is `observability-control` (hyphen). Three-way mismatch — play runs against zero hosts, all vars undefined. |
+| B1 | **PARTIAL ⚠️** | `playbooks/observability_control.yml:3`, `observability_node.yml:3` | Playbook `hosts:` lines updated to underscore (match inventory). Remaining gap: `group_vars/` dirs still use hyphens — Ansible will not load any vars for `observability_control`, `observability_nodes`, or `observability_pve` groups. See B1b. |
+| B1b | **CONFIRMED** | `inventory/group_vars/` | `group_vars` directories named `observability-control`, `observability-nodes`, `observability-pve` (hyphens) but groups and playbooks now use underscores. Ansible loads zero vars for all three groups — every service name, port, URL, and flag is undefined. Fix: rename all three dirs to underscores, OR revert everything back to hyphens. |
 | B2 | **FIXED ✅** | `playbooks/observability_control.yml:40` | Control `docker-compose.yml` deployed with `ansible.builtin.copy` but file has Jinja2 variables. Fixed: now uses `ansible.builtin.template` with `docker-compose.yml.j2`. |
 | B3 | **CONFIRMED** | `playbooks/observability_control.yml:105` | Alloy dest `alloy-config.yml.j2` (`.j2` in dest). Compose mounts `/opt/alloy/alloy-config.yaml`. Two different files — Alloy finds no config and crashes. |
 | B4 | **CONFIRMED** | `playbooks/observability_control.yml:96` | Loki dest `/opt/loki/loki-config.yml` (`.yml`). Compose mounts `/opt/loki/loki-config.yaml` (`.yaml`). Extension mismatch — Loki exits with config not found. |
@@ -66,6 +68,7 @@ Verified by `/code-review --effort high` (5-agent parallel review, 2026-05-24 �
 | B15 | **NEW** | `playbooks/observability_node.yml:5` | No `when: pve_exporter_enabled` guard on pve-exporter tasks in the nodes play. The `pve_exporter_enabled: true` flag in group_vars is set but not enforced — pve-exporter deploys to every observability-node regardless of the flag. |
 | B16 | **NEW** | `collections/ansible_collections/` | `fedora.linux_system_roles` (v1.122.0) is installed under `collections/` but absent from `requirements.yml` and unused in any playbook. Either add to `requirements.yml` with an explicit version or remove. Undeclared dependencies break `ansible-galaxy collection install -r requirements.yml` reproducibility. |
 | B17 | **NEW** | `requirements.yml:3` | `community.proxmox` is pinned `>=1.0.0` with no upper bound. v2.0.0 (a major bump) is installed. Pin to `>=1.0.0,<3.0.0` or the installed version to prevent silent breaking changes on next install. |
+| R1 | **REGRESSION** | `playbooks/observability_node.yml:44-45` | Alloy config src renamed to `alloy_config.yml.j2` (underscore) but the file on disk is `alloy-config.yml.j2` (hyphen) — template task fails with file-not-found. Alloy dest renamed to `/opt/alloy/alloy_config.yaml` (underscore) but `docker-compose.yml.j2` mounts `/opt/alloy/alloy-config.yaml` (hyphen) — new path mismatch. Introduced in commit `4c7e6e4`. |
 | B18 | **CONFIRMED** | `playbooks/observability_control.yml:11`, `playbooks/observability_node.yml:12` | `docker_users: "{{ ansible_facts['user_id'] }}"` passes a bare string containing a numeric UID to `geerlingguy.docker`, which expects a list of usernames. `with_items` on a string iterates characters; a UID is not a valid username. Fix: `docker_users: ["{{ ansible_user }}"]`. |
 | B19 | **CONFIRMED** | `playbooks/observability_pve.yml:7-8` | `observability_pve.yml` references roles `docker_setup` and `node_observability` — neither exists in `ansible/roles/`. Playbook hard-fails with "role not found" on any invocation. The comment "inline tasks for now" is incorrect; there are no inline tasks. |
 | B20 | **CONFIRMED** | `playbooks/site.yml` | `observability_pve.yml` is not imported by `site.yml`. Running the full `site.yml` silently skips all PVE host configuration. |
@@ -225,7 +228,7 @@ test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/
 Remove the `/var/run/docker.sock:/var/run/docker.sock` volume from `prometheus-pve-exporter` service.
 
 **B14 — Fix group name in loki_remote_url lookup** (`inventory/group_vars/observability-nodes:8`):
-After B1 is fixed (group renamed to `observability-control`), the existing hostvars lookup will work correctly. Verify the port still references `{{ loki_host_port }}` not a hardcoded value.
+Once B1b is resolved (group_vars dirs renamed to underscores), change `groups['observability-control']` → `groups['observability_control']` to match the inventory group name. Verify `loki_host_port` is used instead of a hardcoded port.
 
 **B15 — Add pve_exporter_enabled guard to nodes play** (`observability_node.yml`):
 Wrap all pve-exporter tasks with:
@@ -591,7 +594,9 @@ Each stack's Terraform deployment module gains a `network_bridge` variable. PiHo
 
 | Bug | File | Line | Fix | Status |
 |-----|------|------|-----|--------|
-| B1 | `inventory/10_observability.ini` | 1 | `[observability_control:children]` → `[observability-control]`; fix all hostvars lookups to match | OPEN |
+| B1 | `playbooks/observability_control.yml`, `observability_node.yml` | 3 | `hosts:` lines fixed to underscore ✅ — see B1b for remaining gap | PARTIAL |
+| B1b | `inventory/group_vars/` | dirs | Rename `observability-control/`, `observability-nodes/`, `observability-pve/` → underscore; OR revert `hosts:` and inventory to hyphens throughout | OPEN |
+| R1 | `playbooks/observability_node.yml` | 44–45 | Revert `alloy_config` → `alloy-config` in both `src` and `dest` to match the file on disk and the compose mount | OPEN |
 | B2 | `playbooks/observability_control.yml` | 40 | `copy:` → `template:`, add `.j2` to src | ✅ FIXED |
 | B3 | `playbooks/observability_control.yml` | 105 | dest: `alloy-config.yaml` (drop `.j2` suffix) | OPEN |
 | B4 | `playbooks/observability_control.yml` | 96 | dest: `loki-config.yaml` (`.yml` → `.yaml`) | OPEN |

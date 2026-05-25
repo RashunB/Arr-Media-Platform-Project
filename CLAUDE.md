@@ -152,12 +152,14 @@ The project is on the `milestone_1` branch. See `milestone_1.md` for the full bu
 - B6 ✅ — Grafana healthcheck URL corrected to `localhost:3000`
 - B10 ✅ — `docker-compose.yml` renamed to `docker-compose.yml.j2`
 - B13 ✅ — `.gitignore` typo `groups_vars` → `group_vars`
+- B1 (partial) ✅ — Playbook `hosts:` lines now use underscores matching inventory
 
 **Current blockers (Phase 2 in progress):**
-- **B1** — Group name mismatch: inventory declares `observability_control` (underscore); playbook targets `observability-control` (hyphen); `group_vars/observability-nodes` lookup uses the same wrong hyphen form
-- **B3** — Alloy config dest is `/opt/alloy/alloy-config.yml.j2`; compose mounts `alloy-config.yaml` — Alloy will not start
-- **B4** — Loki config dest is `/opt/loki/loki-config.yml`; compose mounts `loki-config.yaml` — Loki will not start
-- **B18** — `docker_users` passes a bare string UID instead of a list username to `geerlingguy.docker`; use `["{{ ansible_user }}"]`
+- **B1b** — `group_vars/` directories still use hyphens (`observability-control`, `observability-nodes`, `observability-pve`) but groups and playbooks now use underscores — Ansible will load zero vars for all three groups; rename dirs or revert to hyphens throughout
+- **R1** — Regression: `observability_node.yml` Alloy src renamed to `alloy_config.yml.j2` (underscore) but file on disk is `alloy-config.yml.j2`; dest `alloy_config.yaml` no longer matches compose mount `alloy-config.yaml`
+- **B3** — Control Alloy dest is `/opt/alloy/alloy-config.yml.j2`; compose mounts `alloy-config.yaml` — Alloy will not start
+- **B4** — Loki dest is `/opt/loki/loki-config.yml`; compose mounts `loki-config.yaml` — Loki will not start
+- **B18** — `docker_users` passes a bare string UID instead of a list username; use `["{{ ansible_user }}"]`
 - **B19** — `observability_pve.yml` references non-existent roles `docker_setup` / `node_observability`
 - **B20** — `observability_pve.yml` not imported by `site.yml`; PVE host receives no configuration
 

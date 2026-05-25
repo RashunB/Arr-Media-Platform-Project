@@ -1,4 +1,0 @@
----
-alloy_journal_enabled: true
-pve_exporter_enabled: true
-rsyslog_port: 514

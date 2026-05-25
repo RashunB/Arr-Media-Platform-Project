@@ -39,6 +39,8 @@ services:
     container_name: cadvisor
     pull_policy: always
     restart: unless-stopped
+    ports:
+      - "{{ cadvisor_host_port }}:8080/tcp"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -74,7 +76,6 @@ services:
     security_opt:
       - no-new-privileges:true
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
       - /opt/pve-exporter:/etc/prometheus
     networks:
       - observability
@@ -89,7 +90,7 @@ services:
       - "{{ alloy_host_port }}:{{ alloy_con_port }}"
       - "{{ rsyslog_port }}:514/tcp"
     volumes:
-      - /opt/alloy/alloy-config.yaml:/etc/alloy/config.alloy:ro
+      - /opt/alloy/alloy-config.yml:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - observability    
