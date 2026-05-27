@@ -35,6 +35,18 @@ Branch: `milestone_1`
 | CR-12 / B17 | `requirements.yml` | `community.proxmox` no version upper bound | Open |
 | CR-13 / B22 | `observability_nodes` group_vars | `loki_remote_url` hardcodes port `3100` | Open |
 
+### Phase 3 — Medium / Low Priority
+
+| ID | File | Description | Status |
+|----|------|-------------|--------|
+| CR-14 | `observability_nodes` group_vars | No empty-group guard on `groups['observability_control'][0]` — raises `UndefinedError` if group is empty | Open |
+| CR-15 | `roles/observability_control/`, `roles/observability_node/` | Role task stubs reference templates not yet migrated to role `templates/` dirs | Open |
+| B7 | nodes `docker-compose.yml.j2` | cAdvisor has no `ports:` binding — container runs but Prometheus cannot scrape port 8080 | Open |
+| B11 / S2 | nodes `docker-compose.yml.j2` | pve-exporter mounts `/var/run/docker.sock` unnecessarily — remove volume | Open |
+| S3 | All compose templates | All images use `:latest` + `pull_policy: always`; no pinned versions | Open |
+| S4 | `observability_control.yml` / group_vars | Grafana starts with default `admin/admin` credentials; not overridden by Ansible | Open |
+| A9 | nodes `docker-compose.yml.j2` | Dozzle env only references PVE agent; monitoring-1 Dozzle agent invisible to control Dozzle | Open |
+
 ### Fixed
 
 | Bug | Fix |
@@ -45,8 +57,19 @@ Branch: `milestone_1`
 | B4 | Control compose: Loki config mount path corrected |
 | B5 | Dozzle env path corrected |
 | B6 | Grafana healthcheck URL corrected |
+| B8 | `/opt/dozzle/data` added to node directory creation loop |
 | B10 | `docker-compose.yml` renamed to `.j2` |
 | B13 | `.gitignore` typo `groups_vars` → `group_vars` |
+| B14 | (confirmed fixed per pass 4 review — see [[sources/code-review-2026-05-24]]) |
+
+---
+
+## IP Discrepancy Note
+
+> [!warning] PVE IP Conflict
+> `docs/raw/milestone_1.md` (pass 4, 2026-05-25) lists PVE at `192.168.0.248`.
+> `CLAUDE.md`, inventory files, and the wiki use `192.168.0.63`.
+> The inventory is authoritative — confirm the correct IP before the next playbook run.
 
 ---
 

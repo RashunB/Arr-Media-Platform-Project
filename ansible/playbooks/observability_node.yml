@@ -3,11 +3,6 @@
   hosts: observability_nodes
   become: true
   force_handlers: true
-  tasks:
-    - name: Import docker_base role
-      ansible.builtin.import_role:
-        name: docker_base
-    
-    - name: Import observaiblity node role
-      ansible.builtin.import_role:
-        name: observability_node
+  roles:
+    - role: docker_base
+    - role: observability_node

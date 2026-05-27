@@ -135,13 +135,37 @@ graph TD
 - [[synthesis/lessons-learned|Lessons Learned]]
 - [[synthesis/security-posture|Security Posture]]
 - [[synthesis/roadmap|Roadmap]]
+- [[concepts/molecule-testing|Molecule Testing]]
 
-### Resources
+### Services (All)
+- [[entities/cadvisor|cAdvisor]] · [[entities/dozzle|Dozzle]] · [[entities/node-exporter|node-exporter]]
+- [[entities/smartctl-exporter|smartctl-exporter]] · [[entities/pve-exporter|pve-exporter]]
+
+### Resources & References
 - [[sources/geerlingguy-ansible-for-devops|Ansible for DevOps]]
 - [[sources/community-roles|Community Roles]]
 - [[sources/official-docs|Official Docs]]
+- [[sources/pdf-library|PDF Reference Library]]
+- [[sources/code-review-2026-05-24|Code Review 2026-05-24]]
+
+### Comparisons
 - [[comparisons/caddy-vs-traefik|Caddy vs Traefik]]
 - [[comparisons/static-vs-dynamic-inventory|Static vs Dynamic Inventory]]
+
+### Operations
+- [[operations/ci-ansible-lint|CI — Ansible Lint]]
+
+### Architecture Decisions
+- [[adr/ADR-001-static-vs-dynamic-inventory|ADR-001 Static vs Dynamic Inventory]]
+- [[adr/ADR-002-alloy-over-promtail|ADR-002 Alloy over Promtail]]
+
+---
+
+## Raw Intake
+
+New documents (code reviews, meeting notes, bug reports) land in `docs/raw/`. Use `/wiki-ingest` to incorporate them into the wiki. Files currently in `docs/raw/`:
+- `code-review-2026-05-24.md` → [[sources/code-review-2026-05-24]]
+- `milestone_1.md` → [[sources/milestone-1-architecture-guide]] (reference for [[synthesis/milestone-1-retrospective]])
 
 ---
 

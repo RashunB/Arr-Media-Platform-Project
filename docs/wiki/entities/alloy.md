@@ -35,8 +35,9 @@ monitoring-1). Responsible for shipping logs to [[loki]] and forwarding metrics.
 ## Notes
 
 > [!tip] Why Alloy over Promtail?
-> See [[comparisons/alloy-vs-promtail]] for the tradeoff. Short answer: Alloy is the unified
-> Grafana agent that replaces Promtail, Grafana Agent, and others — single binary, single config.
+> Alloy is the unified Grafana agent that supersedes Promtail, Grafana Agent Flow, and others —
+> single binary, single config format (River/Alloy syntax). Promtail is now EOL and in
+> maintenance-only mode. New deployments should use Alloy.
 
 > [!warning] Control vs Node Compose Templates
 > Control and node Alloy configs are different templates. Control has journald volumes hardcoded.
