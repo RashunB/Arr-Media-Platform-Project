@@ -1,7 +1,7 @@
 ---
 - name: Create required directories
   ansible.builtin.file:
-    path: /opt/alloy
+    path: "{{ observability_control_root_dir }}/alloy"
     owner: ansible
     group: ansible
     mode: "0755"
@@ -9,8 +9,8 @@
 
 - name: Copy Alloy files
   ansible.builtin.template:
-    src: observability/alloy/alloy-config.yml.j2
-    dest: /opt/alloy/alloy-config.yml
+    src: alloy/alloy-config.yml.j2
+    dest: "{{ observability_control_root_dir }}/alloy/alloy-config.yml"
     owner: ansible
     group: ansible
     mode: "0644"

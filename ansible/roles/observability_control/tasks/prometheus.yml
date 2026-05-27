@@ -7,14 +7,14 @@
     mode: "0755"
     state: directory
   loop:
-    - /opt/prometheus/data
-    - /opt/prometheus/config
-    - /opt/prometheus/config/rules
+    - "{{ observability_control_root_dir }}/prometheus/data"
+    - "{{ observability_control_root_dir }}/prometheus/config"
+    - "{{ observability_control_root_dir }}/prometheus/config/rules"
 
 - name: Copy Prometheus files
   ansible.builtin.template:
-    src: control/observability/prometheus/prometheus.yml.j2
-    dest: /opt/prometheus/prometheus.yml
+    src: prometheus/prometheus.yml.j2
+    dest: "{{ observability_control_root_dir }}/prometheus/prometheus.yml"
     owner: ansible
     group: ansible
     mode: "0644"

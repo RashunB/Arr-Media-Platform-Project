@@ -1,3 +1,15 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# tasks file for ./roles/observability_node
+- name: Configure Prometheus
+  ansible.builtin.import_tasks: prometheus.yml
+
+- name: Configure Grafana
+  ansible.builtin.import_tasks: grafana.yml
+
+- name: Configure PVE-Exporter
+  ansible.builtin.import_tasks: pve-exporter.yml
+
+- name: Configure Dozzle
+  ansible.builtin.import_tasks: dozzle.yml
+
+- name: Deploy and Start Compose
+  ansible.builtin.import_tasks: compose.yml
