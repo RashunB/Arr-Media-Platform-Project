@@ -1,0 +1,39 @@
+filters:
+  and:
+    - file.hasTag("host")
+
+properties:
+  hostname:
+    displayName: Hostname
+  ip:
+    displayName: IP Address
+  os:
+    displayName: OS
+  role:
+    displayName: Role
+  status:
+    displayName: Status
+
+views:
+  - type: table
+    name: Network Inventory
+    order:
+      - hostname
+      - ip
+      - os
+      - role
+      - status
+    groupBy:
+      property: role
+      direction: ASC
+
+  - type: table
+    name: Active Hosts
+    filters:
+      and:
+        - 'status == "active"'
+    order:
+      - hostname
+      - ip
+      - os
+      - role

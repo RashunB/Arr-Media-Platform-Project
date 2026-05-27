@@ -1,0 +1,44 @@
+filters:
+  and:
+    - file.hasTag("service")
+
+properties:
+  name:
+    displayName: Service
+  port:
+    displayName: Port
+  host:
+    displayName: Host
+  image:
+    displayName: Image
+  status:
+    displayName: Status
+
+views:
+  - type: table
+    name: All Services
+    order:
+      - name
+      - port
+      - host
+      - status
+    groupBy:
+      property: host
+      direction: ASC
+
+  - type: table
+    name: Deployed
+    filters:
+      and:
+        - 'status == "deployed"'
+    order:
+      - name
+      - port
+      - host
+
+  - type: cards
+    name: Service Gallery
+    order:
+      - file.name
+      - host
+      - status

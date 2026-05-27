@@ -1,0 +1,77 @@
+---
+- name: Observability Stack Nodes
+  hosts: observability_nodes
+  become: true
+  force_handlers: true
+  tasks:
+    
+    - name: Import geerlingguy.docker role
+      ansible.builtin.import_role:
+        name: geerlingguy.docker
+      vars:
+        docker_users: "{{ ansible_user }}"
+
+    - name: Import geerlingguy.pip role
+      ansible.builtin.import_role:
+        name: geerlingguy.pip
+      vars:
+        pip_install_packages:
+          - name: docker
+
+    - name: Create required directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: ansible
+        group: ansible
+        mode: "0755"
+      loop:
+        - /opt/pve-exporter
+        - /opt/docker
+        - /opt/alloy
+        - /opt/dozzle/data
+
+    - name: Copy pve-exporter config file
+      ansible.builtin.copy:
+        src: vault/pve.yml
+        owner: ansible
+        group: ansible
+        mode: "0644"
+        dest: /opt/pve-exporter/pve.yml
+      notify: Restart PVE-Exporter
+
+    - name: Deploy Alloy config
+      ansible.builtin.template:
+        src: observability/alloy/alloy_config.yml.j2
+        dest: /opt/alloy/alloy-config.yaml
+        owner: ansible
+        group: ansible
+        mode: "0644"
+      notify: Restart Alloy
+
+    - name: Copy compose file
+      ansible.builtin.template:
+        src: nodes/observability/docker-compose.yml.j2
+        dest: /opt/docker/docker-compose.yml
+        owner: ansible
+        group: ansible
+        mode: "0644"
+
+    - name: Create and start services
+      community.docker.docker_compose_v2:
+        project_src: /opt/docker
+        state: present
+        pull: missing
+
+  handlers:
+    - name: Restart Alloy
+      community.docker.docker_container:
+        name: alloy
+        state: started
+        restart: true
+
+    - name: Restart PVE-Exporter
+      community.docker.docker_container:
+        name: pve-exporter
+        state: started
+        restart: true

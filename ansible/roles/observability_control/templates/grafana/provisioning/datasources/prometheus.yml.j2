@@ -1,0 +1,10 @@
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://{{ observability_control_control_host_ip }}:{{ observability_control_prometheus_host_port }}
+    isDefault: true
+    jsonData:
+      httpMethod: POST
+      manageAlerts: false

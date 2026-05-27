@@ -1,0 +1,17 @@
+---
+- name: Create required directories
+  ansible.builtin.file:
+    path: "{{ observability_node_root_dir }}/alloy"
+    owner: ansible
+    group: ansible
+    mode: "0755"
+    state: directory
+
+- name: Copy Alloy files
+  ansible.builtin.template:
+    src: alloy/alloy-config.yml.j2
+    dest: "{{ observability_node_root_dir }}/alloy/alloy-config.yml"
+    owner: ansible
+    group: ansible
+    mode: "0644"
+  notify: Restart Alloy

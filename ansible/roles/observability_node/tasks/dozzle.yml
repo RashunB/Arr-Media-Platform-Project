@@ -1,0 +1,17 @@
+---
+- name: Create Dozzle directories
+  ansible.builtin.file:
+    path: "{{ observability_node_root_dir }}/dozzle/data"
+    owner: ansible
+    group: ansible
+    mode: "0755"
+    state: directory
+
+- name: Copy Dozzle files
+  ansible.builtin.template:
+    src: dozzle/dozzle.env.j2
+    dest: "{{ observability_node_root_dir }}/dozzle/dozzle.env"
+    owner: ansible
+    group: ansible
+    mode: "0644"
+  notify: Restart Dozzle

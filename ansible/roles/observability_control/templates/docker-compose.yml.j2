@@ -1,0 +1,154 @@
+---
+networks:
+  observability:
+    name: observability
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: "{{ observability_control_prometheus_name }}"
+    pull_policy: always
+    restart: unless-stopped
+    user: "1000:1000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "{{ observability_control_prometheus_host_port}}:9090/tcp"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - "{{ observability_control_root_dir }}/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "{{ observability_control_root_dir }}/prometheus/config/rules:/etc/prometheus/rules"
+      - "{{ observability_control_root_dir }}/prometheus/data/:/prometheus"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --web.enable-lifecycle
+      - --web.enable-admin-api
+    networks:
+      - observability
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: "{{ observability_control_node_exporter_name }}"
+    pull_policy: always
+    restart: unless-stopped
+    network_mode: host
+    pid: host
+    command:
+      - --path.rootfs=/host
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --collector.cpu.info
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /:/host:ro,rslave
+
+  smartctl-exporter:
+    image: quay.io/prometheuscommunity/smartctl-exporter:latest
+    container_name: "{{ observability_control_smartctl_exporter_name }}"
+    pull_policy: always
+    restart: unless-stopped
+    user: root
+    cap_add:
+      - SYS_RAWIO
+    networks:
+      - observability
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: "{{ observability_control_cadvisor_name }}"
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "{{ observability_control_cadvisor_host_port }}:8080/tcp"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - observability
+
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: "{{ observability_control_dozzle_name }}"
+    pull_policy: always
+    restart: unless-stopped
+    env_file:
+      - "{{ observability_control_root_dir }}/dozzle/dozzle.env"
+    ports:
+      - "{{ observability_control_dozzle_host_port}}:8080/tcp"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "{{ observability_control_root_dir }}/dozzle/data:/data"
+    networks:
+      - observability
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: "{{ observability_control_grafana_name }}"
+    user: "1000:1000"
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "{{ observability_control_grafana_host_port}}:3000/tcp"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - "{{ observability_control_root_dir }}/grafana/data:/var/lib/grafana"
+      - "{{ observability_control_root_dir }}/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources"
+      - "{{ observability_control_root_dir }}/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - observability
+
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: "{{ observability_control_alloy_name }}"
+    pull_policy: always
+    restart: unless-stopped
+    command: "run --server.http.listen-addr=0.0.0.0:{{ observability_control_alloy_con_port }} --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy"
+    ports:
+      - "{{ observability_control_alloy_host_port }}:{{ observability_control_alloy_con_port }}"
+    volumes:
+      - "{{ observability_control_root_dir }}/alloy/alloy-config.yml:/etc/alloy/config.alloy:ro"
+      - /var/run/docker.sock:/var/run/docker.sock
+{% if alloy_journal_enabled %}
+      - /var/log/journal:/var/log/journal:ro
+      - /run/log/journal:/run/var/journal:ro
+      - /etc/machine-id:/etc/machine-id:ro
+{% endif %}
+    networks:
+      - observability
+
+  loki:
+    image: grafana/loki:latest
+    container_name: "{{ observability_control_loki_name }}"
+    user: "1000:1000"
+    pull_policy: always
+    restart: unless-stopped
+    command: "-config.file=/etc/loki/config.yaml"
+    ports:
+      - "{{ observability_control_loki_host_port }}:3100/tcp"
+    volumes:
+      - "{{ observability_control_root_dir }}/loki/loki-config.yml:/etc/loki/config.yaml"
+      - "{{ observability_control_root_dir }}/loki/data:/loki"
+    healthcheck:
+      test: ["CMD", "/usr/bin/loki", "-health"]
+      start_period: 30s
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - observability

@@ -1,0 +1,96 @@
+---
+networks:
+  observability:
+    name: observability
+
+services:
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: "{{ observability_node_node_exporter_name }}"
+    pull_policy: always
+    restart: unless-stopped
+    network_mode: host
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - --path.rootfs=/host
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --collector.cpu.info
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+
+  smartctl-exporter:
+    image: quay.io/prometheuscommunity/smartctl-exporter:latest
+    container_name: "{{ observability_node_smartctl_exporter_name }}"
+    pull_policy: always
+    restart: unless-stopped
+    user: root
+    cap_add:
+      - SYS_RAWIO
+    ports:
+      - "{{ observability_node_smartctl_exporter_host_port}}:9633/tcp"
+    networks:
+      - observability
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: "{{ observability_node_cadvisor_name }}"
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "{{ observability_node_cadvisor_host_port }}:8080/tcp"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - observability
+
+  dozzle:
+    container_name: d"{{ observability_node_dozzle_name }}"
+    image: amir20/dozzle:latest
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "{{ observability_node_dozzle_host_port }}:7007/tcp"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/dozzle/data:/data
+    command: agent
+    networks:
+      - observability
+
+  prometheus-pve-exporter:
+    container_name: "{{ observability_node_pve_exporter_name }}"
+    image: prompve/prometheus-pve-exporter:latest
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "{{ observability_node_pve_exporter_host_port }}:9221/tcp"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /opt/pve-exporter:/etc/prometheus
+    networks:
+      - observability
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: "{{ observability_node_alloy_name }}"
+    pull_policy: always
+    restart: unless-stopped
+    command: run --server.http.listen-addr=0.0.0.0:{{ observability_node_alloy_con_port }} --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+    ports:
+      - "{{ observability_node_alloy_host_port }}:{{ observability_node_alloy_con_port }}"
+      - "{{ observability_node_rsyslog_port }}:514/tcp"
+    volumes:
+      - /opt/alloy/alloy-config.yml:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - observability    

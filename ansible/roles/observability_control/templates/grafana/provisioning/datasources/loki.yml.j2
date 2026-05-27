@@ -1,0 +1,6 @@
+apiVersion: 1
+datasources:
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://{{ observability_control_control_host_ip }}:{{ observability_control_loki_host_port }}
