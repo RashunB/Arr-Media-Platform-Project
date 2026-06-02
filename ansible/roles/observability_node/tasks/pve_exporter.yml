@@ -7,11 +7,12 @@
     mode: "0755"
     state: directory
 
-- name: Copy Alloy files
-  ansible.builtin.template:
-    src: vault/pve.yml pve-exporter/prometheus.yml.j2
+- name: Copy PVE files
+  ansible.builtin.copy:
+    src: prometheus/pve.yml
     dest: "{{ observability_node_root_dir }}/pve-exporter/pve.yml"
     owner: ansible
     group: ansible
     mode: "0644"
   notify: Restart Alloy
+  no_log: true

@@ -1,11 +1,14 @@
 ---
 - name: Create Loki directories
   ansible.builtin.file:
-    path: "{{ observability_control_root_dir }}/loki"
+    path: "{{ item }}"
     owner: ansible
     group: ansible
     mode: "0755"
     state: directory
+  loop:
+    - /opt/loki
+    - /opt/loki/data
 
 - name: Copy Loki files
   ansible.builtin.template:

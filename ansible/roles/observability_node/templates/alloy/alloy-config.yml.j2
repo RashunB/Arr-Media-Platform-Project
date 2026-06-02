@@ -34,7 +34,7 @@ loki.source.docker "docker_scrape" {
 
 loki.write "default" {
   endpoint {
-    url       = "{{ observability_control_loki_remote_url }}"
+    url       = "{{ observability_node_loki_remote_url }}"
   }
   external_labels = {}
 }

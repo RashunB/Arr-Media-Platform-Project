@@ -1,12 +1,9 @@
 ---
-- name: Configure Prometheus
-  ansible.builtin.import_tasks: prometheus.yml
-
-- name: Configure Grafana
-  ansible.builtin.import_tasks: grafana.yml
+- name: Configure Alloy
+  ansible.builtin.import_tasks: alloy.yml
 
 - name: Configure PVE-Exporter
-  ansible.builtin.import_tasks: pve-exporter.yml
+  ansible.builtin.import_tasks: pve_exporter.yml
 
 - name: Configure Dozzle
   ansible.builtin.import_tasks: dozzle.yml
