@@ -3,4 +3,7 @@
   ansible.builtin.import_playbook: observability_control.yml
 
 - name: Setup observability node
-  ansible.builtin.import_playbook: observability_node.yml
+  ansible.builtin.import_playbook: observability_pve.yml
+
+- name: Setup observability node
+  ansible.builtin.import_playbook: observability_nodes.yml

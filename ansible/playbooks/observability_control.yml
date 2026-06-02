@@ -4,5 +4,7 @@
   become: true
   force_handlers: true
   roles:
-    - role: docker_base
+    #- role: docker_base
     - role: observability_control
+      vars:
+        observability_control_pve_node_ip: "{{ hostvars['monitoring-1']['ansible_host'] }}"
