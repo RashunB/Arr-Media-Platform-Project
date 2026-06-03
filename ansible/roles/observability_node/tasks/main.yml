@@ -4,6 +4,7 @@
 
 - name: Configure PVE-Exporter
   ansible.builtin.import_tasks: pve_exporter.yml
+  when: observability_node_pve_exporter_enabled
 
 - name: Configure Dozzle
   ansible.builtin.import_tasks: dozzle.yml

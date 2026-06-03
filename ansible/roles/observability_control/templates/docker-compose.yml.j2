@@ -130,7 +130,7 @@ services:
     volumes:
       - "{{ observability_control_root_dir }}/alloy/alloy-config.yml:/etc/alloy/config.alloy:ro"
       - /var/run/docker.sock:/var/run/docker.sock
-{% if alloy_journal_enabled %}
+{% if observability_node_alloy_journal_enabled %}
       - /var/log/journal:/var/log/journal:ro
       - /run/log/journal:/run/var/journal:ro
       - /etc/machine-id:/etc/machine-id:ro

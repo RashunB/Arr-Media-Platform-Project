@@ -1,35 +1,35 @@
 ---
-- name: Restart Prometheus
+- name: Restart PVE-Exporter
   community.docker.docker_compose_v2:
-    project_src: /opt/docker/observability
+    project_src: "{{ observability_node_root_dir }}/docker/observability"
     services:
-      - prometheus
+      - pve-exporter
     state: restarted
 
 - name: Restart Loki
   community.docker.docker_compose_v2:
-    project_src: /opt/docker/observability
+    project_src: "{{ observability_node_root_dir }}/docker/observability"
     services:
       - loki
     state: restarted
 
 - name: Restart Alloy
   community.docker.docker_compose_v2:
-    project_src: /opt/docker/observability
+    project_src: "{{ observability_node_root_dir }}/docker/observability"
     services:
       - alloy
     state: restarted
 
 - name: Restart Grafana
   community.docker.docker_compose_v2:
-    project_src: /opt/docker/observability
+    project_src: "{{ observability_node_root_dir }}/docker/observability"
     services:
       - grafana
     state: restarted
 
 - name: Restart Dozzle
   community.docker.docker_compose_v2:
-    project_src: /opt/docker/observability
+    project_src: "{{ observability_node_root_dir }}/docker/observability"
     services:
       - dozzle
     state: restarted

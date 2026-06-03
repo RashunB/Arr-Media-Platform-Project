@@ -14,5 +14,5 @@
     owner: ansible
     group: ansible
     mode: "0644"
-  notify: Restart Alloy
+  notify: Restart PVE-Exporter
   no_log: true

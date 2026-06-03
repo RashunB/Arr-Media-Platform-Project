@@ -3,8 +3,9 @@
   hosts: observability_nodes
   become: true
   force_handlers: true
-  vars:
-    observability_node_loki_remote_url: hostvars[observability_control][0]['loki_remote_url']
   roles:
     - role: docker_base
     - role: observability_node
+      vars:
+        observability_node_loki_remote_url: "{{ hostvars['control']['loki_remote_url'] }}"
+        observability_node_pve_exporter_enabled: false

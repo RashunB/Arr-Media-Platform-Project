@@ -61,7 +61,7 @@ services:
       - no-new-privileges:true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /opt/dozzle/data:/data
+      - "{{ observability_node_root_dir }}/dozzle/data:/data"
     command: agent
     healthcheck:
       test: ["CMD", "/dozzle", "healthcheck"]
@@ -72,6 +72,7 @@ services:
     networks:
       - observability
 
+{% if pve_exporter_enabled %}
   prometheus-pve-exporter:
     container_name: "{{ observability_node_pve_exporter_name }}"
     image: prompve/prometheus-pve-exporter:latest
@@ -82,9 +83,10 @@ services:
     security_opt:
       - no-new-privileges:true
     volumes:
-      - /opt/pve-exporter:/etc/prometheus
+      - "{{ observability_node_root_dir }}/pve-exporter:/etc/prometheus"
     networks:
       - observability
+{% endif %}
 
   alloy:
     image: grafana/alloy:latest
@@ -95,7 +97,7 @@ services:
     ports:
       - "{{ observability_node_alloy_host_port }}:{{ observability_node_alloy_con_port }}"
     volumes:
-      - /opt/alloy/alloy-config.yml:/etc/alloy/config.alloy:ro
+      - "{{ observability_node_root_dir }}/alloy/alloy-config.yml:/etc/alloy/config.alloy:ro"
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - observability    
