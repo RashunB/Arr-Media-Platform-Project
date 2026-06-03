@@ -1,4 +1,4 @@
-{% if alloy_journal_enabled %}
+{% if observability_control_alloy_journal_enabled %}
 loki.source.journal "system" {
     path = "/var/log/journal"
     max_age = "12h"

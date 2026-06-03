@@ -28,7 +28,7 @@ observability_node_prometheus_host_port: 9090
 
 observability_node_pve_exporter_name: pve-exporter
 observability_node_pve_exporter_host_port: 9221
-observability_node_pve_exporter_enabled: true
+observability_node_pve_exporter_enabled: false
 
 observability_node_smartctl_exporter_name: smartctl-exporter
 observability_node_smartctl_exporter_host_port: 9633
