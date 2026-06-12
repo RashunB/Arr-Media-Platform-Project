@@ -1,0 +1,150 @@
+argument_specs:
+  main:
+    short_description: Deploy observability stack
+    options:
+      observability_control_cluster_name:
+        type: str
+        required: false
+        default: cluster
+        description: Cluster name for prometheus labeling
+
+      observability_control_root_dir:
+        type: str
+        required: false
+        default: /opt
+        description: Base directory for all service config and data.
+
+      observability_control_control_host_ip:
+        type: str
+        required: false
+        description: IP of node that will host control services
+
+      observability_control_pve_node_ip:
+        type: str
+        required: false
+        description: Remote PVE IP
+
+      observability_control_prometheus_name:
+        type: str
+        required: false
+        default: prometheus
+        description: Name of prometheus container/service
+
+      observability_control_prometheus_host_port:
+        type: int
+        required: false
+        default: 9100
+        description: Host port for prometheus container/service
+
+      observability_control_node_exporter_name:
+        type: str
+        required: false
+        default: node-exporter
+        description: Name of node-exporter container/service
+
+      observability_control_node_exporter_host_port:
+        type: int
+        required: false
+        default: 9100
+        description: Host port for node-exporter container/service
+
+      observability_control_cadvisor_name:
+        type: str
+        required: false
+        default: cadvisor
+        description: Name of cadvisor container/service
+
+      observability_control_cadvisor_host_port:
+        type: int
+        required: false
+        default: 8080
+        description: Host port for cadvisor container/service
+
+      observability_control_smartctl_exporter_name:
+        type: str
+        required: false
+        default: smartctl-exporter
+        description: Name of smartctl-exporter container/service
+
+      observability_control_smartctl_exporter_host_port:
+        type: int
+        required: false
+        default: 9633
+        description: Host port for smartctl-exporter container/service
+
+      observability_control_grafana_name:
+        type: str
+        required: false
+        default: grafana
+        description: Name of grafana container/service
+
+      observability_control_grafana_host_port:
+        type: int
+        required: false
+        default: 3000
+        description: Host port for grafana container/service
+
+      observability_control_alloy_name:
+        type: str
+        required: false
+        default: alloy
+        description: Name of alloy container/service
+
+      observability_control_alloy_host_port:
+        type: int
+        required: false
+        default: 12345
+        description: Host port for alloy container/service
+
+      observability_control_alloy_con_port:
+        type: int
+        required: false
+        default: 12345
+        description: Internal port for alloy container/service
+
+      observability_control_alloy_journal_enabled:
+        type: bool
+        required: false
+        default: false
+        description: Boolean for alloy picking up journal logs
+
+      observability_control_loki_name:
+        type: str
+        required: false
+        default: loki
+        description: Name of loki container/service
+
+      observability_control_loki_host_port:
+        type: int
+        required: false
+        default: 3100
+        description: Host port for loki container/service
+
+      observability_control_loki_remote_url:
+        type: str
+        required: false
+        default: http://{{ observability_control_control_host_ip }}:{{ observability_control_loki_host_port }}/loki/api/v1/push
+        description: Remote url for loki endpoint
+
+      observability_control_dozzle_name:
+        type: str
+        required: false
+        default: dozzle
+        description: Name of dozzle container/service
+
+      observability_control_dozzle_host_port:
+        type: int
+        required: false
+        default: 7070
+        description: Host port for dozzle container/service
+
+      observability_control_dozzle_agent_pve_ip:
+        type: str
+        required: false
+        description: Remote PVE IP for dozzle service
+
+      observability_control_dozzle_agent_port:
+        type: int
+        required: false
+        default: 7007
+        description: Agent port for dozzle container/service

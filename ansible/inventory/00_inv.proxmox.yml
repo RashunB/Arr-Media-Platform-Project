@@ -1,6 +1,3 @@
-# Minimal example which will not gather additional facts for QEMU/LXC guests
-# By not specifying a URL the plugin will attempt to connect to the controller host on port 8006
-# my.proxmox.yml
 plugin: community.proxmox.proxmox
 url: https://192.168.0.63:8006
 user: root@pam
@@ -14,23 +11,21 @@ password: !vault |
 validate_certs: false
 want_facts: true
 keyed_groups:
-    # proxmox_tags_parsed is an example of a fact only returned when 'want_facts=true'
   - key: proxmox_tags_parsed
     separator: ""
     prefix: ""
 
 groups:
-  rhce_proxy: "proxmox_name == 'rhce-1'"
-  rhce_webservers: "proxmox_name in ['rhce-2', 'rhce-3']"
-  rhce_database: "proxmox_name == 'rhce-4'"
-#   media: "'media' in (proxmox_tags_parsed|list)"
-#   rhce: "'rhce' in (proxmox_tags_parsed|list)"
+  # rhce_proxy: "proxmox_name == 'rhce-1'"
+  # rhce_webservers: "proxmox_name in ['rhce-2', 'rhce-3']"
+  # rhce_database: "proxmox_name == 'rhce-4'"
+  # media: "'media' in (proxmox_tags_parsed|list)"
+  # rhce: "'rhce' in (proxmox_tags_parsed|list)"
+
 compose:
   ansible_host: >-
     proxmox_agent_interfaces[1]['ip-addresses'][0].split('/')[0]
     if proxmox_vmtype == 'qemu'
     else proxmox_lxc_interfaces[1]['inet'].split('/')[0]
 
-# Note that this can easily give you wrong values as ansible_host. See further below for
-# an example where this is set to `false` and where ansible_host is set with `compose`.
 want_proxmox_nodes_ansible_host: true
