@@ -72,7 +72,7 @@ services:
     networks:
       - observability
 
-{% if pve_exporter_enabled %}
+{% if observability_node_pve_exporter_enabled %}
   prometheus-pve-exporter:
     container_name: "{{ observability_node_pve_exporter_name }}"
     image: prompve/prometheus-pve-exporter:latest

@@ -1,11 +1,11 @@
 ---
-- name: install and configure docker
+- name: Install and configure docker
   ansible.builtin.import_role:
     name: geerlingguy.docker
   vars:
     docker_users: "{{ docker_base_users }}"
 
-- name: Install docker python package 
+- name: Install docker python package
   ansible.builtin.import_role:
     name: geerlingguy.pip
   vars:

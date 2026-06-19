@@ -1,4 +1,5 @@
 ---
+- debug: var=observability_node_loki_remote_url
 - name: Configure Alloy
   ansible.builtin.import_tasks: alloy.yml
 

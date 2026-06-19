@@ -1,9 +1,12 @@
 ---
 - name: Setup observability control
   ansible.builtin.import_playbook: observability_control.yml
+  tags: control
 
-- name: Setup observability node
+- name: Setup observability pve
   ansible.builtin.import_playbook: observability_pve.yml
+  tags: pve, node
 
-- name: Setup observability node
-  ansible.builtin.import_playbook: observability_nodes.yml
+# - name: Setup observability node
+#   ansible.builtin.import_playbook: observability_node.yml
+#   tags: node
