@@ -4,8 +4,7 @@ argument_specs:
     options:
       observability_control_cluster_name:
         type: str
-        required: false
-        default: cluster
+        required: true
         description: Cluster name for prometheus labeling
 
       observability_control_root_dir:
@@ -16,7 +15,7 @@ argument_specs:
 
       observability_control_control_host_ip:
         type: str
-        required: false
+        required: true
         description: IP of node that will host control services
 
       observability_control_pve_node_ip:

@@ -1,0 +1,86 @@
+argument_specs:
+  main:
+    short_description: Deploy observability stack
+    options:
+      observability_node_root_dir:
+        type: str
+        required: false
+        default: /opt
+        description: Base directory for all service config and data.
+
+      observability_node_node_exporter_name:
+        type: str
+        required: false
+        default: node-exporter
+        description: Name of node-exporter container/service
+
+      observability_node_node_exporter_host_port:
+        type: int
+        required: false
+        default: 9100
+        description: Host port for node-exporter container/service
+
+      observability_node_cadvisor_name:
+        type: str
+        required: false
+        default: cadvisor
+        description: Name of cadvisor container/service
+
+      observability_node_cadvisor_host_port:
+        type: int
+        required: false
+        default: 8080
+        description: Host port for cadvisor container/service
+
+      observability_node_smartctl_exporter_name:
+        type: str
+        required: false
+        default: smartctl-exporter
+        description: Name of smartctl-exporter container/service
+
+      observability_node_smartctl_exporter_host_port:
+        type: int
+        required: false
+        default: 9633
+        description: Host port for smartctl-exporter container/service
+
+      observability_node_alloy_name:
+        type: str
+        required: false
+        default: alloy
+        description: Name of alloy container/service
+
+      observability_node_alloy_host_port:
+        type: int
+        required: false
+        default: 12345
+        description: Host port for alloy container/service
+
+      observability_node_alloy_con_port:
+        type: int
+        required: false
+        default: 12345
+        description: Internal port for alloy container/service
+
+      observability_node_alloy_journal_enabled:
+        type: bool
+        required: false
+        default: false
+        description: Boolean for alloy picking up journal logs
+
+      observability_node_loki_remote_url:
+        type: str
+        required: true
+        description: Remote url for loki endpoint
+
+      observability_node_dozzle_name:
+        type: str
+        required: false
+        default: dozzle
+        description: Name of dozzle container/service
+
+      observability_node_dozzle_host_port:
+        type: int
+        required: false
+        default: 7007
+        description: Host port for dozzle container/service

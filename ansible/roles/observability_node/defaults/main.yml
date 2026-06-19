@@ -1,6 +1,7 @@
 ---
 observability_node_cluster_name: homelab
 observability_node_root_dir: /opt
+observability_node_loki_remote_url:
 
 observability_node_alloy_name: alloy
 observability_node_alloy_con_port: 12345
@@ -15,10 +16,6 @@ observability_node_dozzle_host_port: 7007
 
 observability_node_grafana_name: grafana
 observability_node_grafana_host_port: 3000
-
-observability_node_loki_name: loki
-observability_node_loki_host_port: 3100
-observability_node_loki_remote_url:
 
 observability_node_node_exporter_name: node-exporter
 observability_node_node_exporter_host_port: 9100
