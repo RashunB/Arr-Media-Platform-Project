@@ -46,6 +46,7 @@ services:
     volumes:
       - /:/host:ro,rslave
 
+{% if observability_control_smartctl_exporter_enabled %}
   smartctl-exporter:
     image: quay.io/prometheuscommunity/smartctl-exporter:latest
     container_name: "{{ observability_control_smartctl_exporter_name }}"
@@ -53,11 +54,12 @@ services:
     restart: unless-stopped
     user: root
     cap_add:
-      - SYS_RAWIO
+      - SYS_ADMIN
     devices:
-      - /dev/nvme0n1:/dev/nvme0n1
+      - /dev/nvme0:/dev/nvme0
     networks:
       - observability
+{% endif %}
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest

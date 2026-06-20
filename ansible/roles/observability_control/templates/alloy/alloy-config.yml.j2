@@ -30,6 +30,9 @@ loki.source.docker "docker_scrape" {
   forward_to = [loki.write.default.receiver]
   relabel_rules = discovery.relabel.docker_scrape.rules
   refresh_interval = "5s"
+  labels = {
+      source = "{{ inventory_hostname }}",
+    }
   }
 
 loki.write "default" {
