@@ -1,7 +1,6 @@
 ---
 observability_node_cluster_name: homelab
 observability_node_root_dir: /opt
-observability_node_loki_remote_url:
 
 observability_node_alloy_name: alloy
 observability_node_alloy_con_port: 12345

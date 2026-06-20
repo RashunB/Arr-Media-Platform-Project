@@ -168,7 +168,6 @@ alloy_host_port: 12345
 alloy_con_port: 12345
 dozzle_host_port: 8080
 dozzle_agent_pve_ip: "{{ pve_node_ip }}"
-dozzle_agent_port: 7007
 alloy_journal_enabled: false   # override true in baremetal group_vars
 cluster_name: homelab
 ```

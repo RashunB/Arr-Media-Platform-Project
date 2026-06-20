@@ -29,6 +29,12 @@ services:
     user: root
     cap_add:
       - SYS_RAWIO
+    devices:
+      - /dev/sda:/dev/sda
+      - /dev/sdb:/dev/sdb
+      - /dev/sdc:/dev/sdc
+      - /dev/sdd:/dev/sdd
+      - /dev/nvme0n1:/dev/nvme0n1
     ports:
       - "{{ observability_node_smartctl_exporter_host_port}}:9633/tcp"
     networks:
@@ -99,5 +105,10 @@ services:
     volumes:
       - "{{ observability_node_root_dir }}/alloy/alloy-config.yml:/etc/alloy/config.alloy:ro"
       - /var/run/docker.sock:/var/run/docker.sock
+{% if observability_node_alloy_journal_enabled %}
+      - /var/log/journal:/var/log/journal:ro
+      - /run/log/journal:/run/log/journal:ro
+      - /etc/machine-id:/etc/machine-id:ro
+{% endif %}
     networks:
       - observability    

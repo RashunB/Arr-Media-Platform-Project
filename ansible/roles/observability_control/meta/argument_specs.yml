@@ -141,9 +141,3 @@ argument_specs:
         type: str
         required: false
         description: Remote PVE IP for dozzle service
-
-      observability_control_dozzle_agent_port:
-        type: int
-        required: false
-        default: 7007
-        description: Agent port for dozzle container/service

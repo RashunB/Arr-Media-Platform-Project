@@ -14,7 +14,6 @@ observability_control_cadvisor_host_port: 8080
 
 observability_control_dozzle_name: dozzle
 observability_control_dozzle_host_port: 7070
-observability_control_dozzle_agent_port: 7007
 
 observability_control_grafana_name: grafana
 observability_control_grafana_host_port: 3000
