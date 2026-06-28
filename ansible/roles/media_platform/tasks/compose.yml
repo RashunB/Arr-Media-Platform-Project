@@ -1,0 +1,30 @@
+---
+- name: Create required directories
+  ansible.builtin.file:
+    path: "{{ media_platform_compose_dir }}"
+    owner: ansible
+    group: ansible
+    mode: "0755"
+    state: directory
+
+- name: Copy env file to "{{ media_platform_compose_dir }}" directory
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ media_platform_compose_dir }}/docker-compose.yml"
+    owner: ansible
+    group: ansible
+    mode: "0644"
+
+- name: Copy compose files to "{{ media_platform_compose_dir }}" directory
+  ansible.builtin.template:
+    src: media_platform.env.j2
+    dest: "{{ media_platform_compose_dir }}/media_platform.env"
+    owner: ansible
+    group: ansible
+    mode: "0644"
+
+- name: Create and start services
+  community.docker.docker_compose_v2:
+    project_src: "{{ media_platform_compose_dir }}"
+    state: present
+    pull: missing

@@ -1,3 +1,51 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# defaults file for roles/media_platform
+# Service Principal(s)
+media_platform_user: media
+media_platform_user_uid: 6000
+media_platform_group: media_platform
+media_platform_group_gid: 6000
+
+# Directories
+media_platform_root_dir: /opt/media_platform
+media_platform_compose_dir: /opt/docker/media_platform
+
+media_platform_tvseries_dir: "{{ media_platform_root_dir }}/tv"
+media_platform_movies_dir: "{{ media_platform_root_dir }}/movies"
+
+media_platform_downloads_dir: "{{ media_platform_root_dir }}/downloads"
+media_platform_incomplete_downloads_dir: "{{ media_platform_root_dir }}/incomplete_download"
+
+media_platform_dir_list:
+  # - "{{ media_platform_root_dir }}"
+  # - "{{ media_platform_compose_dir }}"
+  - "{{ media_platform_tvseries_dir }}"
+  - "{{ media_platform_movies_dir }}"
+  - "{{ media_platform_downloads_dir }}"
+  - "{{ media_platform_incomplete_downloads_dir }}"
+
+# Services
+media_platform_jellyfin_name: jellyfin
+media_platform_jellyfin_host_port: 8096
+
+media_platform_prowlarr_name: prowlarr
+media_platform_prowlarr_host_port: 9696
+
+media_platform_sabnzbd_name: sabnzbd
+media_platform_sabnzdb_host_port: 8080
+
+media_platform_radarr_name: radarr
+media_platform_radarr_host_port: 7878
+
+media_platform_sonarr_name: sonarr
+media_platform_sonarr_host_port: 8989
+
+media_platform_bazarr_name: bazarr
+media_platform_bazarr_host_port: 6767
+
+media_platform_services_list:
+  - "{{ media_platform_jellyfin_name }}"
+  - "{{ media_platform_prowlarr_name }}"
+  - "{{ media_platform_sabnzbd_name }}"
+  - "{{ media_platform_radarr_name }}"
+  - "{{ media_platform_sonarr_name }}"
+  - "{{ media_platform_bazarr_name }}"

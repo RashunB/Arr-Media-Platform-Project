@@ -1,0 +1,83 @@
+networks:
+  media:
+    name: media
+
+services:
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: "{{ media_platform_jellyfin_name }}"
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    volumes:
+      - "{{ media_platform_root_dir }}/jellyfin/library:/config"
+      - "{{ media_platform_tvseries_dir }}:/data/tvshows"
+      - "{{ media_platform_movies_dir }}:/data/movies"
+    ports:
+      - "{{ media_platform_jellyfin_host_port }}:8096" # http
+      # - "{{ media_platform_jellyfin_host_port }}:8920" #optional https with certificate
+      # - "{{ media_platform_jellyfin_host_port }}:7359/udp" #optional Service Discovery
+      # - "{{ media_platform_jellyfin_host_port }}:1900/udp" #optional Client Discovery
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: "{{ media_platform_prowlarr_name }}"
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    volumes:
+      - "{{ media_platform_root_dir }}/prowlarr/data:/config"
+    ports:
+      - "{{ media_platform_prowlarr_host_port }}:9696"
+    restart: unless-stopped
+
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: "{{ media_platform_sabnzbd_name }}"
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    volumes:
+      - "{{ media_platform_root_dir }}/sabnzbd/data:/config"
+      - "{{ media_platform_incomplete_downloads_dir }}:/incomplete-downloads" #optional
+      - "{{ media_platform_downloads_dir }}:/downloads" #optional
+    ports:
+      - "{{ media_platform_sabnzdb_host_port }}:8080"
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: "{{ media_platform_radarr_name }}"
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    volumes:
+      - "{{ media_platform_root_dir }}/radarr/data:/config"
+      - "{{ media_platform_movies_dir }}:/movies" #optional
+      - "{{ media_platform_root_dir }}/downloads:/downloads" #optional
+    ports:
+      - "{{ media_platform_radarr_host_port }}:7878"
+    restart: unless-stopped
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: "{{ media_platform_sonarr_name }}"
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    volumes:
+      - "{{ media_platform_root_dir }}/sonarr/data:/config"
+      - "{{ media_platform_tvseries_dir }}:/tv #optional"
+      - "{{ media_platform_root_dir }}/downloads:/downloads" #optional
+    ports:
+      - "{{ media_platform_sonarr_host_port }}:8989"
+    restart: unless-stopped
+    
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: "{{ media_platform_bazarr_name }}"
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    volumes:
+      - "{{ media_platform_root_dir }}/bazarr/data:/config"
+      - "{{ media_platform_movies_dir }}:/movies" #optional
+      - "{{ media_platform_tvseries_dir }}:/tv" #optional
+    ports:
+      - "{{ media_platform_bazarr_host_port }}:6767"
+    restart: unless-stopped

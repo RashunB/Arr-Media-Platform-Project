@@ -1,3 +1,9 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# tasks file for roles/media_platform
+- name: Create Media User and Group
+  ansible.builtin.import_tasks: users.yml
+
+- name: Create Media Directories
+  ansible.builtin.import_tasks: media_directories.yml
+
+- name: Deploy and Start Media Stack
+  ansible.builtin.import_tasks: compose.yml

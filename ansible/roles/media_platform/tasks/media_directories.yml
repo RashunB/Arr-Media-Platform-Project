@@ -1,0 +1,18 @@
+---
+- name: Create required core directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ media_platform_user }}"
+    group: "{{ media_platform_group }}"
+    mode: "02775"
+    state: directory
+  loop: "{{ media_platform_dir_list }}"
+
+- name: Create required services directories
+  ansible.builtin.file:
+    path: "{{ media_platform_root_dir }}/{{ item }}/data"
+    owner: "{{ media_platform_user }}"
+    group: "{{ media_platform_group }}"
+    mode: "02775"
+    state: directory
+  loop: "{{ media_platform_services_list }}"

@@ -1,0 +1,15 @@
+---
+- name: Create required group - "{{ media_platform_group }}"
+  ansible.builtin.group:
+    name: "{{ media_platform_group }}"
+    gid: "{{ media_platform_group_gid }}"
+    state: present
+
+- name: Create required user - "{{ media_platform_user }}"
+  ansible.builtin.user:
+    name: "{{ media_platform_user }}"
+    groups: "{{ media_platform_group }}"
+    append: true
+    create_home: true
+    uid: "{{ media_platform_user_uid }}"
+    state: present
