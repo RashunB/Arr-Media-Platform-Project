@@ -2,7 +2,7 @@ terraform {
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
-      version = "0.105.0"
+      version = "0.111.0"
     }
     local = { source = "hashicorp/local" }
   }
@@ -43,6 +43,7 @@ resource "proxmox_download_file" "ubuntu24" {
   url          = "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
   file_name    = "noble-server-cloudimg-amd64.qcow2"
   lifecycle { prevent_destroy = true }
+  overwrite = false
 }
 
 resource "proxmox_virtual_environment_vm" "ubuntu24_template" {
@@ -77,7 +78,6 @@ resource "proxmox_virtual_environment_vm" "ubuntu24_template" {
     bridge = "vmbr0"
     model  = "virtio"
   }
-
 }
 
 resource "proxmox_download_file" "rocky9" {
@@ -87,6 +87,7 @@ resource "proxmox_download_file" "rocky9" {
   url          = "https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2"
   file_name    = "Rocky-9-GenericCloud.latest.x86_64.qcow2"
   lifecycle { prevent_destroy = true }
+  overwrite = false
 }
 
 resource "proxmox_virtual_environment_vm" "rocky9_template" {
@@ -100,7 +101,6 @@ resource "proxmox_virtual_environment_vm" "rocky9_template" {
   lifecycle { prevent_destroy = true }
   operating_system { type = "l26" }
   agent { enabled = true }
-
 
   cpu {
     cores = 2
@@ -121,5 +121,4 @@ resource "proxmox_virtual_environment_vm" "rocky9_template" {
     bridge = "vmbr0"
     model  = "virtio"
   }
-
 }

@@ -2,7 +2,7 @@ terraform {
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
-      version = "0.105.0"
+      version = "0.111.0"
     }
     local = {
       source = "hashicorp/local"
@@ -46,7 +46,7 @@ module "media_vm" {
   vm_count                  = var.vm_count
   vm_default_user           = var.vm_default_user
   vm_group                  = var.vm_group
-  vm_tag_list = var.vm_tag_list
+  vm_tag_list               = var.vm_tag_list
   datastore_infra           = var.datastore_infra
   datastore_files           = var.datastore_files
   proxmox_node_name         = var.proxmox_node_name
@@ -60,3 +60,4 @@ module "media_vm" {
     proxmox.root = proxmox.root
   }
 }
+
