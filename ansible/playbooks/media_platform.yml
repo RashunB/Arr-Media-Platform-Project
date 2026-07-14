@@ -1,4 +1,17 @@
 ---
+- name: Media Storage
+  hosts: pve
+  become: true
+  tasks:
+    - name: Create Media Storage
+      block:
+        - name: Create Media PV
+        - name: Create Media VG
+        - name: Create Media LV
+        - name: Format Filesystem
+        - name: Create Direcory
+        - name: Mount
+
 - name: Media Platform
   hosts: media_platform
   become: true
@@ -7,6 +20,8 @@
     ansible.builtin.import_role: 
       name: docker_base
     tags: docker
+
+  
 
   - name: Deploy Media Platform
     ansible.builtin.import_role: 
