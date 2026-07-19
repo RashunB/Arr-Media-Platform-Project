@@ -51,13 +51,28 @@ resource "proxmox_virtual_environment_vm" "vms" {
     full  = false
   }
 
+   dynamic "disk" {
+    for_each = var.additional_disks
+    content {
+      interface         = disk.key
+      datastore_id      = disk.value["datastore_id"]
+      path_in_datastore = disk.value["path_in_datastore"]
+      file_format       = disk.value["file_format"]
+      size              = disk.value["path_in_datastore"] != null ? null : disk.value["size"]
+      iothread          = disk.value["path_in_datastore"] != null ? null : disk.value["iothread"]
+      discard           = disk.value["path_in_datastore"] != null ? null : disk.value["discard"]
+      backup            = disk.value["backup"]
+      replicate         = disk.value["replicate"]
+    }
+   }
+
   cpu {
     cores = 2
     type  = "host"
   }
 
   memory {
-    dedicated = 2048
+    dedicated = var.memory
   }
 
   network_device {

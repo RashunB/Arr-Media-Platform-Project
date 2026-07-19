@@ -80,3 +80,8 @@ variable "template_os_tag" {
 variable "personal_domain" {
   type = string
 }
+
+variable "memory" {
+  type = number
+  default = 2048
+}

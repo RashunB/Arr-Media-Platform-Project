@@ -1,16 +1,52 @@
 ---
 - name: Media Storage
-  hosts: pve
+  hosts: nas
   become: true
+  tags: media_storage
+  vars:
+    vg: vg.media
+    lv: lv.media
+    mount_device: /dev/{{ vg }}/{{ lv }}
+    mountpoint: /opt/media_platform
+    state_enabled: present
   tasks:
     - name: Create Media Storage
       block:
-        - name: Create Media PV
         - name: Create Media VG
+          community.general.lvg:
+            vg: "{{ vg }}"
+            pvs:
+              - /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0
+              - /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1
+            state: "{{ state_enabled }}"
+
         - name: Create Media LV
+          community.general.lvol:
+            vg: "{{ vg }}"
+            lv: "{{ lv }}"
+            pvs:
+              - /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0
+              - /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1
+            size: 100%VG
+            state: "{{ state_enabled }}"
+
         - name: Format Filesystem
+          community.general.filesystem:
+            dev: "{{ mount_device }}"
+            fstype: ext4
+            state: "{{ state_enabled }}"
+
         - name: Create Direcory
+          ansible.builtin.file:
+            state: directory
+            path: "{{ mountpoint }}"
+
         - name: Mount
+          ansible.posix.mount:
+            path: "{{ mountpoint }}/"
+            src: "{{ mount_device }}"
+            fstype: ext4
+            state: mounted
 
 - name: Media Platform
   hosts: media_platform
@@ -20,8 +56,6 @@
     ansible.builtin.import_role: 
       name: docker_base
     tags: docker
-
-  
 
   - name: Deploy Media Platform
     ansible.builtin.import_role: 
