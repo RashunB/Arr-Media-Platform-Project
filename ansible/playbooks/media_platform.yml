@@ -9,8 +9,28 @@
     mount_device: /dev/{{ vg }}/{{ lv }}
     mountpoint: /opt/media_platform
     state_enabled: present
+    media_share_user: media
+    media_share_group: media_platform
+    media_share_id: 6000
   tasks:
-    - name: Create Media Storage
+    - name: Create Users and Groups
+      block:
+        - name: Create required group - "{{ media_share_group }}"
+          ansible.builtin.group:
+            name: "{{ media_share_group }}"
+            gid: "{{ media_share_id }}"
+            state: "{{ state_enabled }}"
+
+        - name: Create required user - "{{ media_share_user }}"
+          ansible.builtin.user:
+            name: "{{ media_share_user }}"
+            groups: "{{ media_share_group }}"
+            append: true
+            create_home: true
+            uid: "{{ media_share_id }}"
+            state: "{{ state_enabled }}"
+
+    - name: Create and mount Media Storage
       block:
         - name: Create Media VG
           community.general.lvg:
@@ -38,8 +58,10 @@
 
         - name: Create Direcory
           ansible.builtin.file:
-            state: directory
             path: "{{ mountpoint }}"
+            owner: "{{ media_share_id }}"
+            group: "{{ media_share_id }}"
+            state: directory
 
         - name: Mount
           ansible.posix.mount:
@@ -47,6 +69,25 @@
             src: "{{ mount_device }}"
             fstype: ext4
             state: mounted
+      
+    - name: Export Media Storage
+      block:
+        - name: Install NFS
+          ansible.builtin.apt:
+            name: 
+              - nfs-kernel-server
+              - nfs-common
+            state: present
+            update_cache: true
+
+        #- name: Modify exports
+
+        - name: Enable and start NFS server
+          ansible.builtin.systemd_service:
+            name: nfs-kernel-server
+            enabled: true
+            state: started
+
 
 - name: Media Platform
   hosts: media_platform

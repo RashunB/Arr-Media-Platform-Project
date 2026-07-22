@@ -51,7 +51,17 @@ resource "proxmox_virtual_environment_vm" "vms" {
     full  = false
   }
 
-   dynamic "disk" {
+    dynamic "ip_config" {
+      for_each = var.ipv4_config
+      content {
+        var.ipv4_key {
+          address = var.ipv4
+          gateway = var.gateway
+        }
+      }
+    }
+
+    dynamic "disk" {
     for_each = var.additional_disks
     content {
       interface         = disk.key

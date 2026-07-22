@@ -85,3 +85,18 @@ variable "memory" {
   type = number
   default = 2048
 }
+
+variable "additional_disks" {
+  description = "Map of disks keyed by interface name."
+  type = map(object({
+    datastore_id = string
+    size = optional(number, 0)
+    iothread   = optional(bool, true)
+    cache = optional(string, "none")
+    discard = optional(string, "ignore")
+    file_format       = optional(string, "raw")
+    path_in_datastore = optional(string, null)
+    backup = optional(bool, false)
+    replicate = optional(bool, false)
+  }))
+}

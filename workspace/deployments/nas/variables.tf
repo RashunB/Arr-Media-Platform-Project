@@ -85,6 +85,7 @@ variable "memory" {
   type = number
   default = 2048
 }
+
 variable "additional_disks" {
   description = "Map of disks keyed by interface name."
   type = map(object({

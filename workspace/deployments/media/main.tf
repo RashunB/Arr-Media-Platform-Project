@@ -54,6 +54,7 @@ module "media_vm" {
   vm_count_offset           = var.vm_count_offset
   ssh_public_key_path       = var.ssh_public_key_path
   personal_domain           = var.personal_domain
+  additional_disks          = var.additional_disks
 
   providers = {
     proxmox      = proxmox
