@@ -1,0 +1,9 @@
+---
+- name: Format Filesystem
+  community.general.filesystem:
+    dev: "/dev/{{ item.vg }}/{{ item.lv }}"
+    fstype: "{{ item.fstype | default('ext4') }}"
+    state: "{{ item.fs_state }}"
+  loop: "{{ lvm_storage_logical_volumes }}"
+  loop_control:
+    label: "{{ item.vg }}/{{ item.lv }}"

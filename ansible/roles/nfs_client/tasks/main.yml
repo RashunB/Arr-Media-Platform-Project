@@ -1,0 +1,6 @@
+---
+- name: Install NFS Client packages
+  ansible.builtin.import_tasks: install.yml
+
+- name: Mount share(s)
+  ansible.builtin.import_tasks: mount.yml

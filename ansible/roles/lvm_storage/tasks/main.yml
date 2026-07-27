@@ -1,69 +1,12 @@
 ---
+- name: Install LVM2
+  ansible.builtin.import_tasks: install.yml
 
-  # vars:
-  #   vg: vg.media
-  #   lv: lv.media
-  #   mount_device: /dev/{{ vg }}/{{ lv }}
-  #   mountpoint: /opt/media_platform
-  #   state_enabled: present
-  #   media_share_user: media
-  #   media_share_group: media_platform
-  #   media_share_id: 6000
+- name: Create Volumes
+  ansible.builtin.import_tasks: volumes.yml
 
-# Move to site.yml or whatever handles the nfs server directly, not the role -------
-# - name: Create Users and Groups
-#   block:
-#   - name: Create required group - "{{ media_share_group }}"
-#     ansible.builtin.group:
-#       name: "{{ media_share_group }}"
-#       gid: "{{ media_share_id }}"
-#       state: "{{ state_enabled }}"
-
-#   - name: Create required user - "{{ media_share_user }}"
-#     ansible.builtin.user:
-#       name: "{{ media_share_user }}"
-#       groups: "{{ media_share_group }}"
-#       append: true
-#       create_home: true
-#       uid: "{{ media_share_id }}"
-#       state: "{{ state_enabled }}"
-
-
-- name: Create Media VG
-  community.general.lvg:
-    vg: "{{ vg }}"
-    pvs:
-      - /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0
-      - /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1
-    state: "{{ state_enabled }}"
-
-- name: Create Media LV
-  community.general.lvol:
-    vg: "{{ vg }}"
-    lv: "{{ lv }}"
-    pvs:
-      - /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0
-      - /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1
-    size: 100%VG
-    state: "{{ state_enabled }}"
-
-- name: Format Filesystem
-  community.general.filesystem:
-    dev: "{{ mount_device }}"
-    fstype: ext4
-    state: "{{ state_enabled }}"
-
-- name: Create Direcory
-  ansible.builtin.file:
-    path: "{{ mountpoint }}"
-    owner: "{{ media_share_id }}"
-    group: "{{ media_share_id }}"
-    mode: "02775"
-    state: directory
+- name: Format Filesystems
+  ansible.builtin.import_tasks: filesystem.yml
 
 - name: Mount
-  ansible.posix.mount:
-    path: "{{ mountpoint }}/"
-    src: "{{ mount_device }}"
-    fstype: ext4
-    state: mounted
+  ansible.builtin.import_tasks: mount.yml
