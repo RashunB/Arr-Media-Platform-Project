@@ -1,0 +1,28 @@
+---
+- name: Create Export parent folder
+  ansible.builtin.file:
+    path: /exports
+    state: directory
+    owner: 'root'
+    group: 'root'
+    mode: '02755'
+
+- name: Ensure NFS export directories are present
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+    mode: "{{ item.mode | default('02755') }}"
+  loop: "{{ nfs_server_exports }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Deploy /etc/exports
+  ansible.builtin.template:
+    src: exports.j2
+    dest: /etc/exports
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload NFS Exports
