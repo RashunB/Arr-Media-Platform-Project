@@ -63,7 +63,7 @@ services:
       - "{{ media_platform_compose_dir }}/media_platform.env"
     volumes:
       - "{{ media_platform_root_dir }}/sonarr/data:/config"
-      - "{{ media_platform_tvseries_dir }}:/tv #optional"
+      - "{{ media_platform_tvseries_dir }}:/tv" #optional
       - "{{ media_platform_root_dir }}/downloads:/downloads" #optional
     ports:
       - "{{ media_platform_sonarr_host_port }}:8989"

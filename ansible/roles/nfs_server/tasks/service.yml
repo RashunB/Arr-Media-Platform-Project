@@ -1,0 +1,6 @@
+---
+- name: Enable and start NFS server
+  ansible.builtin.systemd_service:
+    name: nfs-kernel-server
+    enabled: true
+    state: started

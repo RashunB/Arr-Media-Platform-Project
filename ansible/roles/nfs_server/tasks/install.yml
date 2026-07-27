@@ -1,0 +1,8 @@
+---
+- name: Install NFS
+  ansible.builtin.apt:
+    name:
+      - nfs-kernel-server
+      - nfs-common
+    state: present
+    update_cache: true
