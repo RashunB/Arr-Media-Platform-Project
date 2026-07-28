@@ -12,6 +12,7 @@
   community.general.lvol:
     vg: "{{ item.vg }}"
     lv: "{{ item.lv }}"
+    pvs: "{{ item.pvs }}"
     size: "{{ item.size }}"
     state: "{{ item.lv_state }}"
   loop: "{{ lvm_storage_logical_volumes }}"

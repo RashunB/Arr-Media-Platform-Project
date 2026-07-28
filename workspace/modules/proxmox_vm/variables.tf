@@ -30,19 +30,19 @@ variable "vm_count_offset" {
 }
 
 variable "vm_group" {
-  type    = string
+  type = string
 }
 
 variable "vm_tag_list" {
-  type = list(string)
-  default = []
-  description = "A set of tags used for organizing and grouping for ansible inventory. Terraform tag is used as default tag to signal managed_nodes" 
+  type        = list(string)
+  default     = []
+  description = "A set of tags used for organizing and grouping for ansible inventory. Terraform tag is used as default tag to signal managed_nodes"
 }
 
 variable "vm_default_tag_list" {
-  type = list(string)
-  default = ["terraform"]
-  description = "Default set of tags used for organizing and grouping for ansible inventory. Terraform tag is used as default tag to signal managed_nodes" 
+  type        = list(string)
+  default     = ["terraform"]
+  description = "Default set of tags used for organizing and grouping for ansible inventory. Terraform tag is used as default tag to signal managed_nodes"
 }
 
 variable "ssh_public_key_path" {
@@ -85,11 +85,12 @@ variable "additional_disks" {
     path_in_datastore = optional(string, null)
     backup            = optional(bool, false)
     replicate         = optional(bool, false)
+    serial            = optional(string, null)
   }))
   default = {}
 }
 
 variable "memory" {
-  type = number
+  type    = number
   default = 2048
 }

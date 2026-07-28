@@ -55,7 +55,7 @@ module "nas" {
   ssh_public_key_path       = var.ssh_public_key_path
   personal_domain           = var.personal_domain
   additional_disks          = var.additional_disks
-  memory = var.memory
+  memory                    = var.memory
 
   providers = {
     proxmox      = proxmox

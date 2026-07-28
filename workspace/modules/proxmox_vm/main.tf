@@ -12,11 +12,11 @@ data "proxmox_virtual_environment_vms" "templates" {
 }
 
 locals {
-  vm_tag_list = distinct(concat(var.vm_tag_list, [var.vm_group, var.vm_name_prefix]))
-  tag_list = distinct(concat(var.vm_default_tag_list, local.vm_tag_list))
-  template_vm_id = data.proxmox_virtual_environment_vms.templates.vms[0].vm_id
+  vm_tag_list             = distinct(concat(var.vm_tag_list, [var.vm_group, var.vm_name_prefix]))
+  tag_list                = distinct(concat(var.vm_default_tag_list, local.vm_tag_list))
+  template_vm_id          = data.proxmox_virtual_environment_vms.templates.vms[0].vm_id
   default_cloud_init_path = "${path.module}/templates/cloud-init.yml.tpl"
-  cloud_init_data_path = coalesce(var.cloud_init_user_data_path, local.default_cloud_init_path)
+  cloud_init_data_path    = coalesce(var.cloud_init_user_data_path, local.default_cloud_init_path)
 }
 
 resource "proxmox_virtual_environment_file" "cloud_config" {
@@ -51,7 +51,7 @@ resource "proxmox_virtual_environment_vm" "vms" {
     full  = false
   }
 
-    dynamic "disk" {
+  dynamic "disk" {
     for_each = var.additional_disks
     content {
       interface         = disk.key
@@ -63,8 +63,9 @@ resource "proxmox_virtual_environment_vm" "vms" {
       discard           = disk.value["path_in_datastore"] != null ? null : disk.value["discard"]
       backup            = disk.value["backup"]
       replicate         = disk.value["replicate"]
+      serial            = disk.value["serial"]
     }
-   }
+  }
 
   cpu {
     cores = 2
