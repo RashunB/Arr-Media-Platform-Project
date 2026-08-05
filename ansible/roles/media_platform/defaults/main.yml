@@ -5,6 +5,13 @@ media_platform_user_uid: 6000
 media_platform_group: media_platform
 media_platform_group_gid: 6000
 
+# Web UI User
+media_platform_arr_webapp_username:
+media_platform_arr_webapp_password:
+
+# Usenet
+media_platform_usenet_provider: news.newshosting.com
+
 # Directories
 media_platform_root_dir: /opt/media_platform
 media_platform_compose_dir: /opt/docker/media_platform
@@ -29,15 +36,20 @@ media_platform_jellyfin_host_port: 8096
 
 media_platform_prowlarr_name: prowlarr
 media_platform_prowlarr_host_port: 9696
+media_platform_prowlarr_api_key:
 
 media_platform_sabnzbd_name: sabnzbd
 media_platform_sabnzdb_host_port: 8080
+media_platform_sabnzbd_api_key:
+media_platform_sabnzbd_nzb_key:
 
 media_platform_radarr_name: radarr
 media_platform_radarr_host_port: 7878
+media_platform_radarr_api_key:
 
 media_platform_sonarr_name: sonarr
 media_platform_sonarr_host_port: 8989
+media_platform_sonarr_api_key:
 
 media_platform_bazarr_name: bazarr
 media_platform_bazarr_host_port: 6767

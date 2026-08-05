@@ -5,5 +5,8 @@
 - name: Create Media Directories
   ansible.builtin.import_tasks: media_directories.yml
 
+- name: Deploy SABnzbd configs
+  ansible.builtin.import_tasks: sabnzbd.yml
+
 - name: Deploy and Start Media Stack
   ansible.builtin.import_tasks: compose.yml

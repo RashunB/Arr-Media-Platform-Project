@@ -1,0 +1,10 @@
+---
+- name: Place sabnzbd.ini config file
+  ansible.builtin.template:
+    src: sabnzbd.ini.j2
+    dest: "{{ media_platform_root_dir }}/sabnzbd/data/sabnzbd.ini"
+    owner: "{{ media_platform_user }}"
+    group: "{{ media_platform_group }}"
+    mode: "0770"
+  notify: Restart sabnzbd
+  no_log: true

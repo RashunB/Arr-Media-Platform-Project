@@ -22,6 +22,8 @@ services:
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: "{{ media_platform_prowlarr_name }}"
+    environment:
+      PROWLARR__API__KEY: "{{ media_platform_prowlarr_api_key }}"
     env_file:
       - "{{ media_platform_compose_dir }}/media_platform.env"
     volumes:
@@ -46,6 +48,8 @@ services:
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: "{{ media_platform_radarr_name }}"
+    environment:
+      RADARR__API__KEY: "{{ media_platform_radarr_api_key }}"
     env_file:
       - "{{ media_platform_compose_dir }}/media_platform.env"
     volumes:
@@ -59,6 +63,8 @@ services:
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: "{{ media_platform_sonarr_name }}"
+    environment:
+      SONARR__API__KEY: "{{ media_platform_sonarr_api_key }}"
     env_file:
       - "{{ media_platform_compose_dir }}/media_platform.env"
     volumes:

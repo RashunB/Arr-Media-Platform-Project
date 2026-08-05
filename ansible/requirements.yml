@@ -6,3 +6,4 @@ collections:
     version: ">=1.0.0"
   - name: ansible.posix
   - name: community.general
+  - name: community.sops

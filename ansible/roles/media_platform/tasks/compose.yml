@@ -3,8 +3,8 @@
   ansible.builtin.file:
     path: "{{ media_platform_compose_dir }}"
     owner: ansible
-    group: ansible
-    mode: "0755"
+    group: "{{ media_platform_group }}"
+    mode: "02775"
     state: directory
 
 - name: Copy env file to "{{ media_platform_compose_dir }}" directory
@@ -12,8 +12,9 @@
     src: docker-compose.yml.j2
     dest: "{{ media_platform_compose_dir }}/docker-compose.yml"
     owner: ansible
-    group: ansible
-    mode: "0644"
+    group: "{{ media_platform_group }}"
+    mode: "0660"
+  no_log: true
 
 - name: Copy compose files to "{{ media_platform_compose_dir }}" directory
   ansible.builtin.template:
@@ -21,7 +22,8 @@
     dest: "{{ media_platform_compose_dir }}/media_platform.env"
     owner: ansible
     group: ansible
-    mode: "0644"
+    mode: "0600"
+  no_log: true
 
 - name: Create and start services
   community.docker.docker_compose_v2:
