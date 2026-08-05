@@ -98,5 +98,6 @@ variable "additional_disks" {
     path_in_datastore = optional(string, null)
     backup            = optional(bool, false)
     replicate         = optional(bool, false)
+    serial            = optional(string, null)
   }))
 }

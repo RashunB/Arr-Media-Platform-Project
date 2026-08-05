@@ -19,7 +19,7 @@ provider "proxmox" {
   ssh {
     agent       = true
     username    = "root"
-    private_key = file("../../keys/proxmox")
+    private_key = file("/baucumlabs/workspace/keys/proxmox")
   }
 }
 
@@ -34,12 +34,12 @@ provider "proxmox" {
   ssh {
     agent       = true
     username    = "root"
-    private_key = file("../../keys/proxmox")
+    private_key = file("/baucumlabs/workspace/keys/proxmox")
   }
 }
 
 module "media_vm" {
-  source = "../../modules/proxmox_vm"
+  source = "/baucumlabs/workspace/modules/proxmox_vm"
 
   vm_name_prefix            = var.vm_name_prefix
   template_os_tag           = var.template_os_tag
