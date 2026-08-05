@@ -20,7 +20,7 @@ media_platform_tvseries_dir: "{{ media_platform_root_dir }}/tv"
 media_platform_movies_dir: "{{ media_platform_root_dir }}/movies"
 
 media_platform_downloads_dir: "{{ media_platform_root_dir }}/downloads"
-media_platform_incomplete_downloads_dir: "/media_downloads"
+media_platform_incomplete_downloads_dir: "{{ media_platform_root_dir }}/incomplete_downloads"
 
 media_platform_dir_list:
   # - "{{ media_platform_root_dir }}"

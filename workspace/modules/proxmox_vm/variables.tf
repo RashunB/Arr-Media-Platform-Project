@@ -47,7 +47,7 @@ variable "vm_default_tag_list" {
 
 variable "ssh_public_key_path" {
   type    = string
-  default = "../../keys/ansible_id.pub"
+  default = "/baucumlabs/secrets/ansible_id.pub"
 }
 
 variable "cloud_init_user_data_path" {
