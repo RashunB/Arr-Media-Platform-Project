@@ -1,0 +1,38 @@
+---
+cluster_name: homelab
+control_host_ip: "{{ hostvars['control']['ansible_host'] }}"
+pve_node_ip: "{{ hostvars['pve']['ansible_host'] }}"
+root_dir: /opt
+
+alloy_name: alloy
+alloy_host_port: 12345
+alloy_con_port: 12345
+alloy_journal_enabled: false
+
+cadvisor_name: cadvisor
+cadvisor_host_port: 8080
+
+dozzle_name: dozzle
+dozzle_host_port: 7070
+dozzle_agent_pve_ip: "{{ pve_node_ip }}"
+
+grafana_name: grafana
+grafana_host_port: 3000
+
+loki_name: loki
+loki_host_port: 3100
+loki_remote_url: "http://{{ control_host_ip }}:{{ loki_host_port }}/loki/api/v1/push"
+
+node_exporter_name: node-exporter
+node_exporter_host_port: 9100
+
+prometheus_name: prometheus
+prometheus_host_port: 9090
+
+pve_exporter_name: pve-exporter
+pve_exporter_host_port: 9221
+pve_exporter_enabled: false
+
+smartctl_exporter_name: smartctl-exporter
+smartctl_exporter_host_port: 9633
+smartctl_exporter_enabled: false

@@ -1,0 +1,4 @@
+---
+observability_node_alloy_journal_enabled: true
+observability_node_pve_exporter_enabled: true
+observability_node_smartctl_exporter_enabled: true

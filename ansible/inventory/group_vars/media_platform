@@ -1,0 +1,23 @@
+---
+media_platform_sabnzdb_host_port: 6060
+
+# LVM_STORAGE Role vars
+lvm_storage_volume_groups:
+  - vg: vg.media
+    pvs: 
+      - /dev/disk/by-id/scsi-SQEMU_QEMU_HARDDISK_vgmedia-d0
+      - /dev/disk/by-id/scsi-SQEMU_QEMU_HARDDISK_vgmedia-d1
+
+lvm_storage_logical_volumes:
+  - vg: vg.media
+    lv: lv.media
+    pvs: 
+      - /dev/disk/by-id/scsi-SQEMU_QEMU_HARDDISK_vgmedia-d0
+      - /dev/disk/by-id/scsi-SQEMU_QEMU_HARDDISK_vgmedia-d1
+    size: 100%VG
+    fstype: ext4
+    mountpoint: /opt/media_platform
+    mount_state: mounted
+    fs_state: present
+    lv_state: present
+    vg_state: present

@@ -23,8 +23,6 @@ media_platform_downloads_dir: "{{ media_platform_root_dir }}/downloads"
 media_platform_incomplete_downloads_dir: "{{ media_platform_root_dir }}/incomplete_downloads"
 
 media_platform_dir_list:
-  # - "{{ media_platform_root_dir }}"
-  # - "{{ media_platform_compose_dir }}"
   - "{{ media_platform_tvseries_dir }}"
   - "{{ media_platform_movies_dir }}"
   - "{{ media_platform_downloads_dir }}"
@@ -39,7 +37,7 @@ media_platform_prowlarr_host_port: 9696
 media_platform_prowlarr_api_key:
 
 media_platform_sabnzbd_name: sabnzbd
-media_platform_sabnzdb_host_port: 8080
+media_platform_sabnzbd_host_port: 8080
 media_platform_sabnzbd_api_key:
 media_platform_sabnzbd_nzb_key:
 

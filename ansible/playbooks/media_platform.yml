@@ -7,13 +7,13 @@
     ansible.builtin.import_role: 
       name: docker_base
     tags: docker
-  
+
   - name: Configure LVM
     ansible.builtin.import_role:
       name: lvm_storage
     tags: lvm
 
   - name: Deploy Media Platform
-    ansible.builtin.import_role: 
+    ansible.builtin.import_role:
       name: media_platform
     tags: media_platform
