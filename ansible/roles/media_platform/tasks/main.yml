@@ -8,5 +8,8 @@
 - name: Deploy SABnzbd configs
   ansible.builtin.import_tasks: sabnzbd.yml
 
+- name: Deploy configarr folders and templates
+  ansible.builtin.import_tasks: configarr.yml
+
 - name: Deploy and Start Media Stack
   ansible.builtin.import_tasks: compose.yml

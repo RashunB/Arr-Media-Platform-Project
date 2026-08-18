@@ -3,17 +3,17 @@
   hosts: media_platform
   become: true
   tasks:
-  - name: Install and configure Docker
-    ansible.builtin.import_role: 
-      name: docker_base
-    tags: docker
+    - name: Install and configure Docker
+      ansible.builtin.import_role:
+        name: docker_base
+      tags: docker
 
-  - name: Configure LVM
-    ansible.builtin.import_role:
-      name: lvm_storage
-    tags: lvm
+    - name: Configure LVM
+      ansible.builtin.import_role:
+        name: lvm_storage
+      tags: lvm
 
-  - name: Deploy Media Platform
-    ansible.builtin.import_role:
-      name: media_platform
-    tags: media_platform
+    - name: Deploy Media Platform
+      ansible.builtin.import_role:
+        name: media_platform
+      tags: media_platform

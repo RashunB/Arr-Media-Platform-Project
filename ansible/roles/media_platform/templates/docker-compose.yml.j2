@@ -4,7 +4,7 @@ networks:
 
 services:
   jellyfin:
-    image: lscr.io/linuxserver/jellyfin:latest
+    image: "{{ media_platform_jellyfin_image }}"
     container_name: "{{ media_platform_jellyfin_name }}"
     env_file:
       - "{{ media_platform_compose_dir }}/media_platform.env"
@@ -20,7 +20,7 @@ services:
     restart: unless-stopped
 
   prowlarr:
-    image: lscr.io/linuxserver/prowlarr:latest
+    image: "{{ media_platform_prowlarr_image }}"
     container_name: "{{ media_platform_prowlarr_name }}"
     environment:
       PROWLARR__API__KEY: "{{ media_platform_prowlarr_api_key }}"
@@ -33,7 +33,7 @@ services:
     restart: unless-stopped
 
   sabnzbd:
-    image: lscr.io/linuxserver/sabnzbd:latest
+    image: "{{ media_platform_sabnzbd_image }}"
     container_name: "{{ media_platform_sabnzbd_name }}"
     env_file:
       - "{{ media_platform_compose_dir }}/media_platform.env"
@@ -46,7 +46,7 @@ services:
     restart: unless-stopped
 
   radarr:
-    image: lscr.io/linuxserver/radarr:latest
+    image: "{{ media_platform_radarr_image }}"
     container_name: "{{ media_platform_radarr_name }}"
     environment:
       RADARR__API__KEY: "{{ media_platform_radarr_api_key }}"
@@ -61,7 +61,7 @@ services:
     restart: unless-stopped
 
   sonarr:
-    image: lscr.io/linuxserver/sonarr:latest
+    image: "{{ media_platform_sonarr_image }}"
     container_name: "{{ media_platform_sonarr_name }}"
     environment:
       SONARR__API__KEY: "{{ media_platform_sonarr_api_key }}"
@@ -76,7 +76,7 @@ services:
     restart: unless-stopped
     
   bazarr:
-    image: lscr.io/linuxserver/bazarr:latest
+    image: "{{ media_platform_bazarr_image }}"
     container_name: "{{ media_platform_bazarr_name }}"
     env_file:
       - "{{ media_platform_compose_dir }}/media_platform.env"
@@ -87,3 +87,17 @@ services:
     ports:
       - "{{ media_platform_bazarr_host_port }}:6767"
     restart: unless-stopped
+
+  configarr:
+    image: "{{ media_platform_configarr_image }}"
+    container_name: "{{ media_platform_configarr_name }}"
+    environment:
+      SONARR__API__KEY: "{{ media_platform_sonarr_api_key }}"
+      RADARR__API__KEY: "{{ media_platform_radarr_api_key }}"
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    volumes:
+      - "{{ media_platform_root_dir }}/configarr/data/config:/app/config"
+      - "{{ media_platform_root_dir }}/configarr/data/repos:/app/repos"
+      - "{{ media_platform_root_dir }}/configarr/data/cfs:/app/cfs"
+      - "{{ media_platform_root_dir }}/configarr/data/templates:/app/templates"
