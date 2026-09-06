@@ -38,6 +38,24 @@ provider "proxmox" {
   }
 }
 
+data "proxmox_hardware_mapping_pci" "transcoding_gpu" {
+  name = "transcoding_gpu"
+}
+
+locals {
+  pcie_map = [
+    data.proxmox_hardware_mapping_pci.transcoding_gpu.name,
+  ]
+
+  pcie_devices = {
+    for idx, name in local.pcie_map : "hostpci{$idx}" => {
+      device  = "hostpci${idx}"
+      mapping = name
+      pcie    = true
+    }
+  }
+}
+
 module "media_vm" {
   source = "/baucumlabs/workspace/modules/proxmox_vm"
 
@@ -55,7 +73,9 @@ module "media_vm" {
   ssh_public_key_path       = var.ssh_public_key_path
   personal_domain           = var.personal_domain
   additional_disks          = var.additional_disks
+  cpu                       = var.cpu
   memory                    = var.memory
+  pcie_devices              = local.pcie_devices
 
   providers = {
     proxmox      = proxmox

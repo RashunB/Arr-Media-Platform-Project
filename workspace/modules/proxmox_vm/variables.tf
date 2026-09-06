@@ -90,7 +90,43 @@ variable "additional_disks" {
   default = {}
 }
 
+variable "cpu" {
+  type    = number
+  default = 2
+}
+
 variable "memory" {
   type    = number
   default = 2048
+}
+
+variable "pcie_devices" {
+  type = map(object({
+    device = optional(string, null)
+    mapping = optional(string, null)
+    pcie = optional(bool, true)
+  }))
+  default = {}
+}
+
+# Cloudflare
+
+variable "cloudflare_api_token" {
+  type = string
+  default = "<YOUR_API_TOKEN>"
+}
+
+variable "cloudflare_zone_id" {
+  type = string
+  default = "<YOUR_ZONE_ID>"
+}
+
+variable "cloudflare_account_id" {
+  type = string
+  default = "<YOUR_ACCOUNT_ID>"
+}
+
+variable "cloudflare_domain" {
+  type = string
+  default = "<YOUR_DOMAIN>"
 }

@@ -6,9 +6,19 @@
       - sabnzbd
     state: restarted
 
+- name: Restart Bazarr
+  community.docker.docker_compose_v2:
+    project_src: "{{ media_platform_compose_dir }}"
+    services:
+      - bazarr
+    state: restarted
+
 - name: Restart configarr
   community.docker.docker_compose_v2:
     project_src: "{{ media_platform_compose_dir }}"
     services:
       - configarr
     state: restarted
+
+- name: Reboot
+  ansible.builtin.reboot:

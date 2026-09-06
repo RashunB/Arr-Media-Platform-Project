@@ -17,6 +17,8 @@ locals {
   template_vm_id          = data.proxmox_virtual_environment_vms.templates.vms[0].vm_id
   default_cloud_init_path = "${path.module}/templates/cloud-init.yml.tpl"
   cloud_init_data_path    = coalesce(var.cloud_init_user_data_path, local.default_cloud_init_path)
+
+  gpu_passthrough  = length(var.pcie_devices) > 0
 }
 
 resource "proxmox_virtual_environment_file" "cloud_config" {
@@ -45,6 +47,8 @@ resource "proxmox_virtual_environment_vm" "vms" {
   stop_on_destroy = true
   boot_order      = ["virtio0"]
   tags            = local.tag_list
+  machine = local.gpu_passthrough ? "q35" : "pc"
+  bios    = local.gpu_passthrough ? "ovmf" : "seabios"
 
   clone {
     vm_id = local.template_vm_id
@@ -67,8 +71,27 @@ resource "proxmox_virtual_environment_vm" "vms" {
     }
   }
 
+  dynamic "hostpci" {
+    for_each = var.pcie_devices
+    content {
+      device = hostpci.value["device"]
+      mapping = hostpci.value["mapping"]
+      pcie = hostpci.value["pcie"]
+      rombar = hostpci.value["pcie"]
+    }
+  }
+
+  dynamic "efi_disk" {
+    for_each = local.gpu_passthrough ? [1] : []
+    content {
+      datastore_id = var.datastore_infra
+      file_format = "raw"
+      type = "4m"
+    }
+  }
+
   cpu {
-    cores = 2
+    cores = var.cpu
     type  = "host"
   }
 

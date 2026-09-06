@@ -81,6 +81,11 @@ variable "personal_domain" {
   type = string
 }
 
+variable "cpu" {
+  type    = number
+  default = 4
+}
+
 variable "memory" {
   type    = number
   default = 2048

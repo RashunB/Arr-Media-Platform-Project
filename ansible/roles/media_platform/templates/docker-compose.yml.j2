@@ -6,8 +6,14 @@ services:
   jellyfin:
     image: "{{ media_platform_jellyfin_image }}"
     container_name: "{{ media_platform_jellyfin_name }}"
+    environment:
+      DOCKER_MODS: "linuxserver/mods:jellyfin-opencl-intel"
+      NEOReadDebugKeys: "1"
+      OverrideGpuAddressSpace: "48"
     env_file:
       - "{{ media_platform_compose_dir }}/media_platform.env"
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
     volumes:
       - "{{ media_platform_root_dir }}/jellyfin/library:/config"
       - "{{ media_platform_tvseries_dir }}:/data/tvshows"
@@ -94,6 +100,8 @@ services:
     environment:
       SONARR__API__KEY: "{{ media_platform_sonarr_api_key }}"
       RADARR__API__KEY: "{{ media_platform_radarr_api_key }}"
+      LOG_STACKTRACE: true
+      LOG_LEVEL: debug
     env_file:
       - "{{ media_platform_compose_dir }}/media_platform.env"
     volumes:
@@ -101,3 +109,19 @@ services:
       - "{{ media_platform_root_dir }}/configarr/data/repos:/app/repos"
       - "{{ media_platform_root_dir }}/configarr/data/cfs:/app/cfs"
       - "{{ media_platform_root_dir }}/configarr/data/templates:/app/templates"
+
+  seerr:
+    image: "{{ media_platform_seerr_image }}"
+    container_name: "{{ media_platform_seerr_name }}"
+    init: true
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    ports:
+      - "{{ media_platform_seerr_host_port }}:5055"
+    volumes:
+      - "{{ media_platform_root_dir }}/seerr/data:/app/config"
+    security_opt:
+      - no-new-privileges
+    cap_drop:
+      - ALL
+    restart: unless-stopped

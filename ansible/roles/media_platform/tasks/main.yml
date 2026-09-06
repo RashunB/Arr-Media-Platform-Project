@@ -11,5 +11,11 @@
 - name: Deploy configarr folders and templates
   ansible.builtin.import_tasks: configarr.yml
 
+- name: Deploy Bazarr configs
+  ansible.builtin.import_tasks: bazarr.yml
+
+- name: Enable GPU Usage
+  ansible.builtin.import_tasks: gpu.yml
+
 - name: Deploy and Start Media Stack
   ansible.builtin.import_tasks: compose.yml
