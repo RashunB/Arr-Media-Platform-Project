@@ -108,25 +108,3 @@ variable "pcie_devices" {
   }))
   default = {}
 }
-
-# Cloudflare
-
-variable "cloudflare_api_token" {
-  type = string
-  default = "<YOUR_API_TOKEN>"
-}
-
-variable "cloudflare_zone_id" {
-  type = string
-  default = "<YOUR_ZONE_ID>"
-}
-
-variable "cloudflare_account_id" {
-  type = string
-  default = "<YOUR_ACCOUNT_ID>"
-}
-
-variable "cloudflare_domain" {
-  type = string
-  default = "<YOUR_DOMAIN>"
-}

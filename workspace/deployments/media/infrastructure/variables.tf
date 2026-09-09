@@ -106,3 +106,46 @@ variable "additional_disks" {
     serial            = optional(string, null)
   }))
 }
+
+# Cloudflare/DNS
+
+variable "ip_address" {
+  type = string
+  default = ""
+}
+variable "dns_type" {
+  type = string
+  default = "A"
+}
+variable "ttl" {
+  type = number
+  default = 1
+}
+variable "proxied" {
+  type = bool
+  default = false
+}
+variable "dns_comment" {
+  type = string
+  default = ""
+}
+
+variable "cloudflare_api_token" {
+  type = string
+  default = ""
+}
+
+variable "cloudflare_zone_id" {
+  type = string
+  default = ""
+}
+
+variable "cloudflare_account_id" {
+  type = string
+  default = ""
+}
+
+variable "cloudflare_domain" {
+  type = string
+  default = "baucummail.com"
+}

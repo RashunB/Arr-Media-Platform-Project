@@ -1,22 +1,3 @@
-terraform {
-  required_providers {
-    sops = {
-      source = "carlpett/sops"
-    }
-    prowlarr = {
-      source = "devopsarr/prowlarr"
-    }
-    sonarr = {
-      source = "devopsarr/sonarr"
-    }
-    radarr = {
-      source = "devopsarr/radarr"
-    }
-  }
-}
-
-# Data
-
 data "sops_file" "media_platform" {
   source_file = "/baucumlabs/secrets/media_platform.sops.yaml"
 }
