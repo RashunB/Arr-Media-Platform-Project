@@ -1,5 +1,5 @@
 ---
-media_platform_sabnzdb_host_port: 6060
+media_platform_sabnzbd_host_port: 6060
 
 # LVM_STORAGE Role vars
 lvm_storage_volume_groups:

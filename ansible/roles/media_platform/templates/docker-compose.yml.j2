@@ -48,7 +48,7 @@ services:
       - "{{ media_platform_incomplete_downloads_dir }}:/incomplete-downloads" #optional
       - "{{ media_platform_downloads_dir }}:/downloads" #optional
     ports:
-      - "{{ media_platform_sabnzdb_host_port }}:8080"
+      - "{{ media_platform_sabnzbd_host_port }}:8080"
     restart: unless-stopped
 
   radarr:
