@@ -1,0 +1,35 @@
+---
+observability_control_cluster_name:
+observability_control_root_dir: /opt
+observability_control_control_host_ip:
+observability_control_pve_node_ip:
+
+observability_control_alloy_name: alloy
+observability_control_alloy_con_port: 12345
+observability_control_alloy_host_port: 12345
+observability_control_alloy_journal_enabled: false
+
+observability_control_cadvisor_name: cadvisor
+observability_control_cadvisor_host_port: 8080
+
+observability_control_dozzle_name: dozzle
+observability_control_dozzle_host_port: 7070
+
+observability_control_grafana_name: grafana
+observability_control_grafana_host_port: 3000
+
+observability_control_loki_name: loki
+observability_control_loki_host_port: 3100
+observability_control_loki_remote_url: http://{{ observability_control_control_host_ip }}:{{ observability_control_loki_host_port }}/loki/api/v1/push
+
+observability_control_node_exporter_name: node-exporter
+observability_control_node_exporter_host_port: 9100
+
+observability_control_prometheus_name: prometheus
+observability_control_prometheus_host_port: 9090
+
+observability_control_smartctl_exporter_name: smartctl-exporter
+observability_control_smartctl_exporter_host_port: 9633
+
+observability_control_pve_exporter_name: pve-exporter
+observability_control_pve_exporter_host_port: 9221

@@ -1,0 +1,12 @@
+---
+- name: Install LVM2
+  ansible.builtin.import_tasks: install.yml
+
+- name: Create Volumes
+  ansible.builtin.import_tasks: volumes.yml
+
+- name: Format Filesystems
+  ansible.builtin.import_tasks: filesystem.yml
+
+- name: Mount
+  ansible.builtin.import_tasks: mount.yml

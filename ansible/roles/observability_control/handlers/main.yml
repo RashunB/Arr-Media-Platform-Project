@@ -1,0 +1,35 @@
+---
+- name: Restart Prometheus
+  community.docker.docker_compose_v2:
+    project_src: /opt/docker/observability
+    services:
+      - prometheus
+    state: restarted
+
+- name: Restart Loki
+  community.docker.docker_compose_v2:
+    project_src: /opt/docker/observability
+    services:
+      - loki
+    state: restarted
+
+- name: Restart Alloy
+  community.docker.docker_compose_v2:
+    project_src: /opt/docker/observability
+    services:
+      - alloy
+    state: restarted
+
+- name: Restart Grafana
+  community.docker.docker_compose_v2:
+    project_src: /opt/docker/observability
+    services:
+      - grafana
+    state: restarted
+
+- name: Restart Dozzle
+  community.docker.docker_compose_v2:
+    project_src: /opt/docker/observability
+    services:
+      - dozzle
+    state: restarted

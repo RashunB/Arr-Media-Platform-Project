@@ -1,0 +1,8 @@
+---
+- name: Create Dozzle directories
+  ansible.builtin.file:
+    path: "{{ observability_node_root_dir }}/dozzle/data"
+    owner: ansible
+    group: ansible
+    mode: "0755"
+    state: directory

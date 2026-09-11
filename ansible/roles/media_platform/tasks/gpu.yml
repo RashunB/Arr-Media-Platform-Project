@@ -1,0 +1,29 @@
+---
+- name: Esure GPU packages are installed
+  ansible.builtin.apt:
+    name:
+      - "linux-modules-extra-{{ ansible_kernel }}"
+    state: present
+    update_cache: true
+  notify: Reboot
+
+- name: Esure GPU/Transcoding tools packages are installed
+  ansible.builtin.apt:
+    name:
+      - linux-firmware
+      - intel-gpu-tools
+      - vainfo
+      - intel-media-va-driver-non-free
+    state: present
+    update_cache: true
+
+- name: Ensure Media User GPU groups
+  ansible.builtin.user:
+    name: "{{ media_platform_user }}"
+    groups:
+      - video
+      - render
+    append: true
+
+- name: Reboot if needed
+  ansible.builtin.meta: flush_handlers

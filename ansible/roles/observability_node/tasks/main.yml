@@ -1,0 +1,13 @@
+---
+- name: Configure Alloy
+  ansible.builtin.import_tasks: alloy.yml
+
+- name: Configure PVE-Exporter
+  ansible.builtin.import_tasks: pve_exporter.yml
+  when: observability_node_pve_exporter_enabled
+
+- name: Configure Dozzle
+  ansible.builtin.import_tasks: dozzle.yml
+
+- name: Deploy and Start Compose
+  ansible.builtin.import_tasks: compose.yml

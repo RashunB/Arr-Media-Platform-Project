@@ -7,3 +7,7 @@ output "rocky9_template_id" {
   value       = proxmox_virtual_environment_vm.rocky9_template.vm_id
   description = "VM ID of the Rocky 9 template, used by deployments"
 }
+
+output "transcoding_gpu" {
+  value = proxmox_hardware_mapping_pci.transcoding_gpu
+}

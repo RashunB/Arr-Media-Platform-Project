@@ -1,0 +1,127 @@
+networks:
+  media:
+    name: media
+
+services:
+  jellyfin:
+    image: "{{ media_platform_jellyfin_image }}"
+    container_name: "{{ media_platform_jellyfin_name }}"
+    environment:
+      DOCKER_MODS: "linuxserver/mods:jellyfin-opencl-intel"
+      NEOReadDebugKeys: "1"
+      OverrideGpuAddressSpace: "48"
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+    volumes:
+      - "{{ media_platform_root_dir }}/jellyfin/library:/config"
+      - "{{ media_platform_tvseries_dir }}:/data/tvshows"
+      - "{{ media_platform_movies_dir }}:/data/movies"
+    ports:
+      - "{{ media_platform_jellyfin_host_port }}:8096" # http
+      # - "{{ media_platform_jellyfin_host_port }}:8920" #optional https with certificate
+      # - "{{ media_platform_jellyfin_host_port }}:7359/udp" #optional Service Discovery
+      # - "{{ media_platform_jellyfin_host_port }}:1900/udp" #optional Client Discovery
+    restart: unless-stopped
+
+  prowlarr:
+    image: "{{ media_platform_prowlarr_image }}"
+    container_name: "{{ media_platform_prowlarr_name }}"
+    environment:
+      PROWLARR__API__KEY: "{{ media_platform_prowlarr_api_key }}"
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    volumes:
+      - "{{ media_platform_root_dir }}/prowlarr/data:/config"
+    ports:
+      - "{{ media_platform_prowlarr_host_port }}:9696"
+    restart: unless-stopped
+
+  sabnzbd:
+    image: "{{ media_platform_sabnzbd_image }}"
+    container_name: "{{ media_platform_sabnzbd_name }}"
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    volumes:
+      - "{{ media_platform_root_dir }}/sabnzbd/data:/config"
+      - "{{ media_platform_incomplete_downloads_dir }}:/incomplete-downloads" #optional
+      - "{{ media_platform_downloads_dir }}:/downloads" #optional
+    ports:
+      - "{{ media_platform_sabnzdb_host_port }}:8080"
+    restart: unless-stopped
+
+  radarr:
+    image: "{{ media_platform_radarr_image }}"
+    container_name: "{{ media_platform_radarr_name }}"
+    environment:
+      RADARR__API__KEY: "{{ media_platform_radarr_api_key }}"
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    volumes:
+      - "{{ media_platform_root_dir }}/radarr/data:/config"
+      - "{{ media_platform_movies_dir }}:/movies" #optional
+      - "{{ media_platform_root_dir }}/downloads:/downloads" #optional
+    ports:
+      - "{{ media_platform_radarr_host_port }}:7878"
+    restart: unless-stopped
+
+  sonarr:
+    image: "{{ media_platform_sonarr_image }}"
+    container_name: "{{ media_platform_sonarr_name }}"
+    environment:
+      SONARR__API__KEY: "{{ media_platform_sonarr_api_key }}"
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    volumes:
+      - "{{ media_platform_root_dir }}/sonarr/data:/config"
+      - "{{ media_platform_tvseries_dir }}:/tv" #optional
+      - "{{ media_platform_root_dir }}/downloads:/downloads" #optional
+    ports:
+      - "{{ media_platform_sonarr_host_port }}:8989"
+    restart: unless-stopped
+    
+  bazarr:
+    image: "{{ media_platform_bazarr_image }}"
+    container_name: "{{ media_platform_bazarr_name }}"
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    volumes:
+      - "{{ media_platform_root_dir }}/bazarr/data:/config"
+      - "{{ media_platform_movies_dir }}:/movies" #optional
+      - "{{ media_platform_tvseries_dir }}:/tv" #optional
+    ports:
+      - "{{ media_platform_bazarr_host_port }}:6767"
+    restart: unless-stopped
+
+  configarr:
+    image: "{{ media_platform_configarr_image }}"
+    container_name: "{{ media_platform_configarr_name }}"
+    environment:
+      SONARR__API__KEY: "{{ media_platform_sonarr_api_key }}"
+      RADARR__API__KEY: "{{ media_platform_radarr_api_key }}"
+      LOG_STACKTRACE: true
+      LOG_LEVEL: debug
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    volumes:
+      - "{{ media_platform_root_dir }}/configarr/data/config:/app/config"
+      - "{{ media_platform_root_dir }}/configarr/data/repos:/app/repos"
+      - "{{ media_platform_root_dir }}/configarr/data/cfs:/app/cfs"
+      - "{{ media_platform_root_dir }}/configarr/data/templates:/app/templates"
+
+  seerr:
+    image: "{{ media_platform_seerr_image }}"
+    container_name: "{{ media_platform_seerr_name }}"
+    init: true
+    env_file:
+      - "{{ media_platform_compose_dir }}/media_platform.env"
+    ports:
+      - "{{ media_platform_seerr_host_port }}:5055"
+    volumes:
+      - "{{ media_platform_root_dir }}/seerr/data:/app/config"
+    security_opt:
+      - no-new-privileges
+    cap_drop:
+      - ALL
+    restart: unless-stopped

@@ -1,7 +1,0 @@
-module(load="builtin:omfile" Template="RSYSLOG_SyslogProtocol23Format")
-kern.*;user.*;auth.*;authpriv.*;daemon.*;syslog.*;local0.*;local7.* action(type="omfwd"
-     target="{{ hostvars['monitoring-1']['ansible_host'] }}"
-     port="{{ alloy_rsyslog_port }}"
-     template="RSYSLOG_SyslogProtocol23Format"
-     protocol="tcp"
-     queue.type="linkedList")

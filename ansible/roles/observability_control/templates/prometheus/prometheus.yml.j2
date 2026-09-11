@@ -1,0 +1,59 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: {{ observability_control_cluster_name }}
+
+scrape_configs:
+  - job_name: Prometheus
+    static_configs:
+      - targets: ["{{ observability_control_control_host_ip }}:{{ observability_control_prometheus_host_port }}"]
+
+  - job_name: Control Node-Exporter
+    static_configs:
+      - targets: ["host.docker.internal:{{ observability_control_node_exporter_host_port }}"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "node-exporter:{{ observability_control_node_exporter_host_port }}"
+
+  - job_name: Control cAdvisor
+    static_configs:
+      - targets: ["{{ observability_control_control_host_ip }}:{{ observability_control_cadvisor_host_port }}"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "cadvisor:{{ observability_control_cadvisor_host_port }}"
+
+  - job_name: Control Smartctl-Exporter
+    static_configs:
+      - targets: ["{{ observability_control_control_host_ip }}:{{ observability_control_smartctl_exporter_host_port }}"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "smartctl-exporter:{{ observability_control_smartctl_exporter_host_port }}"
+
+  - job_name: PVE PVE-Exporter
+    static_configs:
+      - targets: ["{{ observability_control_pve_node_ip }}:{{ observability_control_pve_exporter_host_port }}"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "pve-exporter:{{ observability_control_pve_exporter_host_port }}"
+
+  - job_name: PVE Node-Exporter
+    static_configs:
+      - targets: ["{{ observability_control_pve_node_ip }}:{{ observability_control_node_exporter_host_port }}"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "node-exporter:{{ observability_control_node_exporter_host_port }}"
+
+  - job_name: PVE cAdvisor
+    static_configs:
+      - targets: ["{{ observability_control_pve_node_ip }}:{{ observability_control_cadvisor_host_port }}"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "cadvisor:{{ observability_control_cadvisor_host_port }}"
+
+  - job_name: PVE Smartctl-Exporter
+    static_configs:
+      - targets: ["{{ observability_control_pve_node_ip }}:{{ observability_control_smartctl_exporter_host_port }}"]
+    relabel_configs:
+      - target_label: instance
+        replacement: "smartctl-exporter:{{ observability_control_smartctl_exporter_host_port }}"

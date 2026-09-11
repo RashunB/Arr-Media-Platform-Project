@@ -1,0 +1,196 @@
+# Optional: Override default repositories
+#trashGuideUrl: https://github.com/BlackDark/fork-TRASH-Guides
+#recyclarrConfigUrl: https://github.com/BlackDark/fork-recyclarr-configs
+
+# Optional: Specify a custom branch/revision
+# trashRevision defaults to 'master'
+# recyclarrRevision defaults to pinned SHA with legacy includes/ (see issue #504)
+#trashRevision: master
+#recyclarrRevision: 4ae377bb704fc7fd69a544ad04e91357e0b09f62 # default pin; upstream master dropped legacy includes/ (Recyclarr v8)
+
+# since v1.12.0. Optional. Enable for legacy configuration to clone full repos (trash, recyclarr) instead of sparse.
+# Default is false. Setting to true increases storage usage up to 10x.
+#enableFullGitClone: true
+
+# since v1.22.0. Optional. Enable compatibility mode for TRaSH-Guides changes from Feb 2026.
+# When true: uses old behavior (exclude semantics for CF groups, reversed quality ordering)
+# When false (default): uses new behavior (include semantics, display order for qualities)
+# See: https://github.com/TRaSH-Guides/Guides/commit/2994a7979d8036a7908a92e2cd286054fd4fcc1b
+#compatibilityTrashGuide20260219Enabled: false
+
+# Optional. Silence warnings when a Quality Profile contains CustomFormats marked mutually
+# exclusive in TRaSH-Guides conflicts.json. Sync behavior is unchanged; only logs are suppressed.
+# Default is false.
+#silenceTrashConflictWarnings: true
+
+# since v1.28.0. Optional. Silence warnings when custom_format_groups excludes a CF that TRaSH marks as required.
+#silenceRequiredCfGroupExclusionWarnings: true
+
+# Optional: Enable anonymous telemetry tracking of feature usage
+# Default is false. Set to true to help improve Configarr by sharing anonymous usage statistics.
+telemetry: true
+
+# Optional: Paths for custom formats and templates
+# localCustomFormatsPath: /app/cfs
+# localConfigTemplatesPath: /app/templates
+
+# With this options you can disable or enable processing for *arrs. Default is enabled
+#sonarrEnabled: false
+#radarrEnabled: false
+#whisparrEnabled: false
+#readarrEnabled: false
+#lidarrEnabled: false
+
+# Sonarr Configuration
+sonarr:
+  sonarr_core:
+    base_url: http://sonarr:8989 # Sonarr instance URL
+    api_key: !env SONARR__API__KEY
+    quality_definition:
+      type: series
+
+    include:
+      - template: sonarr-quality-definition-series
+      - template: sonarr-v4-quality-profile-web-1080p
+      - template: sonarr-v4-custom-formats-web-1080p
+      - template: sonarr-v4-quality-profile-web-2160p
+      - template: sonarr-v4-custom-formats-web-2160p
+
+    quality_profiles:
+      - name: Bluray-1080p
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-1080p Remux
+          until_score: 10000
+          min_format_score: 100
+        min_format_score: 0
+        qualities:
+          - name: Bluray-1080p Remux
+          - name: Bluray-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+          - name: Bluray-720p
+          - name: WEB 720p
+            qualities:
+              - WEBDL-720p
+              - WEBRip-720p
+
+      - name: Bluray-2160p
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-2160p Remux
+          until_score: 10000
+          min_format_score: 100
+        min_format_score: 0
+        qualities:
+          - name: Bluray-2160p Remux
+          - name: Bluray-2160p
+          - name: WEB 2160p
+            qualities:
+              - WEBDL-2160p
+              - WEBRip-2160p
+          - name: Bluray-1080p Remux
+          - name: Bluray-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+          - name: Bluray-720p
+          - name: WEB 720p
+            qualities:
+              - WEBDL-720p
+              - WEBRip-720p
+
+# Radarr Configuration
+radarr:
+  radarr_core:
+    base_url: http://radarr:7878
+    api_key: !env RADARR__API__KEY
+    quality_definition:
+      type: movie
+
+    include:
+      - template: radarr-quality-definition-movie
+      - template: radarr-quality-profile-hd-bluray-web
+      - template: radarr-custom-formats-hd-bluray-web
+      - template: radarr-quality-profile-uhd-bluray-web
+      - template: radarr-custom-formats-uhd-bluray-web
+
+    quality_profiles:
+      - name: HD Bluray + WEB
+        language: English
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: Remux-1080p
+          until_score: 10000
+          min_format_score: 100
+        min_format_score: 100
+        qualities:
+          - name: Remux-1080p
+            qualities:
+              - Bluray-1080p
+              - Remux-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+              - HDTV-1080p
+          - name: Bluray-720p
+          - name: WEB 720p
+            qualities:
+              - WEBDL-720p
+              - WEBRip-720p
+              - HDTV-720p
+
+      - name: UHD Bluray + WEB
+        language: English
+        reset_unmatched_scores:
+          enabled: true
+        upgrade:
+          allowed: true
+          until_quality: Remux-2160p
+          until_score: 10000
+          min_format_score: 100
+        min_format_score: 100 
+        qualities:
+          - name: Remux-2160p
+            qualities:
+              - Bluray-2160p
+              - Remux-2160p
+          - name: WEB 2160p
+            qualities:
+              - WEBDL-2160p
+              - WEBRip-2160p
+              - HDTV-2160p
+          - name: Remux-1080p
+            qualities:
+              - Bluray-1080p
+              - Remux-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+              - HDTV-1080p
+          - name: Bluray-720p
+          - name: WEB 720p
+            qualities:
+              - WEBDL-720p
+              - WEBRip-720p
+              - HDTV-720p
+
+# experimental support: check https://configarr.rayak.de/docs/configuration/experimental-support
+whisparr: {}
+
+# experimental support: check https://configarr.rayak.de/docs/configuration/experimental-support
+readarr: {}
+
+# experimental support: check https://configarr.rayak.de/docs/configuration/experimental-support
+lidarr: {}

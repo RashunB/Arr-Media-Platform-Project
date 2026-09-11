@@ -1,41 +1,3 @@
-terraform {
-  required_providers {
-    proxmox = {
-      source  = "bpg/proxmox"
-      version = "0.105.0"
-    }
-    local = { source = "hashicorp/local" }
-  }
-}
-
-provider "proxmox" {
-  endpoint      = var.proxmox_endpoint
-  api_token     = var.proxmox_api_token
-  insecure      = true
-  random_vm_ids = true
-
-  ssh {
-    agent       = true
-    username    = "root"
-    private_key = file("../../keys/proxmox")
-  }
-}
-
-provider "proxmox" {
-  alias         = "root"
-  endpoint      = var.proxmox_endpoint
-  username      = var.proxmox_user
-  password      = var.proxmox_password
-  insecure      = true
-  random_vm_ids = true
-
-  ssh {
-    agent       = true
-    username    = "root"
-    private_key = file("../../keys/proxmox")
-  }
-}
-
 resource "proxmox_download_file" "ubuntu24" {
   content_type = "import"
   datastore_id = var.datastore_files
@@ -43,6 +5,7 @@ resource "proxmox_download_file" "ubuntu24" {
   url          = "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
   file_name    = "noble-server-cloudimg-amd64.qcow2"
   lifecycle { prevent_destroy = true }
+  overwrite = false
 }
 
 resource "proxmox_virtual_environment_vm" "ubuntu24_template" {
@@ -78,6 +41,9 @@ resource "proxmox_virtual_environment_vm" "ubuntu24_template" {
     model  = "virtio"
   }
 
+  serial_device {
+    device = "socket"
+  }
 }
 
 resource "proxmox_download_file" "rocky9" {
@@ -87,6 +53,7 @@ resource "proxmox_download_file" "rocky9" {
   url          = "https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2"
   file_name    = "Rocky-9-GenericCloud.latest.x86_64.qcow2"
   lifecycle { prevent_destroy = true }
+  overwrite = false
 }
 
 resource "proxmox_virtual_environment_vm" "rocky9_template" {
@@ -100,7 +67,6 @@ resource "proxmox_virtual_environment_vm" "rocky9_template" {
   lifecycle { prevent_destroy = true }
   operating_system { type = "l26" }
   agent { enabled = true }
-
 
   cpu {
     cores = 2
@@ -122,4 +88,7 @@ resource "proxmox_virtual_environment_vm" "rocky9_template" {
     model  = "virtio"
   }
 
+  serial_device {
+    device = "socket"
+  }
 }

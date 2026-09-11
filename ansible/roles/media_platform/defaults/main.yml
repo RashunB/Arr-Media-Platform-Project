@@ -1,0 +1,77 @@
+---
+# Service Principal(s)
+media_platform_user: media
+media_platform_user_uid: 6000
+media_platform_group: media_platform
+media_platform_group_gid: 6000
+
+# Web UI User
+media_platform_arr_webapp_username:
+media_platform_arr_webapp_password:
+
+# Usenet
+media_platform_usenet_provider: news.newshosting.com
+
+# Directories
+media_platform_root_dir: /opt/media_platform
+media_platform_compose_dir: /opt/docker/media_platform
+
+media_platform_tvseries_dir: "{{ media_platform_root_dir }}/tv"
+media_platform_movies_dir: "{{ media_platform_root_dir }}/movies"
+
+media_platform_downloads_dir: "{{ media_platform_root_dir }}/downloads"
+media_platform_incomplete_downloads_dir: "{{ media_platform_root_dir }}/incomplete_downloads"
+
+media_platform_dir_list:
+  - "{{ media_platform_tvseries_dir }}"
+  - "{{ media_platform_movies_dir }}"
+  - "{{ media_platform_downloads_dir }}"
+  - "{{ media_platform_incomplete_downloads_dir }}"
+
+# Services
+media_platform_jellyfin_name: jellyfin
+media_platform_jellyfin_hostname: "{{ media_platform_jellyfin_name }}"
+media_platform_jellyfin_image: lscr.io/linuxserver/jellyfin:latest
+media_platform_jellyfin_host_port: 8096
+
+media_platform_seerr_name: seerr
+media_platform_seerr_image: ghcr.io/seerr-team/seerr:latest
+media_platform_seerr_host_port: 5055
+
+media_platform_prowlarr_name: prowlarr
+media_platform_prowlarr_image: lscr.io/linuxserver/prowlarr:latest
+media_platform_prowlarr_host_port: 9696
+media_platform_prowlarr_api_key:
+
+media_platform_sabnzbd_name: sabnzbd
+media_platform_sabnzbd_image: lscr.io/linuxserver/sabnzbd:latest
+media_platform_sabnzbd_host_port: 8080
+media_platform_sabnzbd_api_key:
+media_platform_sabnzbd_nzb_key:
+
+media_platform_radarr_name: radarr
+media_platform_radarr_image: lscr.io/linuxserver/radarr:latest
+media_platform_radarr_host_port: 7878
+media_platform_radarr_api_key:
+
+media_platform_sonarr_name: sonarr
+media_platform_sonarr_image: lscr.io/linuxserver/sonarr:latest
+media_platform_sonarr_host_port: 8989
+media_platform_sonarr_api_key:
+
+media_platform_bazarr_name: bazarr
+media_platform_bazarr_image: lscr.io/linuxserver/bazarr:latest
+media_platform_bazarr_host_port: 6767
+
+media_platform_configarr_name: configarr
+media_platform_configarr_image: docker.io/configarr/configarr:latest
+
+media_platform_services_list:
+  - "{{ media_platform_jellyfin_name }}"
+  - "{{ media_platform_prowlarr_name }}"
+  - "{{ media_platform_sabnzbd_name }}"
+  - "{{ media_platform_radarr_name }}"
+  - "{{ media_platform_sonarr_name }}"
+  - "{{ media_platform_bazarr_name }}"
+  - "{{ media_platform_configarr_name }}"
+  - "{{ media_platform_seerr_name }}"

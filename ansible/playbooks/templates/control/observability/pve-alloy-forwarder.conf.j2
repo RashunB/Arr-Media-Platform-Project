@@ -1,8 +1,0 @@
-input(type="imuxsock" socket="/dev/log" useSpecialParser="off")
-module(load="builtin:omfile" Template="RSYSLOG_SyslogProtocol23Format")
-kern.*;user.*;auth.*;authpriv.*;daemon.*;syslog.*;local0.*;local7.* action(type="omfwd"
-     target="127.0.0.1"
-     port="{{ alloy_rsyslog_port }}"
-     template="RSYSLOG_SyslogProtocol23Format"
-     protocol="tcp"
-     queue.type="linkedList")

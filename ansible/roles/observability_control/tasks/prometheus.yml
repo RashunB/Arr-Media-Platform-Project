@@ -1,0 +1,21 @@
+---
+- name: Create Prometheus directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: ansible
+    group: ansible
+    mode: "0755"
+    state: directory
+  loop:
+    - "{{ observability_control_root_dir }}/prometheus/data"
+    - "{{ observability_control_root_dir }}/prometheus/config"
+    - "{{ observability_control_root_dir }}/prometheus/config/rules"
+
+- name: Copy Prometheus files
+  ansible.builtin.template:
+    src: prometheus/prometheus.yml.j2
+    dest: "{{ observability_control_root_dir }}/prometheus/prometheus.yml"
+    owner: ansible
+    group: ansible
+    mode: "0644"
+  notify: Restart Prometheus

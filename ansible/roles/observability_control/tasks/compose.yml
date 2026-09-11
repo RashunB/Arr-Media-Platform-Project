@@ -1,0 +1,22 @@
+---
+- name: Create required directories
+  ansible.builtin.file:
+    path: "{{ observability_control_root_dir }}/docker/observability"
+    owner: ansible
+    group: ansible
+    mode: "0755"
+    state: directory
+
+- name: Copy compose directory to /opt directory
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ observability_control_root_dir }}/docker/observability/docker-compose.yml"
+    owner: ansible
+    group: ansible
+    mode: "0644"
+
+- name: Create and start services
+  community.docker.docker_compose_v2:
+    project_src: "{{ observability_control_root_dir }}/docker/observability"
+    state: present
+    pull: missing

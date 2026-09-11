@@ -1,0 +1,18 @@
+---
+# - name: Create Direcory
+#   ansible.builtin.file:
+#     path: "{{ item.mountpoint }}"
+#     state: directory
+#   loop: "{{ lvm_storage_logical_volumes }}"
+#   loop_control:
+#     label: "{{ item.mountpoint }}"
+
+- name: Mount
+  ansible.posix.mount:
+    path: "{{ item.mountpoint }}/"
+    src: "/dev/{{ item.vg }}/{{ item.lv }}"
+    fstype: "{{ item.fstype | default('ext4') }}"
+    state: "{{ item.mount_state }}"
+  loop: "{{ lvm_storage_logical_volumes }}"
+  loop_control:
+    label: "{{ item.mountpoint }}"

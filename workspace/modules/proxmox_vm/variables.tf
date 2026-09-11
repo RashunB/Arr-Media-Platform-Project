@@ -30,24 +30,24 @@ variable "vm_count_offset" {
 }
 
 variable "vm_group" {
-  type    = string
+  type = string
 }
 
 variable "vm_tag_list" {
-  type = list(string)
-  default = []
-  description = "A set of tags used for organizing and grouping for ansible inventory. Terraform tag is used as default tag to signal managed_nodes" 
+  type        = list(string)
+  default     = []
+  description = "A set of tags used for organizing and grouping for ansible inventory. Terraform tag is used as default tag to signal managed_nodes"
 }
 
 variable "vm_default_tag_list" {
-  type = list(string)
-  default = ["terraform"]
-  description = "Default set of tags used for organizing and grouping for ansible inventory. Terraform tag is used as default tag to signal managed_nodes" 
+  type        = list(string)
+  default     = ["terraform"]
+  description = "Default set of tags used for organizing and grouping for ansible inventory. Terraform tag is used as default tag to signal managed_nodes"
 }
 
 variable "ssh_public_key_path" {
   type    = string
-  default = "../../keys/ansible_id.pub"
+  default = "/baucumlabs/secrets/ansible_id.pub"
 }
 
 variable "cloud_init_user_data_path" {
@@ -76,14 +76,35 @@ variable "personal_domain" {
 variable "additional_disks" {
   description = "Map of disks keyed by interface name."
   type = map(object({
-    datastore_id = string
-    size = optional(number, 0)
-    iothread   = optional(bool, true)
-    cache = optional(string, "none")
-    discard = optional(string, "ignore")
+    datastore_id      = string
+    size              = optional(number, 1)
+    iothread          = optional(bool, true)
+    cache             = optional(string, "none")
+    discard           = optional(string, "ignore")
     file_format       = optional(string, "raw")
     path_in_datastore = optional(string, null)
-    backup = optional(bool, false)
-    replicate = optional(bool, false)
+    backup            = optional(bool, false)
+    replicate         = optional(bool, false)
+    serial            = optional(string, null)
   }))
+  default = {}
+}
+
+variable "cpu" {
+  type    = number
+  default = 2
+}
+
+variable "memory" {
+  type    = number
+  default = 2048
+}
+
+variable "pcie_devices" {
+  type = map(object({
+    device = optional(string, null)
+    mapping = optional(string, null)
+    pcie = optional(bool, true)
+  }))
+  default = {}
 }

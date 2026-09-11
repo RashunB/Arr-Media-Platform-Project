@@ -47,12 +47,20 @@ terraform.rc
 .ansible/
 **/collections
 **/vault
-playbooks/vars
-**/groups_vars
-**/host_vars
+
 # Retry files generated for failed Ansible playbook runs
 *.retry
 
 # Extra
 keys/
 rhce/
+.claude
+resources
+
+# Docker
+*.env.*
+
+# SOPS/Vault
+
+**/secrets
+*sops.yaml

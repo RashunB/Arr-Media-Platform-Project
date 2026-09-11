@@ -1,0 +1,9 @@
+---
+- name: Install NFS Server
+  ansible.builtin.import_tasks: install.yml
+
+- name: Export Shared Directories
+  ansible.builtin.import_tasks: exports.yml
+
+- name: Enable and Configure NFS Service
+  ansible.builtin.import_tasks: service.yml

@@ -1,0 +1,34 @@
+---
+observability_node_cluster_name: "{{ cluster_name }}"
+observability_node_root_dir: "{{ root_dir }}"
+observability_node_control_host_ip: "{{ control_host_ip }}"
+observability_node_pve_node_ip: "{{ pve_node_ip }}"
+observability_node_docker_base_users: "{{ docker_base_users }}"
+
+observability_node_node_exporter_name: "{{ node_exporter_name }}"
+observability_node_node_exporter_host_port: "{{ node_exporter_host_port }}"
+
+observability_node_cadvisor_name: "{{ cadvisor_name }}"
+observability_node_cadvisor_host_port: "{{ cadvisor_host_port }}"
+
+observability_node_smartctl_exporter_name: "{{ smartctl_exporter_name }}"
+observability_node_smartctl_exporter_host_port: "{{ smartctl_exporter_host_port }}"
+observability_node_smartctl_exporter_enabled: "{{ smartctl_exporter_enabled }}"
+
+observability_node_pve_exporter_name: "{{ pve_exporter_name }}"
+observability_node_pve_exporter_host_port: "{{ pve_exporter_host_port }}"
+observability_node_pve_exporter_enabled: "{{ pve_exporter_enabled }}"
+
+observability_node_alloy_name: "{{ alloy_name }}"
+observability_node_alloy_host_port: "{{ alloy_host_port }}"
+observability_node_alloy_con_port: "{{ alloy_con_port }}"
+observability_node_alloy_journal_enabled: "{{ alloy_journal_enabled }}"
+
+observability_node_loki_name: "{{ loki_name }}"
+observability_node_loki_host_port: "{{ loki_host_port }}"
+observability_node_loki_remote_url: "{{ loki_remote_url }}"
+
+observability_node_dozzle_name: "{{ dozzle_name }}"
+observability_node_dozzle_host_port: "{{ dozzle_host_port }}"
+
+observability_node_dozzle_agent_pve_ip: "{{ dozzle_agent_pve_ip }}"

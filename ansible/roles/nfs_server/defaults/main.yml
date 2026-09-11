@@ -1,0 +1,8 @@
+---
+nfs_server_exports:
+  - path: ""
+    clients: ""
+    options: "rw,sync,no_subtree_check,no_root_squash"
+    owner: root
+    group: root
+    mode: '0770'

@@ -1,6 +1,16 @@
 ---
+- name: Setup SOPS on control
+  ansible.builtin.import_playbook: sops.yml
+  tags: [sops, secrets]
+
 - name: Setup observability control
   ansible.builtin.import_playbook: observability_control.yml
+  tags: [observability, control]
 
 - name: Setup observability node
   ansible.builtin.import_playbook: observability_node.yml
+  tags: [observability, node]
+
+- name: Setup media platform
+  ansible.builtin.import_playbook: media_platform.yml
+  tags: [media_platform]

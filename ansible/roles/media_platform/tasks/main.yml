@@ -1,0 +1,21 @@
+---
+- name: Create Media User and Group
+  ansible.builtin.import_tasks: users.yml
+
+- name: Create Media Directories
+  ansible.builtin.import_tasks: media_directories.yml
+
+- name: Deploy SABnzbd configs
+  ansible.builtin.import_tasks: sabnzbd.yml
+
+- name: Deploy configarr folders and templates
+  ansible.builtin.import_tasks: configarr.yml
+
+- name: Deploy Bazarr configs
+  ansible.builtin.import_tasks: bazarr.yml
+
+- name: Enable GPU Usage
+  ansible.builtin.import_tasks: gpu.yml
+
+- name: Deploy and Start Media Stack
+  ansible.builtin.import_tasks: compose.yml

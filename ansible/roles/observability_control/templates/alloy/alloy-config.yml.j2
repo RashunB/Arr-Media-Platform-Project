@@ -1,0 +1,43 @@
+{% if observability_control_alloy_journal_enabled %}
+loki.source.journal "system" {
+    path = "/var/log/journal"
+    max_age = "12h"
+    labels = {
+      job    = "journal",
+      source = "{{ inventory_hostname }}",
+    }
+  forward_to = [loki.write.default.receiver]
+}
+{% endif %}
+
+discovery.docker "docker_scrape" {
+  host  = "unix:///var/run/docker.sock"
+  refresh_interval = "5s"
+}
+
+discovery.relabel "docker_scrape" {
+targets = discovery.docker.docker_scrape.targets
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+}
+
+loki.source.docker "docker_scrape" {
+  host = "unix:///var/run/docker.sock"
+  targets = discovery.relabel.docker_scrape.output
+  forward_to = [loki.write.default.receiver]
+  relabel_rules = discovery.relabel.docker_scrape.rules
+  refresh_interval = "5s"
+  labels = {
+      source = "{{ inventory_hostname }}",
+    }
+  }
+
+loki.write "default" {
+  endpoint {
+    url       = "{{ observability_control_loki_remote_url }}"
+  }
+  external_labels = {}
+}

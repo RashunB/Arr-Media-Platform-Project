@@ -1,50 +1,39 @@
 ---
-cluster_name: homelab
+observability_control_cluster_name: "{{ cluster_name }}"
+observability_control_root_dir: "{{ root_dir }}"
+observability_control_control_host_ip: "{{ control_host_ip }}"
+observability_control_pve_node_ip: "{{ pve_node_ip }}"
 
-control_host_ip: "192.168.0.60"
-pve_node_ip: "192.168.0.248"
+observability_control_prometheus_name: "{{ prometheus_name }}"
+observability_control_prometheus_host_port: "{{ prometheus_host_port }}"
 
-prometheus_name: prometheus
-prometheus_hostname: prometheus
-prometheus_host_port: 9090
-prometheus_con_port: 9090
+observability_control_node_exporter_name: "{{ node_exporter_name }}"
+observability_control_node_exporter_host_port: "{{ node_exporter_host_port }}"
 
-node_exporter_name: node-exporter
-node_exporter_host_port: 9100
+observability_control_cadvisor_name: "{{ cadvisor_name }}"
+observability_control_cadvisor_host_port: "{{ cadvisor_host_port }}"
 
-cadvisor_name: cadvisor
-cadvisor_hostname: cadvisor
-cadvisor_host_port: 8080
+observability_control_smartctl_exporter_name: "{{ smartctl_exporter_name }}"
+observability_control_smartctl_exporter_host_port: "{{ smartctl_exporter_host_port }}"
+observability_control_smartctl_exporter_enabled: true
 
-smartctl_exporter_name: smartctl-exporter
-smartctl_exporter_hostname: smartctl-exporter
-smartctl_exporter_host_port: 9633
+observability_control_grafana_name: "{{ grafana_name }}"
+observability_control_grafana_host_port: "{{ grafana_host_port }}"
 
-pve_exporter_name: pve-exporter
-pve_exporter_hostname: pve-exporter
-pve_exporter_host_port: 9221
+observability_control_alloy_name: "{{ alloy_name }}"
+observability_control_alloy_host_port: "{{ alloy_host_port }}"
+observability_control_alloy_con_port: "{{ alloy_con_port }}"
+observability_control_alloy_journal_enabled: true
 
-grafana_name: grafana
-grafana_hostname: grafana
-grafana_host_port: 3000
-grafana_con_port: 3000
+observability_control_loki_name: "{{ loki_name }}"
+observability_control_loki_host_port: "{{ loki_host_port }}"
+observability_control_loki_remote_url: "{{ loki_remote_url }}"
 
-alloy_name: alloy
-alloy_hostname: alloy
-alloy_host_port: 12345
-alloy_con_port: 12345
-alloy_rsyslog_port: 514
+observability_control_dozzle_name: "{{ dozzle_name }}"
+observability_control_dozzle_host_port: "{{ dozzle_host_port }}"
 
-loki_name: loki
-loki_hostname: loki
-loki_host_port: 3100
-loki_con_port: 3100
-loki_remote_url: "http://{{ loki_hostname }}:{{ loki_host_port }}/loki/api/v1/push"
+observability_control_dozzle_agent_pve_ip: "{{ dozzle_agent_pve_ip }}"
 
-dozzle_name: dozzle
-dozzle_hostname: dozzle
-dozzle_host_port: 8080
-dozzle_con_port: 8080
-
-dozzle_agent_pve_ip: "{{ pve_node_ip }}"
-dozzle_agent_port: 7007
+observability_control_pve_exporter_name: "{{ pve_exporter_name }}"
+observability_control_pve_exporter_host_port: "{{ pve_exporter_host_port }}"
+observability_control_pve_exporter_enabled: "{{ pve_exporter_enabled }}"

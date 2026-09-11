@@ -1,0 +1,6 @@
+---
+- name: Install LVM2
+  ansible.builtin.apt:
+    name: lvm2
+    state: present
+    update_cache: true

@@ -1,0 +1,11 @@
+---
+- name: Mount NFS export for docker volumes
+  ansible.posix.mount:
+    path: "{{ item.path }}"
+    src: "{{ item.src }}"
+    fstype: "{{ item.fstype }}"
+    opts: "{{ item.options }}"
+    state: "{{ item.state }}"
+  loop: "{{ nfs_client_mounts }}"
+  loop_control:
+    label: "{{ item.path }}"

@@ -1,0 +1,53 @@
+filters:
+  and:
+    - file.hasTag("issue")
+
+properties:
+  id:
+    displayName: ID
+  severity:
+    displayName: Severity
+  status:
+    displayName: Status
+  phase:
+    displayName: Phase
+  lesson_category:
+    displayName: Category
+
+views:
+  - type: table
+    name: Open Issues
+    filters:
+      and:
+        - 'status == "open"'
+    order:
+      - id
+      - file.name
+      - severity
+      - phase
+      - lesson_category
+    groupBy:
+      property: severity
+      direction: ASC
+
+  - type: table
+    name: Fixed
+    filters:
+      and:
+        - 'status == "fixed"'
+    order:
+      - id
+      - file.name
+      - severity
+
+  - type: table
+    name: All Issues by Phase
+    order:
+      - id
+      - file.name
+      - severity
+      - status
+      - phase
+    groupBy:
+      property: phase
+      direction: ASC
