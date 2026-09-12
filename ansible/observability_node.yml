@@ -1,0 +1,15 @@
+---
+- name: Observability Stack Control
+  hosts: observability_node
+  become: true
+  force_handlers: true
+  tasks:
+    - name: Deploy docker_base
+      ansible.builtin.import_role:
+        name: docker_base
+      tags: docker
+
+    - name: Deploy observability_node
+      ansible.builtin.import_role:
+        name: observability_node
+      tags: observability
