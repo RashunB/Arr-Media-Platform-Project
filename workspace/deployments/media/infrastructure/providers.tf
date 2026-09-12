@@ -1,17 +1,21 @@
 terraform {
+  required_version = ">= 1.15"
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
-      version = "0.111.0"
+      version = "0.113.1"
     }
     sops = {
-      source = "carlpett/sops"
+      source  = "carlpett/sops"
+      version = "1.4.1"
     }
     cloudflare = {
-      source = "cloudflare/cloudflare"
+      source  = "cloudflare/cloudflare"
+      version = "5.24.0"
     }
     local = {
-      source = "hashicorp/local"
+      source  = "hashicorp/local"
+      version = "2.9.0"
     }
   }
 }

@@ -59,12 +59,6 @@ variable "vm_tag_list" {
   description = "A set of tags used for organizing and grouping for ansible inventory. Terraform tag is used as default tag to signal managed_nodes"
 }
 
-variable "vm_default_tag_list" {
-  type        = list(string)
-  default     = ["terraform"]
-  description = "Default set of tags used for organizing and grouping for ansible inventory. Terraform tag is used as default tag to signal managed_nodes"
-}
-
 variable "cloud_init_user_data_path" {
   type        = string
   default     = null
@@ -109,43 +103,19 @@ variable "additional_disks" {
 
 # Cloudflare/DNS
 
-variable "ip_address" {
-  type = string
-  default = ""
-}
 variable "dns_type" {
-  type = string
+  type    = string
   default = "A"
 }
 variable "ttl" {
-  type = number
+  type    = number
   default = 1
 }
 variable "proxied" {
-  type = bool
+  type    = bool
   default = false
 }
 variable "dns_comment" {
-  type = string
+  type    = string
   default = ""
-}
-
-variable "cloudflare_api_token" {
-  type = string
-  default = ""
-}
-
-variable "cloudflare_zone_id" {
-  type = string
-  default = ""
-}
-
-variable "cloudflare_account_id" {
-  type = string
-  default = ""
-}
-
-variable "cloudflare_domain" {
-  type = string
-  default = "baucummail.com"
 }

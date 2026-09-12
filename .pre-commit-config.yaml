@@ -20,6 +20,29 @@ repos:
     rev: v1.37.1
     hooks:
       - id: yamllint
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.109.1
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_docs
+        args:
+          - --hook-config=--path-to-file=README.md         # Valid UNIX path. I.e. ../TFDOC.md or docs/README.md etc.
+          - --hook-config=--add-to-existing-file=true      # Boolean. true or false
+          - --hook-config=--create-file-if-not-exist=true  # Boolean. true or false
+          - --hook-config=--use-standard-markers=true      # Boolean. Defaults to true (v1.93+), false (<v1.93). Set to true for compatibility with terraform-docs
+          - --hook-config=--custom-marker-begin=<!-- BEGIN_TF_DOCS -->  # String.
+          - --hook-config=--custom-marker-end=<!-- END_TF_DOCS -->      # String.
+      - id: terraform_tflint
+      - id: terraform_trivy
+        files: ^workspace/
+        skip_dirs:
+          - --args=--skip-dirs="**/.terraform"
+      - id: terraform_validate
+        args:
+          - --tf-init-args=-upgrade
+          - --tf-init-args=-lockfile=readonly
+        exclude:
+          ^workspace/modules/
   - repo: https://github.com/squat/pre-commit-sops
     rev: 0.1.0
     hooks:

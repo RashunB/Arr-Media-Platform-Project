@@ -62,12 +62,6 @@ variable "template_os_tag" {
   description = "os tag of the template to clone. Defaults to default (ubuntu24) from _base."
 }
 
-variable "template_os_user" {
-  type        = string
-  default     = "default"
-  description = "default user of the template to clone. Defaults to default (ubuntu24) from _base."
-}
-
 variable "personal_domain" {
   type    = string
   default = "home.lab"
@@ -102,9 +96,9 @@ variable "memory" {
 
 variable "pcie_devices" {
   type = map(object({
-    device = optional(string, null)
+    device  = optional(string, null)
     mapping = optional(string, null)
-    pcie = optional(bool, true)
+    pcie    = optional(bool, true)
   }))
   default = {}
 }
