@@ -80,7 +80,7 @@ services:
     ports:
       - "{{ media_platform_sonarr_host_port }}:8989"
     restart: unless-stopped
-    
+
   bazarr:
     image: "{{ media_platform_bazarr_image }}"
     container_name: "{{ media_platform_bazarr_name }}"

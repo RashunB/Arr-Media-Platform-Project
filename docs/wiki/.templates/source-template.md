@@ -1,8 +1,8 @@
 ---
 type: source
-name: 
-author: 
-year: 
+name:
+author:
+year:
 url: ""
 tags: [source]
 ---

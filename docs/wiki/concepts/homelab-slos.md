@@ -106,8 +106,8 @@ groups:
       # Alert when / has <20% free
       - alert: DiskFillingUp
         expr: |
-          node_filesystem_avail_bytes{job="node-exporter", mountpoint="/"} 
-          / 
+          node_filesystem_avail_bytes{job="node-exporter", mountpoint="/"}
+          /
           node_filesystem_size_bytes{job="node-exporter", mountpoint="/"}
           < 0.20
         for: 10m

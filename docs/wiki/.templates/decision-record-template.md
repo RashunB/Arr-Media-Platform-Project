@@ -1,6 +1,6 @@
 ---
 type: adr
-date: 
+date:
 status: accepted    # accepted | superseded | deprecated
 tags: [adr, architecture]
 ---

@@ -43,7 +43,7 @@ alloy_journal_enabled: true   # from baremetal group
 
 ## Compose Stack
 
-Location: `/opt/docker/observability/docker-compose.yml`  
+Location: `/opt/docker/observability/docker-compose.yml`
 Template source: `ansible/playbooks/templates/control/observability/docker-compose.yml.j2`
 
 ## Notes

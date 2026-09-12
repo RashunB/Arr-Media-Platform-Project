@@ -5,8 +5,8 @@ tags: [source, code-review, milestone-1, audit]
 
 # Code Review — 2026-05-24
 
-**Raw file:** `docs/raw/code-review-2026-05-24.md`  
-**Branch:** `milestone_1` @ `7addb319`  
+**Raw file:** `docs/raw/code-review-2026-05-24.md`
+**Branch:** `milestone_1` @ `7addb319`
 **Method:** 5-agent parallel review + Haiku confidence scoring (≥ 80/100 included)
 
 ---

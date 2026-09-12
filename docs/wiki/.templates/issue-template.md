@@ -1,10 +1,10 @@
 ---
 type: issue
-id: 
+id:
 severity:           # blocker | high | medium | low
 status: open        # open | fixed | accepted
 phase:              # remediation phase number
-lesson_category: 
+lesson_category:
 tags: [issue, milestone-1]
 ---
 

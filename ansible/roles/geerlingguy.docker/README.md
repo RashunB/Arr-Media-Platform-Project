@@ -22,8 +22,8 @@ docker_packages:
 docker_packages_state: present
 ```
 
-The `docker_edition` should be either `ce` (Community Edition) or `ee` (Enterprise Edition). 
-You can also specify a specific version of Docker to install using the distribution-specific format: 
+The `docker_edition` should be either `ce` (Community Edition) or `ee` (Enterprise Edition).
+You can also specify a specific version of Docker to install using the distribution-specific format:
 Red Hat/CentOS: `docker-{{ docker_edition }}-<VERSION>` (Note: you have to add this to all packages);
 Debian/Ubuntu: `docker-{{ docker_edition }}=<VERSION>` (Note: you have to add this to all packages).
 

@@ -1,9 +1,9 @@
 ---
 type: service
-name: 
-port: 
+name:
+port:
 host: "[[]]"
-image: 
+image:
 status: deployed    # deployed | planned | broken
 tags: [service]
 ---
@@ -14,9 +14,9 @@ tags: [service]
 
 ## Configuration
 
-- **Config file:** 
-- **Template:** 
-- **Data dir:** 
+- **Config file:**
+- **Template:**
+- **Data dir:**
 
 ## Dependencies
 

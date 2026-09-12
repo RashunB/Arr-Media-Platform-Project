@@ -1,8 +1,8 @@
 ---
 type: host
-hostname: 
-ip: 
-os: 
+hostname:
+ip:
+os:
 role:           # control | hypervisor | vm-node
 status: active
 tags: [host]
@@ -19,10 +19,10 @@ tags: [host]
 
 ## Ansible
 
-- **Inventory group:** 
+- **Inventory group:**
 - **Group vars:** `ansible/inventory/group_vars/`
-- **Playbook:** 
-- **Remote user:** 
+- **Playbook:**
+- **Remote user:**
 
 ## Key Variables
 

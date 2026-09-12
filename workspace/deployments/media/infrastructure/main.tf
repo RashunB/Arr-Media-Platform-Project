@@ -42,4 +42,3 @@ module "media_vm" {
     proxmox.root = proxmox.root
   }
 }
-
