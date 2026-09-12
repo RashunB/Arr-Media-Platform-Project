@@ -32,7 +32,7 @@ resource "proxmox_virtual_environment_file" "cloud_config" {
   source_raw {
     file_name = "${var.vm_name_prefix}-${count.index + var.vm_count_offset}-cloud-config.yaml"
     data = templatefile(local.cloud_init_data_path, {
-      ssh_public_key = trimspace(file(var.ssh_public_key_path))
+      ssh_public_key = trimspace(var.ssh_public_key)
       hostname       = "${var.vm_name_prefix}-${count.index + var.vm_count_offset}"
       domain         = var.personal_domain
       default_user   = var.vm_default_user

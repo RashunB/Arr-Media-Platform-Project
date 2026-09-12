@@ -40,7 +40,7 @@ No modules.
 | <a name="input_pcie_devices"></a> [pcie\_devices](#input\_pcie\_devices) | n/a | <pre>map(object({<br/>    device  = optional(string, null)<br/>    mapping = optional(string, null)<br/>    pcie    = optional(bool, true)<br/>  }))</pre> | `{}` | no |
 | <a name="input_personal_domain"></a> [personal\_domain](#input\_personal\_domain) | n/a | `string` | `"home.lab"` | no |
 | <a name="input_proxmox_node_name"></a> [proxmox\_node\_name](#input\_proxmox\_node\_name) | n/a | `string` | n/a | yes |
-| <a name="input_ssh_public_key_path"></a> [ssh\_public\_key\_path](#input\_ssh\_public\_key\_path) | n/a | `string` | `"/baucumlabs/secrets/ansible_id.pub"` | no |
+| <a name="input_ssh_public_key"></a> [ssh\_public\_key](#input\_ssh\_public\_key) | n/a | `string` | `""` | no |
 | <a name="input_template_os_tag"></a> [template\_os\_tag](#input\_template\_os\_tag) | os tag of the template to clone. Defaults to default (ubuntu24) from \_base. | `string` | `"default"` | no |
 | <a name="input_vm_count"></a> [vm\_count](#input\_vm\_count) | n/a | `number` | `1` | no |
 | <a name="input_vm_count_offset"></a> [vm\_count\_offset](#input\_vm\_count\_offset) | n/a | `number` | `1` | no |

@@ -28,10 +28,6 @@ variable "datastore_files" {
   type = string
 }
 
-variable "ssh_public_key_path" {
-  type = string
-}
-
 variable "vm_default_user" {
   type = string
 }
@@ -117,5 +113,5 @@ variable "proxied" {
 }
 variable "dns_comment" {
   type    = string
-  default = ""
+  default = "Created with Terraform"
 }

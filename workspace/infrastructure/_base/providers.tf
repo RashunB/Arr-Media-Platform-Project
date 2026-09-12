@@ -5,11 +5,23 @@ terraform {
       source  = "bpg/proxmox"
       version = "0.113.1"
     }
+    sops = {
+      source  = "carlpett/sops"
+      version = "1.4.1"
+    }
     local = {
       source  = "hashicorp/local"
       version = "2.9.0"
     }
   }
+}
+
+data "sops_file" "proxmox_id" {
+  source_file = "../../../secrets/proxmox_id.sops.yaml"
+}
+
+locals {
+  proxmox_id_private_key = trimspace(data.sops_file.proxmox_id.data["ssh_private_key"])
 }
 
 provider "proxmox" {
@@ -21,7 +33,7 @@ provider "proxmox" {
   ssh {
     agent       = true
     username    = "root"
-    private_key = file("../../../secrets/proxmox")
+    private_key = local.proxmox_id_private_key
   }
 }
 
@@ -36,6 +48,6 @@ provider "proxmox" {
   ssh {
     agent       = true
     username    = "root"
-    private_key = file("../../../secrets/proxmox")
+    private_key = local.proxmox_id_private_key
   }
 }

@@ -1,8 +1,14 @@
+data "sops_file" "public_key" {
+  source_file = "../../../../secrets/ansible_id.sops.yaml"
+}
+
 data "proxmox_hardware_mapping_pci" "transcoding_gpu" {
   name = "transcoding_gpu"
 }
 
 locals {
+  public_key = trimspace(data.sops_file.public_key.data["ssh_public_key"])
+
   pcie_map = [
     data.proxmox_hardware_mapping_pci.transcoding_gpu.name,
   ]
@@ -30,7 +36,7 @@ module "media_vm" {
   proxmox_node_name         = var.proxmox_node_name
   cloud_init_user_data_path = var.cloud_init_user_data_path
   vm_count_offset           = var.vm_count_offset
-  ssh_public_key_path       = var.ssh_public_key_path
+  ssh_public_key            = local.public_key
   personal_domain           = var.personal_domain
   additional_disks          = var.additional_disks
   cpu                       = var.cpu

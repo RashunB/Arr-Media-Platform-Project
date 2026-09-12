@@ -45,9 +45,9 @@ variable "vm_default_tag_list" {
   description = "Default set of tags used for organizing and grouping for ansible inventory. Terraform tag is used as default tag to signal managed_nodes"
 }
 
-variable "ssh_public_key_path" {
+variable "ssh_public_key" {
   type    = string
-  default = "/baucumlabs/secrets/ansible_id.pub"
+  default = ""
 }
 
 variable "cloud_init_user_data_path" {
