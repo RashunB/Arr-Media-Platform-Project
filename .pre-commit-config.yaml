@@ -13,7 +13,8 @@ repos:
     rev: v25.5.0
     hooks:
       - id: ansible-lint
-        # Uncomment if you need the full Ansible community bundle instead of ansible-core:
+        exclude:
+          ^secrets
         additional_dependencies:
           - ansible
   - repo: https://github.com/adrienverge/yamllint
@@ -35,11 +36,10 @@ repos:
       - id: terraform_tflint
       - id: terraform_trivy
         files: ^workspace/
-        skip_dirs:
+        args:
           - --args=--skip-dirs="**/.terraform"
       - id: terraform_validate
         args:
-          - --tf-init-args=-upgrade
           - --tf-init-args=-lockfile=readonly
         exclude:
           ^workspace/modules/
@@ -47,3 +47,4 @@ repos:
     rev: 0.1.0
     hooks:
       - id: sops
+        files: '\sops\.ya?ml$'
