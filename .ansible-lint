@@ -1,7 +1,7 @@
 ---
 # .ansible-lint
 
-profile: production #  moderate, safety, shared, production
+profile: production  # moderate, safety, shared, production
 
 # Allows dumping of results in SARIF format
 # sarif_file: result.sarif
@@ -10,9 +10,14 @@ profile: production #  moderate, safety, shared, production
 # and not relative to the CWD of execution. CLI arguments passed to the --exclude
 # option are parsed relative to the CWD of execution.
 exclude_paths:
-  - .cache/ # implicit unless exclude_paths is defined in config
+  - .cache/  # implicit unless exclude_paths is defined in config
   - test/fixtures/formatting-before/
   - test/fixtures/formatting-prettier/
+  - ansible/collections/
+  - .ansible/
+  - ansible/.ansible/
+  - ansible/roles/geerlingguy.docker/
+  - ansible/roles/geerlingguy.pip/
 # quiet: true
 # strict: true
 # verbosity: 1
@@ -20,15 +25,18 @@ exclude_paths:
 # Mock modules or roles in order to pass ansible-playbook --syntax-check.
 # Stubs are written under {cache_dir}/ansible-lint-mocks/ and do not overwrite
 # installed collections. The args rule skips lint-generated stubs.
-mock_modules:
-  - zuul_return
-  # note the foo.bar is invalid as being neither a module or a collection
-  - fake_namespace.fake_collection.fake_module
-  - fake_namespace.fake_collection.fake_module.fake_submodule
+# mock_modules:
+  # - zuul_return
+  # # note the foo.bar is invalid as being neither a module or a collection
+  # - fake_namespace.fake_collection.fake_module
+  # - fake_namespace.fake_collection.fake_module.fake_submodule
+
 mock_roles:
-  - mocked_role
-  - author.role_name # old standalone galaxy role
-  - fake_namespace.fake_collection.fake_role # role within a collection
+  # - mocked_role
+  # - author.role_name  # old standalone galaxy role
+  # - fake_namespace.fake_collection.fake_role  # role within a collection
+  - geerlingguy.docker
+  - geerlingguy.pip
 
 # Enable checking of loop variable prefixes in roles
 loop_var_prefix: "^(__|{role}_)"
@@ -58,11 +66,11 @@ skip_list:
 # You must enable opt-in rules by listing each rule 'id' below.
 enable_list:
   - args
-  - empty-string-compare # opt-in
-  - no-log-password # opt-in
-  - no-same-owner # opt-in
-  - name[prefix] # opt-in
-  - galaxy-version-incorrect # opt-in
+  - empty-string-compare  # opt-in
+  - no-log-password  # opt-in
+  - no-same-owner  # opt-in
+  # - name[prefix]  # opt-in
+  - galaxy-version-incorrect  # opt-in
   # add yaml here if you want to avoid ignoring yaml checks when yamllint
   # library is missing. Normally its absence just skips using that rule.
   - yaml
@@ -73,9 +81,9 @@ enable_list:
 # Ansible-lint does not fail on warnings from the rules or tags listed below
 warn_list:
   - skip_this_tag
-  - experimental # experimental is included in the implicit list
+  - experimental  # experimental is included in the implicit list
   # - role-name
-  # - yaml[document-start]  # you can also use sub-rule matches
+  # - yaml[document-start]   # you can also use sub-rule matches
 
 # Some rules can transform files to fix (or make it easier to fix) identified
 # errors. `ansible-lint --fix` will reformat YAML files and run these transforms.
@@ -120,7 +128,7 @@ kinds:
 #   - example_module
 
 # Allow setting custom prefix for name[prefix] rule
-task_name_prefix: "{stem} | "
+# task_name_prefix: "{stem} | "
 # Complexity related settings
 
 # Limit the depth of the nested blocks:
