@@ -29,7 +29,7 @@ provider "proxmox" {
   ssh {
     agent       = true
     username    = "root"
-    private_key = file("/baucumlabs/secrets/proxmox")
+    private_key = file("../../../../secrets/proxmox")
   }
 }
 
@@ -44,12 +44,12 @@ provider "proxmox" {
   ssh {
     agent       = true
     username    = "root"
-    private_key = file("/baucumlabs/secrets/proxmox")
+    private_key = file("../../../../secrets/proxmox")
   }
 }
 
 data "sops_file" "cloudflare" {
-  source_file = "/baucumlabs/secrets/cloudflare.sops.yaml"
+  source_file = "../../../../secrets/cloudflare.sops.yaml"
 }
 
 provider "cloudflare" {
