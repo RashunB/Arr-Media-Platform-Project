@@ -13,8 +13,6 @@ repos:
     rev: v25.5.0
     hooks:
       - id: ansible-lint
-        exclude:
-          ^secrets
         additional_dependencies:
           - ansible
   - repo: https://github.com/adrienverge/yamllint

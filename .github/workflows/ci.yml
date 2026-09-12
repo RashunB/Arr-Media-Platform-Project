@@ -43,6 +43,8 @@ jobs:
   # Secret scanning across full history (not part of pre-commit).
   gitleaks:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
