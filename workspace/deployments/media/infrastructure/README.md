@@ -23,7 +23,7 @@
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
-| <a name="module_media_vm"></a> [media\_vm](#module\_media\_vm) | /baucumlabs/workspace/modules/proxmox_vm | n/a |
+| <a name="module_media_vm"></a> [media\_vm](#module\_media\_vm) | ../../../modules/proxmox_vm | n/a |
 
 ## Resources
 

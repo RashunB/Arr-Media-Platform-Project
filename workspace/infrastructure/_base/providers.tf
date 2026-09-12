@@ -21,7 +21,7 @@ provider "proxmox" {
   ssh {
     agent       = true
     username    = "root"
-    private_key = file("/baucumlabs/secrets/proxmox")
+    private_key = file("../../../secrets/proxmox")
   }
 }
 
@@ -36,6 +36,6 @@ provider "proxmox" {
   ssh {
     agent       = true
     username    = "root"
-    private_key = file("/baucumlabs/secrets/proxmox")
+    private_key = file("../../../secrets/proxmox")
   }
 }

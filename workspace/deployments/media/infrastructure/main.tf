@@ -17,7 +17,7 @@ locals {
 }
 
 module "media_vm" {
-  source = "/baucumlabs/workspace/modules/proxmox_vm"
+  source = "../../../modules/proxmox_vm"
 
   vm_name_prefix            = var.vm_name_prefix
   template_os_tag           = var.template_os_tag
