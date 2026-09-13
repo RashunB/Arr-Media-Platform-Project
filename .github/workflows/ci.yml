@@ -104,9 +104,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
-          terraform-wrapper: false
+          terraform_wrapper: false
       - name: Init (no backend)
         run: terraform -chdir=${{ matrix.stack }} init -backend=false
+      - name: Validate
+        run: terraform -chdir=${{ matrix.stack }} validate
 
   trivy:
     runs-on: ubuntu-latest
@@ -116,6 +118,7 @@ jobs:
         with:
           scan-type: config
           scan-ref: workspace
+          trivy-config: trivy.yaml
 
   # There is just recurring issue of action not creating a similar file as the local execution, since action cannot create file it just fails all the time
   # terraform-docs:

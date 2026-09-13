@@ -47,4 +47,4 @@ repos:
     rev: 0.1.0
     hooks:
       - id: sops
-        files: '\sops\.ya?ml$'
+        files: '\.sops\.ya?ml$'
