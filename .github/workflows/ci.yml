@@ -61,6 +61,7 @@ jobs:
         with:
           working_directory: ansible
           requirements_file: requirements.yml
+          args: '-c ../.ansible-lint'
 
   yaml-lint:
     runs-on: ubuntu-latest
@@ -122,7 +123,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: terraform-docs/gh-actions@6de6da0cefcc6b4b7a5cbea4d79d97060733093c
         with:
-          working-dir: workspace
+          working-dir: workspace/
           output-file: README.md
           output-method: inject
           git-push: "true"
