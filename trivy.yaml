@@ -1,4 +1,6 @@
 ---
+exit-code: 0
+
 misconfiguration:
   checks-bundle-repository: "mirror.gcr.io/aquasec/trivy-checks:1"
   config-file-schemas: []
