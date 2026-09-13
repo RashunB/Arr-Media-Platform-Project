@@ -1,7 +1,7 @@
 ---
-- name: Ensure Bazaar config directory exists
+- name: Ensure Bazarr config directory exists
   ansible.builtin.file:
-    path: /opt/media_platform/bazarr/data/config
+    path: "{{ media_platform_config_dir }}/bazarr/data/config"
     state: directory
     owner: "{{ media_platform_user }}"
     group: "{{ media_platform_group }}"
@@ -10,7 +10,7 @@
 - name: Place bazarr config.yml
   ansible.builtin.template:
     src: bazarr_config.yml.j2
-    dest: /opt/media_platform/bazarr/data/config/config.yaml
+    dest: "{{ media_platform_config_dir }}/bazarr/data/config/config.yaml"
     owner: "{{ media_platform_user }}"
     group: "{{ media_platform_group }}"
     mode: "02770"

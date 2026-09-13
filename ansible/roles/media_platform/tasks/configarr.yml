@@ -7,18 +7,17 @@
     mode: "2770"
     state: directory
   loop:
-    - "{{ media_platform_root_dir }}/configarr/data/config"
-    - "{{ media_platform_root_dir }}/configarr/data/repos"
-    - "{{ media_platform_root_dir }}/configarr/data/cfs"
-    - "{{ media_platform_root_dir }}/configarr/data/templates"
+    - "{{ media_platform_config_dir }}/configarr/data/config"
+    - "{{ media_platform_config_dir }}/configarr/data/repos"
+    - "{{ media_platform_config_dir }}/configarr/data/cfs"
+    - "{{ media_platform_config_dir }}/configarr/data/templates"
 
 - name: Place configarr config
   ansible.builtin.template:
     src: configarr.yml.j2
-    dest: "{{ media_platform_root_dir }}/configarr/data/config/config.yml"
+    dest: "{{ media_platform_config_dir }}/configarr/data/config/config.yml"
     owner: "{{ media_platform_user }}"
     group: "{{ media_platform_group }}"
     mode: "0440"
-    force: false
   no_log: true
   notify: Restart configarr

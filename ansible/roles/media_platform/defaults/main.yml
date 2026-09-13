@@ -13,20 +13,25 @@ media_platform_arr_webapp_password:
 media_platform_usenet_provider: news.newshosting.com
 
 # Directories
-media_platform_root_dir: /opt/media_platform
 media_platform_compose_dir: /opt/docker/media_platform
-
-media_platform_tvseries_dir: "{{ media_platform_root_dir }}/tv"
-media_platform_movies_dir: "{{ media_platform_root_dir }}/movies"
-
-media_platform_downloads_dir: "{{ media_platform_root_dir }}/downloads"
-media_platform_incomplete_downloads_dir: "{{ media_platform_root_dir }}/incomplete_downloads"
+media_platform_root_dir: /opt/media_platform
+media_platform_data_dir: "{{ media_platform_root_dir }}/data"
+media_platform_config_dir: "{{ media_platform_root_dir }}/config"
+media_platform_media_dir: "{{ media_platform_data_dir }}/media"
+media_platform_tvseries_dir: "{{ media_platform_media_dir }}/tv"
+media_platform_movies_dir: "{{ media_platform_media_dir }}/movies"
+media_platform_downloads_dir: "{{ media_platform_data_dir }}/downloads"
+media_platform_incomplete_downloads_dir: "{{ media_platform_data_dir }}/incomplete_downloads"
 
 media_platform_dir_list:
-  - "{{ media_platform_tvseries_dir }}"
-  - "{{ media_platform_movies_dir }}"
+  - "{{ media_platform_data_dir }}"
   - "{{ media_platform_downloads_dir }}"
   - "{{ media_platform_incomplete_downloads_dir }}"
+  - "{{ media_platform_media_dir }}"
+  - "{{ media_platform_tvseries_dir }}"
+  - "{{ media_platform_movies_dir }}"
+  - "{{ media_platform_config_dir }}"
+
 
 # Services
 media_platform_jellyfin_name: jellyfin

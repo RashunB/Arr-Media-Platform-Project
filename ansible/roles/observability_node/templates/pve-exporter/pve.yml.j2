@@ -1,5 +1,6 @@
 ---
 default:
-    user: "{{ (lookup('community.sops.sops', 'vault/pve.sops.yaml', extract='[\"pve_prometheus_api_token_id\"]')) }}"
-    token_name: "prometheus"
+    user: "{{ (lookup('community.sops.sops', 'vault/pve.sops.yaml', extract='[\"pve_prometheus_api_user_name\"]')) }}"
+    token_name: "{{ (lookup('community.sops.sops', 'vault/pve.sops.yaml', extract='[\"pve_prometheus_api_token_id\"]')) }}"
     token_value: "{{ (lookup('community.sops.sops', 'vault/pve.sops.yaml', extract='[\"pve_prometheus_api_token_secret\"]')) }}"
+    verify_ssl: false

@@ -10,7 +10,7 @@
 
 - name: Create required services directories
   ansible.builtin.file:
-    path: "{{ media_platform_root_dir }}/{{ item }}/data"
+    path: "{{ media_platform_config_dir }}/{{ item }}/data"
     owner: "{{ media_platform_user }}"
     group: "{{ media_platform_group }}"
     mode: "02775"
