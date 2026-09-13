@@ -14,39 +14,117 @@ permissions:
   contents: read
 
 jobs:
-  pre-commit:
+  # pre-commit:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.12"
+  #     - uses: hashicorp/setup-terraform@v3
+  #       with:
+  #         terraform_wrapper: false   # let the hooks call terraform directly
+  #     - uses: terraform-linters/setup-tflint@v4
+  #     # - name: Install trivy
+  #     #   run: >-
+  #     #     version=v0.74.0
+  #     #     curl -sfL
+  #     #     https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh
+  #     #     | sudo sh -s -- -b /usr/local/bin "${version}"
+  #     - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+  #       with:
+  #         scan-type: 'fs'
+  #         scan-ref: '.'
+  #         trivy-config: trivy.yaml
+  #     - name: Install terraform-docs
+  #       run: |
+  #         version=v0.24.0
+  #         curl -sSLo /tmp/tfdocs.tar.gz \
+  #           "https://github.com/terraform-docs/terraform-docs/releases/download/${version}/terraform-docs-${version}-linux-amd64.tar.gz"
+  #         tar -xzf /tmp/tfdocs.tar.gz -C /tmp terraform-docs
+  #         sudo install /tmp/terraform-docs /usr/local/bin/terraform-docs
+  #     - name: Cache pre-commit environments
+  #       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+  #       with:
+  #         path: ~/.cache/pre-commit
+  #         key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+  #     - name: Run Pre-commit
+  #       run: |
+  #         pip install pre-commit
+  #         pre-commit run --all-files --show-diff-on-failure
+
+  ansible-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
+      - uses: ansible/ansible-lint@665d9e07a1943254d2910faffc106adaf7ea7294
+        with:
+          working_directory: ansible
+
+  yaml-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: yamllint
+        run: |
+          pip install yamllint
+          yamllint -f github .
+
+  terraform-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_wrapper: false   # let the hooks call terraform directly
+          terraform_wrapper: false
+      - name: Format check
+        run: terraform fmt -check -recursive workspace
       - uses: terraform-linters/setup-tflint@v4
-      - name: Install trivy
-        run: >-
-          version=v0.74.0
-          curl -sfL
-          https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh
-          | sudo sh -s -- -b /usr/local/bin "${version}"
-      - name: Install terraform-docs
+      - name: TFLint
+        working-directory: workspace
         run: |
-          version=v0.24.0
-          curl -sSLo /tmp/tfdocs.tar.gz \
-            "https://github.com/terraform-docs/terraform-docs/releases/download/${version}/terraform-docs-${version}-linux-amd64.tar.gz"
-          tar -xzf /tmp/tfdocs.tar.gz -C /tmp terraform-docs
-          sudo install /tmp/terraform-docs /usr/local/bin/terraform-docs
-      - name: Cache pre-commit environments
-        uses: actions/cache@v4
+          tflint --init
+          tflint --recursive --format compact
+
+  terraform-validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        stack:
+          - workspace/infrastructure/_base
+          - workspace/deployments/media/infrastructure
+          - workspace/deployments/media/application
+    steps:
+      - uses: actions/checkout@4
+      - uses: hashicorp/setup-terraform@v3
         with:
-          path: ~/.cache/pre-commit
-          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
-      - name: Run Pre-commit
-        run: |
-          pip install pre-commit
-          pre-commit run --all-files --show-diff-on-failure
+          terraform-wrapper: false
+      - name: Init (no backend)
+        run: terraform -chdir=${{ matrix.stack }} init -backend=false
+
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aquasecurity/trivy-actions@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          trivy-config: trivy.yaml
+
+  terraform-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: terraform-docs/gh-action@v1.4.1
+        with:
+          output-file: README.md
+          output-method: inject
+          fail-on-diff: "true"
 
   # Secret scanning across full history (not part of pre-commit).
   gitleaks:
@@ -73,3 +151,20 @@ jobs:
       - uses: reviewdog/action-actionlint@v1
         with:
           reporter: github-check
+
+  hooks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Hygiene and sops hooks
+        run: |
+          pip install pre-commit
+          pre-commit run --all-files \
+            trailing-white-space \
+            end-of-file-checker \
+            detect-private-key \
+            check-added-large-files \
+            sops

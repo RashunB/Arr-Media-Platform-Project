@@ -1,4 +1,28 @@
 ---
+misconfiguration:
+  checks-bundle-repository: "mirror.gcr.io/aquasec/trivy-checks:1"
+  config-file-schemas: []
+  helm:
+    api-versions: []
+    kube-version: ""
+    set: []
+    set-file: []
+    set-string: []
+    values: []
+  include-non-failures: false
+  raw-config-scanners: []
+  render-cause: []
+  scanners:
+    - dockerfile
+    - helm
+    - kubernetes
+    - terraform
+    - terraformplan-json
+    - terraformplan-snapshot
+  terraform:
+    exclude-downloaded-modules: false
+    vars: []
+
 scan:
   skip-dirs:
     - .claude
