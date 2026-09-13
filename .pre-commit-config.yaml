@@ -28,11 +28,11 @@ repos:
       - id: terraform_docs
         args:
           - --args=--config=workspace/.terraform-docs.yaml
-          - --hook-config=--path-to-file=README.md         # Valid UNIX path. I.e. ../TFDOC.md or docs/README.md etc.
-          - --hook-config=--add-to-existing-file=true      # Boolean. true or false
+          # - --hook-config=--path-to-file=README.md         # Valid UNIX path. I.e. ../TFDOC.md or docs/README.md etc.
+          # - --hook-config=--add-to-existing-file=true      # Boolean. true or false
           - --hook-config=--create-file-if-not-exist=true  # Boolean. true or false
-          - --hook-config=--custom-marker-begin=<!-- BEGIN_TF_DOCS -->  # String.
-          - --hook-config=--custom-marker-end=<!-- END_TF_DOCS -->      # String.
+          # - --hook-config=--custom-marker-begin=<!-- BEGIN_TF_DOCS -->  # String.
+          # - --hook-config=--custom-marker-end=<!-- END_TF_DOCS -->      # String.
       - id: terraform_tflint
       - id: terraform_trivy
         files: ^workspace/
