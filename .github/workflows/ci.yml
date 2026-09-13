@@ -119,6 +119,7 @@ jobs:
           scan-type: config
           scan-ref: workspace
           trivy-config: trivy.yaml
+          exit-code: 1
 
   # There is just recurring issue of action not creating a similar file as the local execution, since action cannot create file it just fails all the time
   # terraform-docs:
@@ -149,7 +150,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v3
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -161,7 +162,7 @@ jobs:
       checks: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: reviewdog/action-actionlint@v1
+      - uses: reviewdog/action-actionlint@8b682e1e7e512151d73a6b9449cbff173846226e
         with:
           reporter: github-check
 
