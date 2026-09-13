@@ -4,7 +4,7 @@
     path: "{{ item }}"
     owner: "{{ media_platform_user }}"
     group: "{{ media_platform_group }}"
-    mode: "0660"
+    mode: "2770"
     state: directory
   loop:
     - "{{ media_platform_root_dir }}/configarr/data/config"

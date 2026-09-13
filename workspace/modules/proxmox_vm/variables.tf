@@ -45,9 +45,9 @@ variable "vm_default_tag_list" {
   description = "Default set of tags used for organizing and grouping for ansible inventory. Terraform tag is used as default tag to signal managed_nodes"
 }
 
-variable "ssh_public_key_path" {
+variable "ssh_public_key" {
   type    = string
-  default = "/baucumlabs/secrets/ansible_id.pub"
+  default = ""
 }
 
 variable "cloud_init_user_data_path" {
@@ -60,12 +60,6 @@ variable "template_os_tag" {
   type        = string
   default     = "default"
   description = "os tag of the template to clone. Defaults to default (ubuntu24) from _base."
-}
-
-variable "template_os_user" {
-  type        = string
-  default     = "default"
-  description = "default user of the template to clone. Defaults to default (ubuntu24) from _base."
 }
 
 variable "personal_domain" {
@@ -102,9 +96,9 @@ variable "memory" {
 
 variable "pcie_devices" {
   type = map(object({
-    device = optional(string, null)
+    device  = optional(string, null)
     mapping = optional(string, null)
-    pcie = optional(bool, true)
+    pcie    = optional(bool, true)
   }))
   default = {}
 }

@@ -1,7 +1,9 @@
 terraform {
+  required_version = ">= 1.15"
   required_providers {
     proxmox = {
       source                = "bpg/proxmox"
+      version               = "0.113.1"
       configuration_aliases = [proxmox.root]
     }
   }
@@ -18,7 +20,7 @@ locals {
   default_cloud_init_path = "${path.module}/templates/cloud-init.yml.tpl"
   cloud_init_data_path    = coalesce(var.cloud_init_user_data_path, local.default_cloud_init_path)
 
-  gpu_passthrough  = length(var.pcie_devices) > 0
+  gpu_passthrough = length(var.pcie_devices) > 0
 }
 
 resource "proxmox_virtual_environment_file" "cloud_config" {
@@ -30,7 +32,7 @@ resource "proxmox_virtual_environment_file" "cloud_config" {
   source_raw {
     file_name = "${var.vm_name_prefix}-${count.index + var.vm_count_offset}-cloud-config.yaml"
     data = templatefile(local.cloud_init_data_path, {
-      ssh_public_key = trimspace(file(var.ssh_public_key_path))
+      ssh_public_key = trimspace(var.ssh_public_key)
       hostname       = "${var.vm_name_prefix}-${count.index + var.vm_count_offset}"
       domain         = var.personal_domain
       default_user   = var.vm_default_user
@@ -47,8 +49,8 @@ resource "proxmox_virtual_environment_vm" "vms" {
   stop_on_destroy = true
   boot_order      = ["virtio0"]
   tags            = local.tag_list
-  machine = local.gpu_passthrough ? "q35" : "pc"
-  bios    = local.gpu_passthrough ? "ovmf" : "seabios"
+  machine         = local.gpu_passthrough ? "q35" : "pc"
+  bios            = local.gpu_passthrough ? "ovmf" : "seabios"
 
   clone {
     vm_id = local.template_vm_id
@@ -74,10 +76,10 @@ resource "proxmox_virtual_environment_vm" "vms" {
   dynamic "hostpci" {
     for_each = var.pcie_devices
     content {
-      device = hostpci.value["device"]
+      device  = hostpci.value["device"]
       mapping = hostpci.value["mapping"]
-      pcie = hostpci.value["pcie"]
-      rombar = hostpci.value["pcie"]
+      pcie    = hostpci.value["pcie"]
+      rombar  = hostpci.value["pcie"]
     }
   }
 
@@ -85,8 +87,8 @@ resource "proxmox_virtual_environment_vm" "vms" {
     for_each = local.gpu_passthrough ? [1] : []
     content {
       datastore_id = var.datastore_infra
-      file_format = "raw"
-      type = "4m"
+      file_format  = "raw"
+      type         = "4m"
     }
   }
 
