@@ -4,14 +4,14 @@
 ## Requirements
 
 | Name | Version |
-| ---- | ------- |
+|------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.15 |
 | <a name="requirement_proxmox"></a> [proxmox](#requirement\_proxmox) | 0.113.1 |
 
 ## Providers
 
 | Name | Version |
-| ---- | ------- |
+|------|---------|
 | <a name="provider_proxmox"></a> [proxmox](#provider\_proxmox) | 0.113.1 |
 | <a name="provider_proxmox.root"></a> [proxmox.root](#provider\_proxmox.root) | 0.113.1 |
 
@@ -22,7 +22,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-| ---- | ---- |
+|------|------|
 | [proxmox_virtual_environment_file.cloud_config](https://registry.terraform.io/providers/bpg/proxmox/0.113.1/docs/resources/virtual_environment_file) | resource |
 | [proxmox_virtual_environment_vm.vms](https://registry.terraform.io/providers/bpg/proxmox/0.113.1/docs/resources/virtual_environment_vm) | resource |
 | [proxmox_virtual_environment_vms.templates](https://registry.terraform.io/providers/bpg/proxmox/0.113.1/docs/data-sources/virtual_environment_vms) | data source |
@@ -30,7 +30,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-| ---- | ----------- | ---- | ------- | :------: |
+|------|-------------|------|---------|:--------:|
 | <a name="input_additional_disks"></a> [additional\_disks](#input\_additional\_disks) | Map of disks keyed by interface name. | <pre>map(object({<br/>    datastore_id      = string<br/>    size              = optional(number, 1)<br/>    iothread          = optional(bool, true)<br/>    cache             = optional(string, "none")<br/>    discard           = optional(string, "ignore")<br/>    file_format       = optional(string, "raw")<br/>    path_in_datastore = optional(string, null)<br/>    backup            = optional(bool, false)<br/>    replicate         = optional(bool, false)<br/>    serial            = optional(string, null)<br/>  }))</pre> | `{}` | no |
 | <a name="input_cloud_init_user_data_path"></a> [cloud\_init\_user\_data\_path](#input\_cloud\_init\_user\_data\_path) | Path to cloun-init .tpl file. If null, the module default is used. | `string` | `null` | no |
 | <a name="input_cpu"></a> [cpu](#input\_cpu) | n/a | `number` | `2` | no |
@@ -53,7 +53,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-| ---- | ----------- |
+|------|-------------|
 | <a name="output_primary_ip"></a> [primary\_ip](#output\_primary\_ip) | First non-loopback IPv4 address |
 | <a name="output_vm_id"></a> [vm\_id](#output\_vm\_id) | Proxmox VMID |
 <!-- END_TF_DOCS -->
