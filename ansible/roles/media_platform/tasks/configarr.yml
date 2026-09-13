@@ -19,4 +19,6 @@
     owner: "{{ media_platform_user }}"
     group: "{{ media_platform_group }}"
     mode: "0440"
+    force: false
+  no_log: true
   notify: Restart configarr
