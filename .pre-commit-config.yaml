@@ -25,6 +25,7 @@ repos:
       - id: terraform_fmt
       - id: terraform_docs
         args:
+          - --args=--config=workspace/.terraform-docs.yaml
           - --hook-config=--path-to-file=README.md         # Valid UNIX path. I.e. ../TFDOC.md or docs/README.md etc.
           - --hook-config=--add-to-existing-file=true      # Boolean. true or false
           - --hook-config=--create-file-if-not-exist=true  # Boolean. true or false
