@@ -126,6 +126,12 @@ jobs:
           config-file: .terraform-docs.yaml
           working-dir: workspace
           fail-on-diff: "true"
+      - name: Show what the action generated
+        if: always()
+        run: |
+          git --no-pager diff
+          echo "----- generated module README -----"
+          cat workspace/modules/proxmox_vm/README.md
 
   # Secret scanning across full history (not part of pre-commit).
   gitleaks:
