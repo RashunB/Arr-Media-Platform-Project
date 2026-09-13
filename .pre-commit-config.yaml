@@ -6,7 +6,9 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
+        exclude: ^workspace/.*/README\.md$
       - id: end-of-file-fixer
+        exclude: ^workspace/.*/README\.md$
       - id: check-added-large-files
       - id: detect-private-key
   - repo: https://github.com/ansible/ansible-lint
