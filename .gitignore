@@ -58,6 +58,3 @@ resources
 
 # Docker
 *.env.*
-
-# SOPS
-.sops.yaml
