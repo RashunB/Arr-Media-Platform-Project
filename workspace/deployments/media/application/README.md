@@ -4,7 +4,7 @@
 ## Requirements
 
 | Name | Version |
-| ---- | ------- |
+|------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.15 |
 | <a name="requirement_prowlarr"></a> [prowlarr](#requirement\_prowlarr) | 3.2.1 |
 | <a name="requirement_radarr"></a> [radarr](#requirement\_radarr) | 2.4.0 |
@@ -14,7 +14,7 @@
 ## Providers
 
 | Name | Version |
-| ---- | ------- |
+|------|---------|
 | <a name="provider_prowlarr"></a> [prowlarr](#provider\_prowlarr) | 3.2.1 |
 | <a name="provider_radarr"></a> [radarr](#provider\_radarr) | 2.4.0 |
 | <a name="provider_sonarr"></a> [sonarr](#provider\_sonarr) | 3.4.2 |
@@ -27,7 +27,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-| ---- | ---- |
+|------|------|
 | [prowlarr_application_radarr.radarr](https://registry.terraform.io/providers/devopsarr/prowlarr/3.2.1/docs/resources/application_radarr) | resource |
 | [prowlarr_application_sonarr.sonarr](https://registry.terraform.io/providers/devopsarr/prowlarr/3.2.1/docs/resources/application_sonarr) | resource |
 | [prowlarr_host.media_platform](https://registry.terraform.io/providers/devopsarr/prowlarr/3.2.1/docs/resources/host) | resource |
@@ -42,7 +42,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-| ---- | ----------- | ---- | ------- | :------: |
+|------|-------------|------|---------|:--------:|
 | <a name="input_arr_host"></a> [arr\_host](#input\_arr\_host) | n/a | `string` | n/a | yes |
 | <a name="input_prowlarr_port"></a> [prowlarr\_port](#input\_prowlarr\_port) | n/a | `number` | `9696` | no |
 | <a name="input_radarr_name"></a> [radarr\_name](#input\_radarr\_name) | n/a | `string` | `"Radarr"` | no |

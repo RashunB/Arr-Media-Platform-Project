@@ -4,7 +4,7 @@
 ## Requirements
 
 | Name | Version |
-| ---- | ------- |
+|------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.15 |
 | <a name="requirement_cloudflare"></a> [cloudflare](#requirement\_cloudflare) | 5.24.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | 2.9.0 |
@@ -14,7 +14,7 @@
 ## Providers
 
 | Name | Version |
-| ---- | ------- |
+|------|---------|
 | <a name="provider_cloudflare"></a> [cloudflare](#provider\_cloudflare) | 5.24.0 |
 | <a name="provider_proxmox"></a> [proxmox](#provider\_proxmox) | 0.113.1 |
 | <a name="provider_sops"></a> [sops](#provider\_sops) | 1.4.1 |
@@ -22,13 +22,13 @@
 ## Modules
 
 | Name | Source | Version |
-| ---- | ------ | ------- |
+|------|--------|---------|
 | <a name="module_media_vm"></a> [media\_vm](#module\_media\_vm) | ../../../modules/proxmox_vm | n/a |
 
 ## Resources
 
 | Name | Type |
-| ---- | ---- |
+|------|------|
 | [cloudflare_dns_record.media_platform](https://registry.terraform.io/providers/cloudflare/cloudflare/5.24.0/docs/resources/dns_record) | resource |
 | [proxmox_hardware_mapping_pci.transcoding_gpu](https://registry.terraform.io/providers/bpg/proxmox/0.113.1/docs/data-sources/hardware_mapping_pci) | data source |
 | [sops_file.cloudflare](https://registry.terraform.io/providers/carlpett/sops/1.4.1/docs/data-sources/file) | data source |
@@ -38,7 +38,7 @@
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-| ---- | ----------- | ---- | ------- | :------: |
+|------|-------------|------|---------|:--------:|
 | <a name="input_additional_disks"></a> [additional\_disks](#input\_additional\_disks) | Map of disks keyed by interface name. | <pre>map(object({<br/>    datastore_id      = string<br/>    size              = optional(number, 0)<br/>    iothread          = optional(bool, true)<br/>    cache             = optional(string, "none")<br/>    discard           = optional(string, "ignore")<br/>    file_format       = optional(string, "raw")<br/>    path_in_datastore = optional(string, null)<br/>    backup            = optional(bool, false)<br/>    replicate         = optional(bool, false)<br/>    serial            = optional(string, null)<br/>  }))</pre> | n/a | yes |
 | <a name="input_cloud_init_user_data_path"></a> [cloud\_init\_user\_data\_path](#input\_cloud\_init\_user\_data\_path) | Optional cloud-init #cloud-config YAML filepath. If null, a default is used. | `string` | `null` | no |
 | <a name="input_cpu"></a> [cpu](#input\_cpu) | n/a | `number` | `4` | no |
@@ -66,7 +66,7 @@
 ## Outputs
 
 | Name | Description |
-| ---- | ----------- |
+|------|-------------|
 | <a name="output_data_proxmox_hardware_mapping_pci"></a> [data\_proxmox\_hardware\_mapping\_pci](#output\_data\_proxmox\_hardware\_mapping\_pci) | n/a |
 | <a name="output_vm"></a> [vm](#output\_vm) | n/a |
 <!-- END_TF_DOCS -->
