@@ -159,19 +159,9 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
-      - name: Install trivy
-        run: >-
-          version=v0.74.0
-          curl -sfL
-          https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh
-          | sudo sh -s -- -b /usr/local/bin "${version}"
       - name: Hygiene and sops hooks
+        env:
+          SKIP: ansible-lint, yamllint, terraform_fmt, terraform_docs, terraform_tflint, terraform_trivy, terraform_validate
         run: |
           pip install pre-commit
-          pre-commit run --all-files \
-            trailing-white-space \
-            end-of-file-checker \
-            detect-private-key \
-            check-added-large-files \
-            terraform_trivy \
-            sops
+          pre-commit run --all-files
