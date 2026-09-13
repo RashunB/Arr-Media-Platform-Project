@@ -48,3 +48,4 @@ repos:
     hooks:
       - id: sops
         files: '\.sops\.ya?ml$'
+        exclude: '(^|/)\.sops\.ya?ml$'
