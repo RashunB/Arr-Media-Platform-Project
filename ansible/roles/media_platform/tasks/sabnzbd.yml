@@ -6,5 +6,6 @@
     owner: "{{ media_platform_user }}"
     group: "{{ media_platform_group }}"
     mode: "0770"
+    force: false
   notify: Restart sabnzbd
   no_log: true

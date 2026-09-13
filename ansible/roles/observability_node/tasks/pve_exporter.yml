@@ -8,8 +8,8 @@
     state: directory
 
 - name: Copy PVE files
-  ansible.builtin.copy:
-    src: prometheus/pve.yml
+  ansible.builtin.template:
+    src: pve-exporter/pve.yml.j2
     dest: "{{ observability_node_root_dir }}/pve-exporter/pve.yml"
     owner: ansible
     group: ansible

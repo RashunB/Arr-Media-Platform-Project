@@ -1,5 +1,5 @@
 data "sops_file" "media_platform" {
-  source_file = "/baucumlabs/secrets/media_platform.sops.yaml"
+  source_file = "${path.module}/../../../../secrets/media_platform.sops.yaml"
 }
 
 locals {

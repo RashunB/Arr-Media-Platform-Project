@@ -3,7 +3,7 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
 
 concurrency:
@@ -72,7 +72,7 @@ jobs:
           python-version: "3.12"
       - name: yamllint
         run: |
-          pip install yamllint
+          pip install yamllint==1.37.1
           yamllint -f github .
 
   terraform-static:
@@ -177,5 +177,5 @@ jobs:
         env:
           SKIP: ansible-lint, yamllint, terraform_fmt, terraform_docs, terraform_tflint, terraform_trivy, terraform_validate
         run: |
-          pip install pre-commit
+          pip install pre-commit==4.6.2
           pre-commit run --all-files

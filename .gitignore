@@ -55,6 +55,3 @@ keys/
 rhce/
 .claude
 resources
-
-# Docker
-*.env.*

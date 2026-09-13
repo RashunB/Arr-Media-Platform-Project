@@ -1,5 +1,5 @@
 data "sops_file" "public_key" {
-  source_file = "../../../../secrets/ansible_id.sops.yaml"
+  source_file = "${path.module}/../../../../secrets/ansible_id.sops.yaml"
 }
 
 data "proxmox_hardware_mapping_pci" "transcoding_gpu" {

@@ -14,4 +14,6 @@
     owner: "{{ media_platform_user }}"
     group: "{{ media_platform_group }}"
     mode: "02770"
+    force: false
+  no_log: true
   notify: Restart Bazarr
