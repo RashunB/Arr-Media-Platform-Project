@@ -59,8 +59,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: ansible/ansible-lint@665d9e07a1943254d2910faffc106adaf7ea7294
         with:
-          requirements_file: ansible/requirements.yml
           working_directory: ansible
+          requirements_file: requirements.yml
 
   yaml-lint:
     runs-on: ubuntu-latest
@@ -111,7 +111,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: aquasecurity/trivy-actions@ed142fd0673e97e23eac54620cfb913e5ce36c25
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
           scan-type: config
           scan-ref: workspace
