@@ -1,3 +1,6 @@
+# proxmox_vm
+
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -53,3 +56,4 @@ No modules.
 | ---- | ----------- |
 | <a name="output_primary_ip"></a> [primary\_ip](#output\_primary\_ip) | First non-loopback IPv4 address |
 | <a name="output_vm_id"></a> [vm\_id](#output\_vm\_id) | Proxmox VMID |
+<!-- END_TF_DOCS -->
