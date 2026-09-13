@@ -1,19 +1,31 @@
 terraform {
+  required_version = ">= 1.15"
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
-      version = "0.111.0"
+      version = "0.113.1"
     }
     sops = {
-      source = "carlpett/sops"
+      source  = "carlpett/sops"
+      version = "1.4.1"
     }
     cloudflare = {
-      source = "cloudflare/cloudflare"
+      source  = "cloudflare/cloudflare"
+      version = "5.24.0"
     }
     local = {
-      source = "hashicorp/local"
+      source  = "hashicorp/local"
+      version = "2.9.0"
     }
   }
+}
+
+data "sops_file" "proxmox_id" {
+  source_file = "../../../../secrets/proxmox_id.sops.yaml"
+}
+
+locals {
+  proxmox_id_private_key = trimspace(data.sops_file.proxmox_id.data["ssh_private_key"])
 }
 
 provider "proxmox" {
@@ -25,7 +37,7 @@ provider "proxmox" {
   ssh {
     agent       = true
     username    = "root"
-    private_key = file("/baucumlabs/secrets/proxmox")
+    private_key = local.proxmox_id_private_key
   }
 }
 
@@ -40,12 +52,13 @@ provider "proxmox" {
   ssh {
     agent       = true
     username    = "root"
-    private_key = file("/baucumlabs/secrets/proxmox")
+    private_key = local.proxmox_id_private_key
   }
 }
 
+
 data "sops_file" "cloudflare" {
-  source_file = "/baucumlabs/secrets/cloudflare.sops.yaml"
+  source_file = "../../../../secrets/cloudflare.sops.yaml"
 }
 
 provider "cloudflare" {

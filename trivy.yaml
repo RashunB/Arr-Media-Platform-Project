@@ -1,0 +1,10 @@
+---
+scan:
+  skip-dirs:
+    - .claude
+    - ./docs
+    - ./.venv
+    - ./.github
+    - ./.ansible
+    - ./ansible/collections
+    - '**/.terraform'

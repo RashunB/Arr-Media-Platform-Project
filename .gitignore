@@ -60,7 +60,5 @@ resources
 # Docker
 *.env.*
 
-# SOPS/Vault
-
-**/secrets
-*sops.yaml
+# SOPS
+.sops.yaml

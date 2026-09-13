@@ -77,16 +77,16 @@ variable "sabnzbd_prio" {
   default = 1
 }
 
-variable "indexer" {
-  type = object({
-    name            = string
-    implementation  = string
-    config_contract = string
-    protocol        = string
-    enabled         = bool
-    redirect        = bool
-    base_url        = string
-    api_path        = string
-    tags            = optional(string, null)
-  })
-}
+# variable "indexer" {
+#   type = object({
+#     name            = string
+#     implementation  = string
+#     config_contract = string
+#     protocol        = string
+#     enabled         = bool
+#     redirect        = bool
+#     base_url        = string
+#     api_path        = string
+#     tags            = optional(string, null)
+#   })
+# }
