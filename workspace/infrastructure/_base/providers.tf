@@ -17,7 +17,7 @@ terraform {
 }
 
 data "sops_file" "proxmox_id" {
-  source_file = "../../../secrets/proxmox_id.sops.yaml"
+  source_file = "${path.module}/../../../secrets/proxmox_id.sops.yaml"
 }
 
 locals {
