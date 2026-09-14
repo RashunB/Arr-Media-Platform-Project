@@ -85,3 +85,27 @@ argument_specs:
         required: false
         default: 7007
         description: Host port for dozzle container/service
+
+      observability_node_smartctl_exporter_enabled:
+        type: bool
+        required: false
+        default: false
+        description: Toggle deployment of the smartctl-exporter service
+
+      observability_node_pve_exporter_enabled:
+        type: bool
+        required: false
+        default: false
+        description: Toggle deployment of the pve-exporter service
+
+      observability_node_pve_exporter_name:
+        type: str
+        required: false
+        default: pve-exporter
+        description: Name of pve-exporter container/service
+
+      observability_node_pve_exporter_host_port:
+        type: int
+        required: false
+        default: 9221
+        description: Host port for pve-exporter container/service
