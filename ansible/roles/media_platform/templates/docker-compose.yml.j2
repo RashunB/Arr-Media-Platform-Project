@@ -16,7 +16,7 @@ services:
     devices:
       - /dev/dri/renderD128:/dev/dri/renderD128
     volumes:
-      - "{{ media_platform_config_dir }}/jellyfin/data/library:/config"
+      - "{{ media_platform_config_dir }}/jellyfin/data:/config"
       - "{{ media_platform_tvseries_dir }}:/data/tvshows"
       - "{{ media_platform_movies_dir }}:/data/movies"
     ports:
