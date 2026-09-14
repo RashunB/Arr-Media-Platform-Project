@@ -1,0 +1,12 @@
+---
+argument_specs:
+  main:
+    short_description: Install Docker Engine and prepare the base host
+    options:
+      docker_base_users:
+        type: list
+        elements: str
+        required: false
+        default:
+          - ansible
+        description: System users added to the docker group.
