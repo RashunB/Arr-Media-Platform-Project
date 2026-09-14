@@ -31,7 +31,6 @@ observability_control_loki_remote_url: "{{ loki_remote_url }}"
 
 observability_control_dozzle_name: "{{ dozzle_name }}"
 observability_control_dozzle_host_port: "{{ dozzle_host_port }}"
-
 observability_control_dozzle_agent_pve_ip: "{{ dozzle_agent_pve_ip }}"
 
 observability_control_pve_exporter_name: "{{ pve_exporter_name }}"

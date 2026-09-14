@@ -7,8 +7,8 @@
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.15 |
 | <a name="requirement_prowlarr"></a> [prowlarr](#requirement\_prowlarr) | 3.2.1 |
-| <a name="requirement_radarr"></a> [radarr](#requirement\_radarr) | 2.4.0 |
-| <a name="requirement_sonarr"></a> [sonarr](#requirement\_sonarr) | 3.4.2 |
+| <a name="requirement_radarr"></a> [radarr](#requirement\_radarr) | 2.5.0 |
+| <a name="requirement_sonarr"></a> [sonarr](#requirement\_sonarr) | 3.5.0 |
 | <a name="requirement_sops"></a> [sops](#requirement\_sops) | 1.4.1 |
 
 ## Providers
@@ -16,8 +16,8 @@
 | Name | Version |
 |------|---------|
 | <a name="provider_prowlarr"></a> [prowlarr](#provider\_prowlarr) | 3.2.1 |
-| <a name="provider_radarr"></a> [radarr](#provider\_radarr) | 2.4.0 |
-| <a name="provider_sonarr"></a> [sonarr](#provider\_sonarr) | 3.4.2 |
+| <a name="provider_radarr"></a> [radarr](#provider\_radarr) | 2.5.0 |
+| <a name="provider_sonarr"></a> [sonarr](#provider\_sonarr) | 3.5.0 |
 | <a name="provider_sops"></a> [sops](#provider\_sops) | 1.4.1 |
 
 ## Modules
@@ -31,12 +31,12 @@ No modules.
 | [prowlarr_application_radarr.radarr](https://registry.terraform.io/providers/devopsarr/prowlarr/3.2.1/docs/resources/application_radarr) | resource |
 | [prowlarr_application_sonarr.sonarr](https://registry.terraform.io/providers/devopsarr/prowlarr/3.2.1/docs/resources/application_sonarr) | resource |
 | [prowlarr_host.media_platform](https://registry.terraform.io/providers/devopsarr/prowlarr/3.2.1/docs/resources/host) | resource |
-| [radarr_download_client_sabnzbd.sabnzbd](https://registry.terraform.io/providers/devopsarr/radarr/2.4.0/docs/resources/download_client_sabnzbd) | resource |
-| [radarr_host.media_platform](https://registry.terraform.io/providers/devopsarr/radarr/2.4.0/docs/resources/host) | resource |
-| [radarr_root_folder.movies](https://registry.terraform.io/providers/devopsarr/radarr/2.4.0/docs/resources/root_folder) | resource |
-| [sonarr_download_client_sabnzbd.sabnzbd](https://registry.terraform.io/providers/devopsarr/sonarr/3.4.2/docs/resources/download_client_sabnzbd) | resource |
-| [sonarr_host.media_platform](https://registry.terraform.io/providers/devopsarr/sonarr/3.4.2/docs/resources/host) | resource |
-| [sonarr_root_folder.tv](https://registry.terraform.io/providers/devopsarr/sonarr/3.4.2/docs/resources/root_folder) | resource |
+| [radarr_download_client_sabnzbd.sabnzbd](https://registry.terraform.io/providers/devopsarr/radarr/2.5.0/docs/resources/download_client_sabnzbd) | resource |
+| [radarr_host.media_platform](https://registry.terraform.io/providers/devopsarr/radarr/2.5.0/docs/resources/host) | resource |
+| [radarr_root_folder.movies](https://registry.terraform.io/providers/devopsarr/radarr/2.5.0/docs/resources/root_folder) | resource |
+| [sonarr_download_client_sabnzbd.sabnzbd](https://registry.terraform.io/providers/devopsarr/sonarr/3.5.0/docs/resources/download_client_sabnzbd) | resource |
+| [sonarr_host.media_platform](https://registry.terraform.io/providers/devopsarr/sonarr/3.5.0/docs/resources/host) | resource |
+| [sonarr_root_folder.tv](https://registry.terraform.io/providers/devopsarr/sonarr/3.5.0/docs/resources/root_folder) | resource |
 | [sops_file.media_platform](https://registry.terraform.io/providers/carlpett/sops/1.4.1/docs/data-sources/file) | data source |
 
 ## Inputs

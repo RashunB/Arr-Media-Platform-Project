@@ -30,30 +30,30 @@ scrape_configs:
       - target_label: instance
         replacement: "smartctl-exporter:{{ observability_control_smartctl_exporter_host_port }}"
 
-  - job_name: PVE PVE-Exporter
-    static_configs:
-      - targets: ["{{ observability_control_pve_node_ip }}:{{ observability_control_pve_exporter_host_port }}"]
-    relabel_configs:
-      - target_label: instance
-        replacement: "pve-exporter:{{ observability_control_pve_exporter_host_port }}"
+# file_sd_configs
+  - job_name: Node PVE-Exporter
+    metrics_path: /pve
+    params:
+      module: [default]
+    file_sd_configs:
+      - files:
+          - /etc/prometheus/file_sd/pve_exporter.yml
+        refresh_interval: 30s
 
-  - job_name: PVE Node-Exporter
-    static_configs:
-      - targets: ["{{ observability_control_pve_node_ip }}:{{ observability_control_node_exporter_host_port }}"]
-    relabel_configs:
-      - target_label: instance
-        replacement: "node-exporter:{{ observability_control_node_exporter_host_port }}"
+  - job_name: Node Node-Exporter
+    file_sd_configs:
+      - files:
+          - /etc/prometheus/file_sd/node_exporter.yml
+        refresh_interval: 30s
 
-  - job_name: PVE cAdvisor
-    static_configs:
-      - targets: ["{{ observability_control_pve_node_ip }}:{{ observability_control_cadvisor_host_port }}"]
-    relabel_configs:
-      - target_label: instance
-        replacement: "cadvisor:{{ observability_control_cadvisor_host_port }}"
+  - job_name: Node cAdvisor
+    file_sd_configs:
+      - files:
+          - /etc/prometheus/file_sd/cadvisor.yml
+        refresh_interval: 30s
 
-  - job_name: PVE Smartctl-Exporter
-    static_configs:
-      - targets: ["{{ observability_control_pve_node_ip }}:{{ observability_control_smartctl_exporter_host_port }}"]
-    relabel_configs:
-      - target_label: instance
-        replacement: "smartctl-exporter:{{ observability_control_smartctl_exporter_host_port }}"
+  - job_name: Node Smartctl-Exporter
+    file_sd_configs:
+      - files:
+          - /etc/prometheus/file_sd/smartctl_exporter.yml
+        refresh_interval: 30s

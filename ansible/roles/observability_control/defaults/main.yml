@@ -27,9 +27,15 @@ observability_control_node_exporter_host_port: 9100
 
 observability_control_prometheus_name: prometheus
 observability_control_prometheus_host_port: 9090
+observability_control_prometheus_file_sd_configs:
+  - pve_exporter
+  - smartctl_exporter
+  - node_exporter
+  - cadvisor
 
 observability_control_smartctl_exporter_name: smartctl-exporter
 observability_control_smartctl_exporter_host_port: 9633
+observability_control_smartctl_exporter_enabled: false
 
 observability_control_pve_exporter_name: pve-exporter
 observability_control_pve_exporter_host_port: 9221

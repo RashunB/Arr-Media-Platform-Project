@@ -1,0 +1,7 @@
+---
+{% for host in groups['observability_node'] | default([]) %}
+- targets:
+    - "{{ hostvars[host].ansible_host }}:{{ hostvars[host].observability_node_pve_exporter_host_port }}
+  labels:
+    instance: "{{ host }}"
+{% endfor %}

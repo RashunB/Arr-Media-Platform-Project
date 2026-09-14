@@ -10,6 +10,18 @@
     - "{{ observability_control_root_dir }}/prometheus/data"
     - "{{ observability_control_root_dir }}/prometheus/config"
     - "{{ observability_control_root_dir }}/prometheus/config/rules"
+    - "{{ observability_control_root_dir }}/prometheus/config/file_sd"
+
+- name: Generate file_sd targets for nodes
+  ansible.builtin.template:
+    src: "prometheus/file_sd/{{ item }}.yml.j2"
+    dest: "{{ observability_control_root_dir }}/prometheus/config/file_sd/{{ item }}.yml"
+    owner: ansible
+    group: ansible
+    mode: "0644"
+  loop: "{{ observability_control_prometheus_file_sd_configs }}"
+  loop_control:
+    label: "{{ item }}.yml"
 
 - name: Copy Prometheus files
   ansible.builtin.template:

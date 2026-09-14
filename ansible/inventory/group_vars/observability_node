@@ -30,5 +30,4 @@ observability_node_loki_remote_url: "{{ loki_remote_url }}"
 
 observability_node_dozzle_name: "{{ dozzle_name }}"
 observability_node_dozzle_host_port: "{{ dozzle_host_port }}"
-
 observability_node_dozzle_agent_pve_ip: "{{ dozzle_agent_pve_ip }}"
