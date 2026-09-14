@@ -14,7 +14,7 @@ locals {
   ]
 
   pcie_devices = {
-    for idx, name in local.pcie_map : "hostpci{$idx}" => {
+    for idx, name in local.pcie_map : "hostpci${idx}" => {
       device  = "hostpci${idx}"
       mapping = name
       pcie    = true
