@@ -2,12 +2,6 @@
 media_platform_sabnzbd_host_port: 6060
 
 # LVM_STORAGE Role vars
-lvm_storage_volume_groups:
-  - vg: vg.media
-    pvs:
-      - /dev/disk/by-id/scsi-SQEMU_QEMU_HARDDISK_vgmedia-d0
-      - /dev/disk/by-id/scsi-SQEMU_QEMU_HARDDISK_vgmedia-d1
-
 lvm_storage_logical_volumes:
   - vg: vg.media
     lv: lv.media
