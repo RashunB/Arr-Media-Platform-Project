@@ -1,16 +1,16 @@
 ---
 lvm_storage_volume_groups:
-  - vg: ""
-    pvs: ""
+  - vg:
+    pvs:
     vg_state:
 
 lvm_storage_logical_volumes:
-  - vg: ""
-    lv: ""
-    pvs: ""
+  - vg:
+    lv:
+    pvs:
     size: 100%VG
     fstype: ext4
-    mountpoint: ""
+    mountpoint:
     mount_state: mounted
     fs_state: present
     lv_state: present
