@@ -1,9 +1,4 @@
 ---
-lvm_storage_volume_groups:
-  - vg:
-    pvs:
-    vg_state:
-
 lvm_storage_logical_volumes:
   - vg:
     lv:
