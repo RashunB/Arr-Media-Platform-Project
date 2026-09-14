@@ -19,6 +19,7 @@ services:
     volumes:
       - "{{ observability_control_root_dir }}/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
       - "{{ observability_control_root_dir }}/prometheus/config/rules:/etc/prometheus/rules"
+      - "{{ observability_control_root_dir }}/prometheus/config/file_sd:/etc/prometheus/file_sd"
       - "{{ observability_control_root_dir }}/prometheus/data/:/prometheus"
     command:
       - --config.file=/etc/prometheus/prometheus.yml
@@ -121,7 +122,6 @@ services:
       retries: 5
     networks:
       - observability
-
 
   alloy:
     image: grafana/alloy:latest
