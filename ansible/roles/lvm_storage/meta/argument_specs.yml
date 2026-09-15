@@ -8,49 +8,59 @@ argument_specs:
         elements: dict
         required: true
         description: Logical volumes to provision, format, and mount.
+
         options:
           vg:
             type: str
             required: true
             description: Volume group name.
+
           lv:
             type: str
             required: true
             description: Logical volume name.
+
           pvs:
             type: list
             elements: str
             required: true
             description: Physical volume device paths backing the volume group.
+
           mountpoint:
             type: str
             required: true
             description: Absolute path where the volume is mounted.
+
           size:
             type: str
             required: false
             default: 100%VG
             description: Logical volume size in lvol size syntax.
+
           fstype:
             type: str
             required: false
             default: ext4
             description: Filesystem type created on the volume.
+
           mount_state:
             type: str
             required: false
             default: mounted
             description: Mount state passed to ansible.posix.mount.
+
           fs_state:
             type: str
             required: false
             default: present
             description: Filesystem creation state.
+
           lv_state:
             type: str
             required: false
             default: present
             description: Logical volume state.
+
           vg_state:
             type: str
             required: false

@@ -31,6 +31,8 @@ services:
     cap_add:
       - SYS_RAWIO
       - SYS_ADMIN
+    security_opt:
+      - no-new-privileges:true
     devices:
       - /dev/sda:/dev/sda
       - /dev/sdb:/dev/sdb
@@ -56,6 +58,8 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
+    security_opt:
+      - no-new-privileges:true
     networks:
       - observability
 
@@ -113,5 +117,7 @@ services:
       - /run/log/journal:/run/log/journal:ro
       - /etc/machine-id:/etc/machine-id:ro
 {% endif %}
+    security_opt:
+      - no-new-privileges:true
     networks:
       - observability

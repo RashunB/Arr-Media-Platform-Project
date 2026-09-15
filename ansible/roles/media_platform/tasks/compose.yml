@@ -4,7 +4,7 @@
     path: "{{ media_platform_compose_dir }}"
     owner: ansible
     group: "{{ media_platform_group }}"
-    mode: "02775"
+    mode: "2775"
     state: directory
 
 - name: Copy compose file to "{{ media_platform_compose_dir }}"

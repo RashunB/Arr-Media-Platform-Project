@@ -7,8 +7,8 @@
     mode: "0755"
     state: directory
   loop:
-    - /opt/loki
-    - /opt/loki/data
+    - "{{ observability_control_root_dir }}/loki"
+    - "{{ observability_control_root_dir }}/loki/data"
 
 - name: Copy Loki files
   ansible.builtin.template:
