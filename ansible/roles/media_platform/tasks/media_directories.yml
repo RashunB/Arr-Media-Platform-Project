@@ -4,7 +4,7 @@
     path: "{{ item }}"
     owner: "{{ media_platform_user }}"
     group: "{{ media_platform_group }}"
-    mode: "02775"
+    mode: "2775"
     state: directory
   loop: "{{ media_platform_dir_list }}"
 
@@ -13,6 +13,6 @@
     path: "{{ media_platform_config_dir }}/{{ item }}/data"
     owner: "{{ media_platform_user }}"
     group: "{{ media_platform_group }}"
-    mode: "02775"
+    mode: "2775"
     state: directory
   loop: "{{ media_platform_services_list }}"

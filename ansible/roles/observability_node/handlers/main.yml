@@ -3,7 +3,7 @@
   community.docker.docker_compose_v2:
     project_src: "{{ observability_node_root_dir }}/docker/observability"
     services:
-      - pve-exporter
+      - prometheus-pve-exporter
     state: restarted
 
 - name: Restart Alloy

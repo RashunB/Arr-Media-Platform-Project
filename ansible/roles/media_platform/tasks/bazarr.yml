@@ -5,7 +5,7 @@
     state: directory
     owner: "{{ media_platform_user }}"
     group: "{{ media_platform_group }}"
-    mode: "02770"
+    mode: "2770"
 
 - name: Place bazarr config.yml
   ansible.builtin.template:
@@ -13,7 +13,7 @@
     dest: "{{ media_platform_config_dir }}/bazarr/data/config/config.yaml"
     owner: "{{ media_platform_user }}"
     group: "{{ media_platform_group }}"
-    mode: "02770"
+    mode: "0640"
     force: false
   no_log: true
   notify: Restart Bazarr

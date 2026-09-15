@@ -8,25 +8,30 @@ argument_specs:
         elements: dict
         required: true
         description: Remote NFS exports to mount on this host.
+
         options:
           path:
             type: str
             required: true
             description: Absolute local mount point.
+
           src:
             type: str
             required: true
             description: Remote export in host:/export form.
+
           fstype:
             type: str
             required: false
             default: nfs4
             description: Mount filesystem type.
+
           options:
             type: str
             required: false
             default: "rw,hard,timeo=600,retrans=2,_netdev"
             description: Mount options passed to ansible.posix.mount.
+
           state:
             type: str
             required: false

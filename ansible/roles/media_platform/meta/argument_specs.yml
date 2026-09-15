@@ -9,16 +9,19 @@ argument_specs:
         required: false
         default: media
         description: System user owning media data and running the containers (PUID).
+
       media_platform_user_uid:
         type: int
         required: false
         default: 6000
         description: UID of the media service user.
+
       media_platform_group:
         type: str
         required: false
         default: media_platform
         description: System group owning media data (PGID).
+
       media_platform_group_gid:
         type: int
         required: false
@@ -30,6 +33,7 @@ argument_specs:
         type: str
         required: false
         description: Admin username applied to the *arr web UIs.
+
       media_platform_arr_webapp_password:
         type: str
         required: false
@@ -42,52 +46,73 @@ argument_specs:
         default: news.newshosting.com
         description: Usenet provider hostname used by SABnzbd.
 
+      media_platform_usenet_user:
+        type: list
+        elements: str
+        required: false
+        description: Usenet provider user.
+
+      media_platform_usenet_password:
+        type: list
+        elements: str
+        required: false
+        description: Usenet provider user password.
+
       # Directories
       media_platform_compose_dir:
         type: str
         required: false
         default: /opt/docker/media_platform
         description: Directory holding the compose project and rendered env file.
+
       media_platform_root_dir:
         type: str
         required: false
         default: /opt/media_platform
         description: Base directory for all media data and config.
+
       media_platform_data_dir:
         type: str
         required: false
         default: "{{ media_platform_root_dir }}/data"
         description: Root of the single shared data tree enabling hardlinks and atomic moves.
+
       media_platform_config_dir:
         type: str
         required: false
         default: "{{ media_platform_root_dir }}/config"
         description: Parent directory for per-service /config volumes.
+
       media_platform_media_dir:
         type: str
         required: false
         default: "{{ media_platform_data_dir }}/media"
         description: Library root for organized media.
+
       media_platform_tvseries_dir:
         type: str
         required: false
         default: "{{ media_platform_media_dir }}/tv"
         description: TV series library path.
+
       media_platform_movies_dir:
         type: str
         required: false
         default: "{{ media_platform_media_dir }}/movies"
         description: Movie library path.
+
       media_platform_downloads_dir:
         type: str
         required: false
         default: "{{ media_platform_data_dir }}/downloads"
         description: Completed downloads path.
+
       media_platform_incomplete_downloads_dir:
         type: str
         required: false
         default: "{{ media_platform_data_dir }}/incomplete_downloads"
         description: In-progress downloads path.
+
       media_platform_dir_list:
         type: list
         elements: str
@@ -100,21 +125,30 @@ argument_specs:
         required: false
         default: jellyfin
         description: Container/service name for Jellyfin.
+
       media_platform_jellyfin_hostname:
         type: str
         required: false
         default: "{{ media_platform_jellyfin_name }}"
         description: Hostname assigned to the Jellyfin container.
+
       media_platform_jellyfin_image:
         type: str
         required: false
         default: lscr.io/linuxserver/jellyfin:latest
         description: Container image reference for Jellyfin.
+
       media_platform_jellyfin_host_port:
         type: int
         required: false
         default: 8096
         description: Host port published for Jellyfin.
+
+      media_platform_jellyfin_api_key:
+        type: list
+        elements: str
+        required: false
+        description: Jellyfin API key.
 
       # Seerr
       media_platform_seerr_name:
@@ -122,11 +156,13 @@ argument_specs:
         required: false
         default: seerr
         description: Container/service name for Seerr.
+
       media_platform_seerr_image:
         type: str
         required: false
         default: ghcr.io/seerr-team/seerr:latest
         description: Container image reference for Seerr.
+
       media_platform_seerr_host_port:
         type: int
         required: false
@@ -139,16 +175,19 @@ argument_specs:
         required: false
         default: prowlarr
         description: Container/service name for Prowlarr.
+
       media_platform_prowlarr_image:
         type: str
         required: false
         default: lscr.io/linuxserver/prowlarr:latest
         description: Container image reference for Prowlarr.
+
       media_platform_prowlarr_host_port:
         type: int
         required: false
         default: 9696
         description: Host port published for Prowlarr.
+
       media_platform_prowlarr_api_key:
         type: str
         required: false
@@ -160,20 +199,24 @@ argument_specs:
         required: false
         default: sabnzbd
         description: Container/service name for SABnzbd.
+
       media_platform_sabnzbd_image:
         type: str
         required: false
         default: lscr.io/linuxserver/sabnzbd:latest
         description: Container image reference for SABnzbd.
+
       media_platform_sabnzbd_host_port:
         type: int
         required: false
         default: 8080
         description: Host port published for SABnzbd.
+
       media_platform_sabnzbd_api_key:
         type: str
         required: false
         description: API key applied to SABnzbd.
+
       media_platform_sabnzbd_nzb_key:
         type: str
         required: false
@@ -185,16 +228,19 @@ argument_specs:
         required: false
         default: radarr
         description: Container/service name for Radarr.
+
       media_platform_radarr_image:
         type: str
         required: false
         default: lscr.io/linuxserver/radarr:latest
         description: Container image reference for Radarr.
+
       media_platform_radarr_host_port:
         type: int
         required: false
         default: 7878
         description: Host port published for Radarr.
+
       media_platform_radarr_api_key:
         type: str
         required: false
@@ -206,16 +252,19 @@ argument_specs:
         required: false
         default: sonarr
         description: Container/service name for Sonarr.
+
       media_platform_sonarr_image:
         type: str
         required: false
         default: lscr.io/linuxserver/sonarr:latest
         description: Container image reference for Sonarr.
+
       media_platform_sonarr_host_port:
         type: int
         required: false
         default: 8989
         description: Host port published for Sonarr.
+
       media_platform_sonarr_api_key:
         type: str
         required: false
@@ -227,16 +276,30 @@ argument_specs:
         required: false
         default: bazarr
         description: Container/service name for Bazarr.
+
       media_platform_bazarr_image:
         type: str
         required: false
         default: lscr.io/linuxserver/bazarr:latest
         description: Container image reference for Bazarr.
+
       media_platform_bazarr_host_port:
         type: int
         required: false
         default: 6767
         description: Host port published for Bazarr.
+
+      media_platform_bazarr_api_key:
+        type: list
+        elements: str
+        required: false
+        description: Bazarr API key.
+
+      media_platform_bazarr_flask_secret_key:
+        type: list
+        elements: str
+        required: false
+        description: Bazarr flask API key.
 
       # Configarr
       media_platform_configarr_name:
@@ -244,6 +307,7 @@ argument_specs:
         required: false
         default: configarr
         description: Container/service name for Configarr.
+
       media_platform_configarr_image:
         type: str
         required: false
@@ -255,3 +319,21 @@ argument_specs:
         elements: str
         required: false
         description: Services provisioned with a dedicated /config directory.
+
+      media_platform_compose_env_list:
+        type: list
+        elements: str
+        required: false
+        description: List of compose files to create from templates.
+
+      media_platform_opensubtitles_user:
+        type: list
+        elements: str
+        required: false
+        description: Opensubtitles provider user.
+
+      media_platform_opensubtitles_password:
+        type: list
+        elements: str
+        required: false
+        description: Opensubtitles provider user password.

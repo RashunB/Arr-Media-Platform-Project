@@ -5,7 +5,7 @@
     dest: "{{ media_platform_config_dir }}/sabnzbd/data/sabnzbd.ini"
     owner: "{{ media_platform_user }}"
     group: "{{ media_platform_group }}"
-    mode: "0770"
+    mode: "0640"
     force: false
   notify: Restart sabnzbd
   no_log: true

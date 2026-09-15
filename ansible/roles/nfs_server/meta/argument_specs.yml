@@ -8,30 +8,36 @@ argument_specs:
         elements: dict
         required: true
         description: Directories exported by the NFS server.
+
         options:
           path:
             type: str
             required: true
             description: Absolute path of the exported directory.
+
           clients:
             type: str
             required: true
             description: Client specification allowed to mount the export.
+
           options:
             type: str
             required: false
             default: "rw,sync,no_subtree_check,no_root_squash"
             description: NFS export options.
+
           owner:
             type: str
             required: false
             default: root
             description: Owner of the exported directory.
+
           group:
             type: str
             required: false
             default: root
             description: Group of the exported directory.
+
           mode:
             type: str
             required: false
