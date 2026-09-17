@@ -92,5 +92,5 @@ media_platform_compose_env_list:
 # External Access in templates
 media_platform_usenet_user:
 media_platform_usenet_password:
-media_platform_subtitles_user:
-media_platform_subtitles_password:
+media_platform_opensubtitles_user:
+media_platform_opensubtitles_password:
