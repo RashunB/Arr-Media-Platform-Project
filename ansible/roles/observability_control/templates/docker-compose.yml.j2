@@ -26,7 +26,7 @@ services:
       - --web.enable-lifecycle
       - --web.enable-admin-api
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     networks:
       - observability
 
@@ -43,7 +43,7 @@ services:
       - --path.sysfs=/host/sys
       - --collector.cpu.info
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     volumes:
       - /:/host:ro,rslave
 
@@ -59,7 +59,7 @@ services:
     cap_add:
       - SYS_ADMIN
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     networks:
       - observability
 {% endif %}
@@ -78,7 +78,7 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     networks:
       - observability
 
@@ -101,7 +101,7 @@ services:
       start_period: 5s
       start_interval: 5s
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     networks:
       - observability
 
@@ -123,7 +123,7 @@ services:
       timeout: 5s
       retries: 5
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     networks:
       - observability
 
@@ -145,7 +145,7 @@ services:
       - /etc/machine-id:/etc/machine-id:ro
 {% endif %}
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     networks:
       - observability
 
@@ -168,6 +168,6 @@ services:
       timeout: 10s
       retries: 5
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     networks:
       - observability

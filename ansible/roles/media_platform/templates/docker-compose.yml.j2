@@ -25,7 +25,7 @@ services:
       # - "{{ media_platform_jellyfin_host_port }}:7359/udp" #optional Service Discovery
       # - "{{ media_platform_jellyfin_host_port }}:1900/udp" #optional Client Discovery
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     restart: unless-stopped
 
   prowlarr:
@@ -40,7 +40,7 @@ services:
     ports:
       - "{{ media_platform_prowlarr_host_port }}:9696"
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     restart: unless-stopped
 
   sabnzbd:
@@ -54,7 +54,7 @@ services:
     ports:
       - "{{ media_platform_sabnzbd_host_port }}:8080"
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     restart: unless-stopped
 
   radarr:
@@ -70,7 +70,7 @@ services:
     ports:
       - "{{ media_platform_radarr_host_port }}:7878"
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     restart: unless-stopped
 
   sonarr:
@@ -86,7 +86,7 @@ services:
     ports:
       - "{{ media_platform_sonarr_host_port }}:8989"
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     restart: unless-stopped
 
   bazarr:
@@ -101,7 +101,7 @@ services:
     ports:
       - "{{ media_platform_bazarr_host_port }}:6767"
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     restart: unless-stopped
 
   configarr:
@@ -120,7 +120,7 @@ services:
       - "{{ media_platform_config_dir }}/configarr/data/cfs:/app/cfs"
       - "{{ media_platform_config_dir }}/configarr/data/templates:/app/templates"
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
 
   seerr:
     image: "{{ media_platform_seerr_image }}"
@@ -135,5 +135,5 @@ services:
     cap_drop:
       - ALL
     security_opt:
-      - no-new-privileges: true
+      - no-new-privileges:true
     restart: unless-stopped
