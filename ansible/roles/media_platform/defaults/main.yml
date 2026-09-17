@@ -82,13 +82,6 @@ media_platform_services_list:
   - "{{ media_platform_configarr_name }}"
   - "{{ media_platform_seerr_name }}"
 
-media_platform_compose_env_list:
-  - media_platform
-  - "{{ media_platform_prowlarr_name }}"
-  - "{{ media_platform_radarr_name }}"
-  - "{{ media_platform_sonarr_name }}"
-  - "{{ media_platform_configarr_name }}"
-
 # External Access in templates
 media_platform_usenet_user:
 media_platform_usenet_password:
