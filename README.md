@@ -6,13 +6,18 @@
 [![Proxmox VE](https://img.shields.io/badge/Proxmox-VE-E57000?logo=proxmox&logoColor=white)](https://www.proxmox.com/)
 [![SOPS](https://img.shields.io/badge/secrets-SOPS%20%2B%20age-2ea44f)](https://github.com/getsops/sops)
 
-A fully declarative, GitOps-style homelab platform. Terraform provisions virtual
-machines on Proxmox VE, Ansible configures them, and the handoff between the two
-is driven by dynamic inventory rather than hardcoded hosts. Every change is
-linted, validated, security-scanned, and secret-scanned in CI before it merges.
+Provision and configure a homelab on Proxmox VE with Terraform and Ansible —
+bare metal to a monitored, GPU-accelerated application stack, driven entirely
+by code.
 
-> **In one sentence:** bare metal to a running, monitored, GPU-accelerated
-> application stack with two commands and zero plaintext secrets in git.
+- **Terraform** provisions VMs on Proxmox VE.
+- **Ansible** configures them, using a dynamic inventory built from
+  Terraform-applied tags — no hardcoded host list to maintain.
+- Every change is linted, validated, security-scanned, and secret-scanned in
+  CI before it merges.
+- No plaintext secret ever touches git.
+
+Jump to [Quickstart](#quickstart) to bring up a deployment.
 
 ---
 
@@ -216,9 +221,10 @@ All third-party actions are pinned to commit SHAs rather than tags.
 
 ## Secrets management
 
-No plaintext secret is ever committed. `.sops.yaml` binds every `*.sops.yaml`
-file in the repo to a single `age` recipient, and both tools read the encrypted
-files directly, so there is no decrypt-to-disk step and no `.env` to leak.
+- No plaintext secret is ever committed. `.sops.yaml` binds every
+  `*.sops.yaml` file in the repo to a single `age` recipient.
+- Both Terraform and Ansible read the encrypted files directly — there is no
+  decrypt-to-disk step and no `.env` to leak.
 
 ```
 secrets/
@@ -236,51 +242,58 @@ secrets/
   `*.sops.yaml`, `detect-private-key` blocks stray keys, and `gitleaks` audits
   the entire history.
 
-Separate API tokens per consumer keeps blast radius small and makes credential
-rotation a one-file change.
+- Separate API tokens per consumer: keeps blast radius small and makes
+  credential rotation a one-file change.
 
 ---
 
 ## Engineering decisions
 
-Notes on the choices that were not obvious, and what the alternatives cost.
+Rules this repo follows, and why — read these before proposing a change that
+seems to cut a corner.
 
-**Terraform provisions, Ansible configures, and neither reaches into the other.**
-No `local-exec` calling `ansible-playbook`, no Ansible module creating VMs. The
-seam between them is Proxmox VM tags. Terraform's `vm_tag_list` becomes a
-`keyed_groups` entry in the inventory plugin, which becomes a playbook target.
-Adding a host to a role is a tag change, not an inventory edit, and the two
-tools keep independent state.
+**Never call Ansible from Terraform, or create VMs from Ansible.** Provisioning
+and configuration stay in separate tools with independent state — no
+`local-exec` calling `ansible-playbook`, no Ansible module creating VMs.
+- **How:** the seam is Proxmox VM tags. Terraform's `vm_tag_list` becomes a
+  `keyed_groups` entry in Ansible's inventory plugin, which becomes a playbook
+  target. To add a host to a role, change its tag — not an inventory file.
 
-**Templates are discovered by tag, not by ID.** The `proxmox_vm` module queries
-`proxmox_virtual_environment_vms` filtered on `["template", var.template_os_tag]`
-instead of accepting a VM ID. Rebuilding a template does not require touching a
-single deployment stack.
+**Discover templates by tag, not by VM ID.** The `proxmox_vm` module queries
+`proxmox_virtual_environment_vms` filtered on
+`["template", var.template_os_tag]`.
+- **Why:** rebuilding a template doesn't require touching every deployment
+  stack that consumes it.
 
-**`infrastructure` and `application` are separate stacks per deployment.** They
-have genuinely different dependency graphs: the infrastructure stack talks to
-Proxmox and Cloudflare, the application stack talks to service APIs that only
-exist after Ansible has started the containers. Splitting them keeps a failed
-application apply from blocking a VM rebuild, and keeps plan times honest.
+**Keep `infrastructure` and `application` as separate Terraform stacks per
+deployment.**
+- **Why:** they have different dependency graphs — infrastructure talks to
+  Proxmox and Cloudflare, application talks to service APIs that only exist
+  after Ansible has started the containers.
+- **Benefit:** a failed application apply can't block a VM rebuild, and plan
+  times stay honest.
 
-**Two Proxmox provider aliases.** The default alias uses a scoped API token;
-the `root` alias uses username/password. VM cloning and template creation
-require privileges the API token cannot hold, so the elevated credential is
-confined to exactly the resources that need it rather than being used repo-wide.
+**Use two Proxmox provider aliases: a scoped API token by default, `root`
+username/password only where required.**
+- **Why:** VM cloning and template creation need privileges the API token
+  can't hold. Confining the elevated credential to exactly those resources
+  keeps it out of the rest of the repo.
 
-**GPU passthrough flips the machine type automatically.** `pcie_devices` being
-non-empty switches the VM to `q35` + `ovmf` and attaches an EFI disk, because
-PCIe passthrough does not work on the `i440fx` + SeaBIOS default. One variable,
-no room to get the combination wrong.
+**Let `pcie_devices` drive the machine type — don't set it manually.** A
+non-empty `pcie_devices` switches the VM to `q35` + `ovmf` and attaches an EFI
+disk automatically.
+- **Why:** PCIe passthrough doesn't work on the `i440fx` + SeaBIOS default.
+  One variable controls both, so there's no incompatible combination to get
+  wrong.
 
-**Every first-party role ships `meta/argument_specs.yml`.** Bad input fails at
-role entry with a typed error instead of halfway through a play. This is also
-why `lvm_storage` can safely accept a nested list-of-dicts describing entire
-volume groups.
+**Ship `meta/argument_specs.yml` with every first-party role.**
+- **Why:** bad input fails at role entry with a typed error instead of
+  halfway through a play. It's also what lets `lvm_storage` safely accept a
+  nested list-of-dicts describing entire volume groups.
 
-**Role variables are namespaced and re-exported.** Role defaults are prefixed
-(`media_platform_*`, `observability_node_*`), and `group_vars` maps shared
-values onto them. One place to change a port, no collisions between roles.
+**Prefix role defaults (`media_platform_*`, `observability_node_*`) and map
+shared values onto them from `group_vars`.**
+- **Why:** one place to change a port, no collisions between roles.
 
 ---
 
