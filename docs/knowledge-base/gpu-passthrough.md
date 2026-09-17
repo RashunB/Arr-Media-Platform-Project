@@ -55,10 +55,10 @@ flowchart LR
     class DRI,DRIVERS,MOUNT ans
 ```
 
-Getting VA-API transcoding to actually work requires all four hops to be
-correct simultaneously. Missing any one leaves you with a VM that boots fine
-but a Jellyfin that falls back to software transcoding with no obvious error
-pointing at *why*.
+Getting VA-API transcoding to work requires all four hops to be correct
+simultaneously. Missing any one leaves a VM that boots fine but a Jellyfin
+that falls back to software transcoding with no obvious error pointing at
+*why*.
 
 ## Hop 1: the Proxmox-side hardware mapping (defined once)
 
@@ -79,23 +79,24 @@ resource "proxmox_hardware_mapping_pci" "transcoding_gpu" {
 ```
 (`workspace/infrastructure/_base/main-gpu.tf`, full file)
 
-This is a **cluster-scoped** Proxmox resource — a named hardware mapping,
-not a per-VM setting. It's defined exactly once, in `_base`, and identifies
-the physical device by PCI vendor:device ID (`8086:56a5` — Intel), bus path,
+This is a **cluster-scoped** Proxmox resource, a named hardware mapping, not
+a per-VM setting. It's defined exactly once, in `_base`, and identifies the
+physical device by PCI vendor:device ID (`8086:56a5`, Intel), bus path,
 IOMMU group, and subsystem ID, all specific to this one physical machine's
-GPU. If you ever move this homelab to different hardware, this resource
-(and only this resource) needs new values.
+GPU. Moving this homelab to different hardware requires new values for this
+resource, and only this resource.
 
 > [!warning] Every field here is hand-specified for this one physical host
-> `node = "pve"`, `path = "0000:03:00.0"`, `iommu_group = 15` — none of these
-> are computed or discovered by Terraform. They were presumably read off the
-> actual Proxmox host (`lspci`, `/sys/kernel/iommu_groups/`) once and typed
-> in. There's no drift detection if the physical hardware ever changes slot
-> or the host's IOMMU grouping shifts after a BIOS/kernel update.
+> `node = "pve"`, `path = "0000:03:00.0"`, `iommu_group = 15`: none of these
+> are computed or discovered by Terraform. These values were most likely
+> read off the actual Proxmox host (`lspci`, `/sys/kernel/iommu_groups/`)
+> and entered directly. There's no drift detection if the physical hardware
+> ever changes slot or the host's IOMMU grouping shifts after a BIOS/kernel
+> update.
 
 ## Hop 2: Terraform reads the mapping as data, builds the module input
 
-`deployments/media/infrastructure/main.tf` never redefines the mapping — it
+`deployments/media/infrastructure/main.tf` never redefines the mapping; it
 looks it up:
 
 ```hcl
@@ -165,30 +166,30 @@ dynamic "hostpci" {
 ```
 (`main.tf:23`, `:52-53`, `:76-93`)
 
-One caller-facing decision — "is `pcie_devices` non-empty?" — deterministically
+One caller-facing decision, "is `pcie_devices` non-empty?", deterministically
 produces three coupled outcomes: `q35` machine type, OVMF/UEFI BIOS, and an
 EFI disk. This is intentional per [[engineering-decisions]]: PCIe passthrough
 does not function on `i440fx` + SeaBIOS, so there is no way, through this
 module's interface, to end up with a passthrough VM on the wrong machine
-type — you either get all three or none.
+type. All three change together or none do.
 
 > [!bug] `rombar` is coupled to `pcie`, not independently controlled
-> Look closely at the `hostpci` block: `rombar = hostpci.value["pcie"]`.
-> `rombar` (ROM BAR exposure to the guest) and `pcie` (PCIe vs. legacy PCI
-> bus) are unrelated Proxmox settings that happen to both default `true`
-> here. There is currently no way to pass a device with `pcie = true` but
-> `rombar = false` through this module — they're forced to move together.
-> Harmless today with one GPU always at `pcie: true`, but worth knowing if
-> you ever add a device that needs `rombar` off. See [[provisioning]] for
-> the same finding in context.
+> `rombar = hostpci.value["pcie"]` in the `hostpci` block sets `rombar`
+> (ROM BAR exposure to the guest) from `pcie` (PCIe vs. legacy PCI bus).
+> These are independent Proxmox settings that both default to `true` in the
+> current configuration. There is no way to pass a device with `pcie = true`
+> but `rombar = false` through this module; the two values move together.
+> This has no effect with the single GPU currently configured at
+> `pcie: true`, but constrains adding a device that requires `rombar` off.
+> See [[provisioning]] for the same finding in context.
 
-## Hop 4: what the guest OS and container still need — this is the part that's easy to forget
+## Hop 4: guest OS and container requirements beyond passthrough
 
-Passing the PCI device through gets you a `/dev/dri/renderD128` node
-*available inside the VM's kernel* — assuming the guest kernel has the right
-driver. It does **not** get you a working Jellyfin transcode by itself. Three
-more things have to happen, all inside the `media_platform` Ansible role,
-none of them visible from the Terraform side at all:
+Passing the PCI device through makes a `/dev/dri/renderD128` node
+*available inside the VM's kernel*, assuming the guest kernel has the right
+driver. It does **not** produce a working Jellyfin transcode by itself.
+Three more things have to happen, all inside the `media_platform` Ansible
+role, none of them visible from the Terraform side at all:
 
 ### 1. Guest-OS driver packages (`roles/media_platform/tasks/gpu.yml`)
 
@@ -216,23 +217,23 @@ none of them visible from the Terraform side at all:
   ansible.builtin.meta: flush_handlers
 ```
 
-`linux-modules-extra-{{ ansible_kernel }}` supplies kernel modules not in the
-base kernel package — installing it queues a reboot, and `gpu.yml` **forces
-that reboot to happen immediately** via `meta: flush_handlers`, rather than
-letting Ansible's normal end-of-play handler timing defer it (see
-[[configuration]]). This matters specifically because `compose.yml` — the
-very next task file in `media_platform`'s `tasks/main.yml` — starts
-containers that mount `/dev/dri/renderD128`; if the reboot were deferred to
+`linux-modules-extra-{{ ansible_kernel }}` supplies kernel modules not in
+the base kernel package. Installing it queues a reboot, and `gpu.yml`
+**forces that reboot to happen immediately** via `meta: flush_handlers`,
+rather than letting Ansible's normal end-of-play handler timing defer it
+(see [[configuration]]). This matters specifically because `compose.yml`,
+the very next task file in `media_platform`'s `tasks/main.yml`, starts
+containers that mount `/dev/dri/renderD128`. If the reboot were deferred to
 end-of-play, the freshly loaded kernel modules might not be active yet when
 Jellyfin starts.
 
 `intel-media-va-driver-non-free` is specifically the **non-free** iHD driver
-package — the open-source `intel-media-va-driver` (without `-non-free`)
-doesn't support newer Intel hardware acceleration features. This is a
+package. The open-source `intel-media-va-driver` (without `-non-free`) does
+not support newer Intel hardware acceleration features. This is a
 deliberate package choice, not the Debian/Ubuntu default.
 
-The `media` service user is added to the host's `video` and `render` groups
-— **without this, the container's device access would fail at the OS
+The `media` service user is added to the host's `video` and `render`
+groups. **Without this, the container's device access fails at the OS
 permission layer even with the PCI passthrough and the device node both
 present**, because `/dev/dri/renderD128` is group-owned and containers
 inherit host-level device permissions through the bind mount.
@@ -250,28 +251,28 @@ jellyfin:
 ```
 (`roles/media_platform/templates/docker-compose.yml.j2:7-24`)
 
-Three more Intel-specific details, easy to miss:
+Three more Intel-specific details:
 
 - `DOCKER_MODS: linuxserver/mods:jellyfin-opencl-intel` pulls in Intel's
-  OpenCL runtime at container start — needed for Jellyfin's hardware
+  OpenCL runtime at container start, needed for Jellyfin's hardware
   tonemapping/OpenCL-based features, separate from the VA-API path used for
   basic hardware decode/encode.
 - `NEOReadDebugKeys` and `OverrideGpuAddressSpace` are known environment-variable
   workarounds for Intel's `neo` (compute-runtime) driver stack running
-  inside a container on certain iGPU generations — without these, some
-  Intel GPUs report the wrong addressable memory space to the driver and
-  hardware acceleration silently fails or crashes.
-- Only `/dev/dri/renderD128` is mounted — not the whole `/dev/dri` directory,
-  not `/dev/dri/card0`. `renderD128` is the render-only node; Jellyfin
-  doesn't need (and in a headless container context shouldn't have) the
+  inside a container on certain iGPU generations. Without these, some Intel
+  GPUs report the wrong addressable memory space to the driver and hardware
+  acceleration fails or crashes without a clear error.
+- Only `/dev/dri/renderD128` is mounted, not the whole `/dev/dri` directory
+  and not `/dev/dri/card0`. `renderD128` is the render-only node; Jellyfin
+  does not need (and in a headless container context should not have) the
   display-capable `card0` node.
 
 ### 3. `vainfo` and `intel-gpu-tools` are diagnostic, not functional dependencies
 
-They're installed on the host, not inside the container. If transcoding ever
-stops working, `vainfo` run on the **host** (not in the container) is the
-first thing to check — it confirms whether the VA-API driver stack sees the
-device at all, independent of anything Docker or Jellyfin are doing.
+They're installed on the host, not inside the container. If transcoding
+stops working, `vainfo` run on the **host** (not in the container) confirms
+whether the VA-API driver stack sees the device at all, independent of
+anything Docker or Jellyfin are doing.
 
 ## Check your understanding
 

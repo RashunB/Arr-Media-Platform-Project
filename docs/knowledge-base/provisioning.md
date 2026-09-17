@@ -8,8 +8,8 @@ created: 2026-09-17
 
 > [!info] Scope
 > This note covers `workspace/` in depth. For the top-level layering diagram
-> and quickstart commands, see [[../../workspace/README.md|workspace/README.md]]
-> — this note does not repeat those, it goes underneath them.
+> and quickstart commands, see [[../../workspace/README.md|workspace/README.md]].
+> This note does not repeat that content; it addresses the layer beneath it.
 
 ## The three-stack layering, and why it's three and not one
 
@@ -23,64 +23,63 @@ workspace/
 ```
 
 Each of `_base`, `deployments/media/infrastructure`, and
-`deployments/media/application` is its **own Terraform root module** — its
-own state, its own `init`/`plan`/`apply` lifecycle
+`deployments/media/application` is its **own Terraform root module**, with
+its own state and its own `init`/`plan`/`apply` lifecycle
 (`workspace/README.md:174-187`). `modules/proxmox_vm` is not a stack at all;
 it has no backend and is never applied directly, only called from a stack via
 `module "media_vm" { source = "../../../modules/proxmox_vm" ... }`
 (`workspace/deployments/media/infrastructure/main.tf:25-50`).
 
-The split exists because the three layers have genuinely different failure
-domains:
+The split exists because the three layers have different failure domains:
 
 - `_base` talks only to Proxmox. It owns the OS templates and the GPU
-  hardware mapping — things every deployment depends on but nothing should
-  ever redefine.
+  hardware mapping, things every deployment depends on but nothing should
+  redefine.
 - `deployments/media/infrastructure` talks to Proxmox (to clone a VM) and to
   Cloudflare (to create a DNS record). Its dependency graph is entirely
   "things that exist before Ansible ever runs."
 - `deployments/media/application` talks to the *arr HTTP APIs running inside
   the VM. Its provider blocks (`devopsarr/prowlarr`, `devopsarr/sonarr`,
-  `devopsarr/radarr` — `workspace/deployments/media/application/providers.tf`)
-  point at `http://{{ arr_host }}:{{ port }}`, which simply does not exist
-  until Ansible has deployed and started the containers.
+  `devopsarr/radarr`, `workspace/deployments/media/application/providers.tf`)
+  point at `http://{{ arr_host }}:{{ port }}`, which does not exist until
+  Ansible has deployed and started the containers.
 
 ## `infrastructure/_base`: what it owns
 
-Read `workspace/infrastructure/_base/main.tf` and `main-gpu.tf` directly —
-three resources of consequence:
+Read `workspace/infrastructure/_base/main.tf` and `main-gpu.tf` directly.
+Three resources are of consequence:
 
 - `proxmox_download_file.ubuntu24` / `.rocky9` pull the upstream cloud images
   into the Proxmox file datastore, with `overwrite = false`
-  (`main.tf:1-9`, `:49-57`) — a re-apply will never silently re-download a
-  multi-gigabyte image.
+  (`main.tf:1-9`, `:49-57`); a re-apply never re-downloads a multi-gigabyte
+  image.
 - `proxmox_virtual_environment_vm.ubuntu24_template` /
   `.rocky9_template` convert each downloaded image into a Proxmox template
   (`template = true`, `started = false`), tagged
   `["terraform", "template", "ubuntu24", "default"]` and
   `["terraform", "template", "rocky9"]` respectively (`main.tf:11-47`,
-  `:59-94`). Only Ubuntu 24.04 carries the `default` tag — that's what makes
-  it the implicit choice when a deployment doesn't override
+  `:59-94`). Only Ubuntu 24.04 carries the `default` tag; that tag is what
+  makes it the implicit choice when a deployment doesn't override
   `template_os_tag`.
-- `proxmox_hardware_mapping_pci.transcoding_gpu` (`main-gpu.tf`) — a single,
+- `proxmox_hardware_mapping_pci.transcoding_gpu` (`main-gpu.tf`) is a single,
   **cluster-scoped** PCI hardware mapping resource. See [[gpu-passthrough]]
-  for the full mechanism; the point to internalize here is that this resource
-  is *defined* in `_base` and only ever *read* as a data source everywhere
-  else (`workspace/deployments/media/infrastructure/main.tf:5-7`).
+  for the full mechanism. The resource is *defined* in `_base` and only ever
+  *read* as a data source everywhere else
+  (`workspace/deployments/media/infrastructure/main.tf:5-7`).
 
 Both templates carry `lifecycle { prevent_destroy = true }`. This matters
-because `modules/proxmox_vm` clones with `full = false` — a **linked** clone
+because `modules/proxmox_vm` clones with `full = false`, a **linked** clone
 (`modules/proxmox_vm/main.tf:55-58`). A linked clone is not an independent
-copy of the disk; it depends on the template's base disk continuing to exist.
-Destroying the template out from under a linked clone breaks every VM cloned
-from it. `prevent_destroy` is the guard against that, not just a "this took a
-while to build" sentiment.
+copy of the disk; it depends on the template's base disk continuing to
+exist. Destroying the template out from under a linked clone breaks every VM
+cloned from it. `prevent_destroy` enforces that dependency, not just a
+safeguard against the time cost of rebuilding the template.
 
 ## `modules/proxmox_vm`: the actual contract
 
 This is the one module every deployment goes through
 (`workspace/README.md:44-101`). Read `modules/proxmox_vm/variables.tf`,
-`main.tf`, and `outputs.tf` together — here is what it actually decides
+`main.tf`, and `outputs.tf` together. What follows is what it decides
 internally versus what it takes as input.
 
 ### Template discovery by tag, not VM ID
@@ -98,7 +97,7 @@ template_vm_id = data.proxmox_virtual_environment_vms.templates.vms[0].vm_id
 (`main.tf:19`)
 
 No deployment stack hardcodes a VM ID anywhere. Rebuilding a template with a
-new VM ID doesn't require touching any consuming stack — the query just finds
+new VM ID does not require touching any consuming stack; the query finds
 whatever currently carries the tag pair.
 
 > [!warning] `vms[0]` assumes exactly one match
@@ -107,7 +106,7 @@ whatever currently carries the tag pair.
 > tagged), Terraform silently clones whichever one the API returns first.
 > There's no uniqueness check. Tag hygiene on templates is load-bearing.
 
-### Tag composition — what actually ends up on a VM
+### Tag composition: what ends up on a VM
 
 ```hcl
 vm_tag_list = distinct(concat(var.vm_tag_list, [var.vm_group, var.vm_name_prefix]))
@@ -119,11 +118,11 @@ Final tag set = `vm_default_tag_list` (default `["terraform"]`) + whatever
 tags the caller passed in `vm_tag_list` + `vm_group` + `vm_name_prefix`,
 deduplicated. These tags are exactly what [[configuration]]'s
 `community.proxmox.proxmox` inventory plugin later reads back as Ansible
-group names — this is the entire Terraform↔Ansible handoff mechanism, and it
+group names. This is the entire Terraform-to-Ansible handoff mechanism; it
 happens through Proxmox's own tag storage, not through any file either tool
 writes for the other.
 
-### The GPU-passthrough switch (see [[gpu-passthrough]] for the full story)
+### The GPU-passthrough switch (see [[gpu-passthrough]] for the full mechanism)
 
 ```hcl
 gpu_passthrough = length(var.pcie_devices) > 0
@@ -135,12 +134,12 @@ bios    = local.gpu_passthrough ? "ovmf" : "seabios"
 (`main.tf:23`, `:52-53`)
 
 A non-empty `pcie_devices` map flips machine type, BIOS, and (via a
-`dynamic "efi_disk"` block, `main.tf:86-93`) adds an EFI disk — all three at
+`dynamic "efi_disk"` block, `main.tf:86-93`) adds an EFI disk, all three at
 once, from one input. This is deliberate: PCIe passthrough does not work on
 `i440fx` + SeaBIOS, so coupling the three removes the "passthrough VM with
 the wrong machine type" failure mode entirely.
 
-> [!bug] `rombar` is wired to the wrong flag
+> [!bug] `rombar` is derived from `pcie`
 > ```hcl
 > dynamic "hostpci" {
 >   for_each = var.pcie_devices
@@ -152,13 +151,12 @@ the wrong machine type" failure mode entirely.
 >   }
 > }
 > ```
-> (`main.tf:76-84`) — `rombar` (whether the device's ROM BAR is exposed to
-> the guest) is set to the same value as `pcie` (whether the device uses the
-> PCIe bus vs. legacy PCI). These are unrelated settings that happen to both
-> default to `true` in the current single-GPU setup, so it has never bitten
-> anyone — but it means `rombar` cannot currently be controlled independently
-> of `pcie`, and if `pcie` were ever set `false` for a device, `rombar` would
-> silently follow it off too.
+> (`main.tf:76-84`) sets `rombar` (whether the device's ROM BAR is exposed to
+> the guest) from the same value as `pcie` (whether the device uses the PCIe
+> bus vs. legacy PCI). These are independent settings that both default to
+> `true` in the current single-GPU configuration. `rombar` cannot be set
+> independently of `pcie` through this module; if `pcie` were set `false` for
+> a device, `rombar` would follow it to `false` as well.
 
 ### Indexed naming and the `additional_disks` contract
 
@@ -169,11 +167,11 @@ number instead of colliding with `-1`.
 `additional_disks` is `map(object(...))` keyed by interface name
 (`variables.tf:70-85`), supporting two distinct modes per entry: a brand-new
 disk (`size`, `iothread`, `discard` apply) or attaching an existing disk via
-`path_in_datastore` (those three fields are conditionally nulled —
+`path_in_datastore` (those three fields are conditionally nulled,
 `main.tf:67-69`). One field, `path_in_datastore`, decides which mode a given
 map entry is in.
 
-### Outputs — and their real limitation
+### Outputs, and their limitation
 
 ```hcl
 output "vm_id"     { value = proxmox_virtual_environment_vm.vms[0].vm_id }
@@ -185,14 +183,13 @@ output "primary_ip" { value = proxmox_virtual_environment_vm.vms[0].ipv4_address
 > Both outputs index `[0]` into the `vms` resource, which is itself indexed
 > by `count`. If a caller sets `vm_count > 1`, the module still only exposes
 > the ID and IP of the *first* VM created. Nothing downstream (the media
-> deployment's Cloudflare `A` record, for instance —
-> `workspace/deployments/media/infrastructure/main-cf.tf:1-9` — consumes
-> `module.media_vm.primary_ip` directly) can currently see VM 2, 3, etc.
-> through the module's own outputs. Multi-VM groups work at the resource
-> level but not at the output level. This is not documented anywhere else in
-> the repo.
+> deployment's Cloudflare `A` record, for instance, at
+> `workspace/deployments/media/infrastructure/main-cf.tf:1-9`, consumes
+> `module.media_vm.primary_ip` directly) can see VM 2, 3, etc. through the
+> module's own outputs. Multi-VM groups work at the resource level but not
+> at the output level. This is not documented anywhere else in the repo.
 
-`ipv4_addresses[1][0]` — index `1`, not `0` — is deliberate: index `0` on a
+`ipv4_addresses[1][0]` (index `1`, not `0`) is deliberate: index `0` on a
 Proxmox guest is loopback, so `[1]` is "the first real interface's first
 address." The Ansible inventory plugin's `compose` block makes the same
 assumption in reverse (see [[configuration]]).
@@ -205,8 +202,8 @@ assumption in reverse (see [[configuration]]).
 (`modules/proxmox_vm/templates/cloud-init.yml.tpl`) creates the default user
 with **passwordless sudo** (`sudo: "ALL=(ALL) NOPASSWD:ALL"`) and installs
 `qemu-guest-agent`, enabling and starting it via `runcmd`. The guest agent is
-not optional — the `primary_ip` output above depends on Proxmox's agent
-channel reporting IPs back, which requires it running.
+not optional: the `primary_ip` output above depends on Proxmox's agent
+channel reporting IPs back, which requires it to be running.
 
 ## Provider strategy: two aliases, one deliberately elevated
 
@@ -219,7 +216,7 @@ Every Proxmox-facing stack declares the `proxmox` provider twice
 | `proxmox` (default) | Scoped API token | Everything a token can do |
 | `proxmox.root` | `root@pam` username + password | Template creation, VM cloning |
 
-The API token cannot perform cloning or template creation — Proxmox itself
+The API token cannot perform cloning or template creation; Proxmox itself
 restricts those operations to more privileged auth. Rather than granting the
 whole stack root credentials, `modules/proxmox_vm/main.tf:1-9` declares
 `configuration_aliases = [proxmox.root]`, forcing every caller to wire the
@@ -234,12 +231,12 @@ providers = {
 (`deployments/media/infrastructure/main.tf:46-49`)
 
 A caller that forgets this fails at `terraform init`, not partway through an
-`apply` — the failure mode is pushed as early as possible.
+`apply`. The failure mode is pushed as early as possible.
 
 Both provider blocks also configure `ssh { agent = true, username = "root",
 private_key = local.proxmox_id_private_key }`, where
 `proxmox_id_private_key` comes from `data.sops_file.proxmox_id` reading
-`secrets/proxmox_id.sops.yaml` (see [[secrets]]) — this is the SSH key the
+`secrets/proxmox_id.sops.yaml` (see [[secrets]]). This is the SSH key the
 `bpg/proxmox` provider itself uses for file-upload-style operations, entirely
 separate from the SSH key Ansible later uses to reach the guest OS.
 
@@ -247,8 +244,8 @@ separate from the SSH key Ansible later uses to reach the guest OS.
 > Every `provider "proxmox"` block sets `insecure = true` (self-signed lab
 > CA) and the module's `initialization.dns.servers` is hardcoded to
 > `["192.168.0.1"]` (`main.tf:127-129`) rather than exposed as a variable.
-> Both are fine for a single-LAN homelab and both are things you'd have to
-> edit source, not tfvars, to change.
+> Both are acceptable for a single-LAN homelab. Both require a source edit,
+> not a tfvars change, to modify.
 
 ## State: local today, and why that's the top roadmap item
 
@@ -257,8 +254,8 @@ Terraform state is **local per stack directory** and gitignored
 lockfiles (`.terraform.lock.hcl`) **are** committed, so every `init`
 resolves identical provider builds across machines and CI.
 
-This is fine for a single operator applying from one machine, but it's the
-named prerequisite for two things that don't exist yet: CI ever running
+This is adequate for a single operator applying from one machine, but it is
+the named prerequisite for two things that don't exist yet: CI ever running
 `apply` (root README's "Known gaps and roadmap"), and anyone but the state
 file's owner safely running `plan`. See [[ci-quality-gates]] for how
 `terraform-validate` works around this today (`init -backend=false`, so CI
@@ -267,28 +264,26 @@ never needs real state or credentials at all).
 ## Deployment inputs are never plaintext for credentials
 
 `*.tfvars` files are gitignored (`.gitignore`), so each stack's
-non-default inputs are supplied locally, never committed. But the genuinely
-sensitive inputs — SSH keys, API tokens, the Cloudflare token — are **not**
-tfvars at all; they're read directly out of `secrets/*.sops.yaml` via the
+non-default inputs are supplied locally, never committed. But the sensitive
+inputs, SSH keys, API tokens, the Cloudflare token, are **not** tfvars at
+all; they are read directly out of `secrets/*.sops.yaml` via the
 `carlpett/sops` provider's `sops_file` data source, at plan time, in memory
 (`data "sops_file" "proxmox_id"` pattern, repeated in every stack's
-`providers.tf`/`main.tf`). See [[secrets]] for exactly which file each stack
-reads.
+`providers.tf`/`main.tf`). See [[secrets]] for which file each stack reads.
 
-## The application stack's hidden coupling to Ansible defaults
+## The application stack's coupling to an Ansible default
 
 `workspace/deployments/media/application/variables.tf` defaults
 `sabnzbd_port` to `6060` (`:70-73`). The `media_platform` Ansible role's own
 default is `media_platform_sabnzbd_host_port: 8080`
-(`ansible/roles/media_platform/defaults/main.yml:50-52`) — but
+(`ansible/roles/media_platform/defaults/main.yml:50-52`), but
 `ansible/inventory/group_vars/media_platform:2` overrides it to `6060` for
 this specific deployment. The Terraform application stack's default of
-`6060` only produces a working `sonarr_download_client_sabnzbd` /
-`radarr_download_client_sabnzbd` configuration *because* that Ansible
-group_vars override exists. Change one without the other and Sonarr/Radarr
-will be configured to talk to a SABnzbd port nothing is listening on. Nothing
-in either the Terraform or Ansible source enforces this consistency — it's
-tribal knowledge until now.
+`6060` produces a working `sonarr_download_client_sabnzbd` /
+`radarr_download_client_sabnzbd` configuration only because that Ansible
+group_vars override exists. Changing one without the other configures
+Sonarr/Radarr to talk to a SABnzbd port nothing is listening on. Nothing in
+either the Terraform or Ansible source enforces this consistency.
 
 ## Check your understanding
 
