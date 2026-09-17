@@ -14,8 +14,6 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "{{ observability_control_prometheus_host_port}}:9090/tcp"
-    security_opt:
-      - no-new-privileges:true
     volumes:
       - "{{ observability_control_root_dir }}/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
       - "{{ observability_control_root_dir }}/prometheus/config/rules:/etc/prometheus/rules"
@@ -27,6 +25,8 @@ services:
       - --storage.tsdb.retention.time=30d
       - --web.enable-lifecycle
       - --web.enable-admin-api
+    security_opt:
+      - no-new-privileges: true
     networks:
       - observability
 
@@ -43,7 +43,7 @@ services:
       - --path.sysfs=/host/sys
       - --collector.cpu.info
     security_opt:
-      - no-new-privileges:true
+      - no-new-privileges: true
     volumes:
       - /:/host:ro,rslave
 
@@ -54,12 +54,12 @@ services:
     pull_policy: always
     restart: unless-stopped
     user: root
+    devices:
+      - /dev/nvme0:/dev/nvme0
     cap_add:
       - SYS_ADMIN
     security_opt:
-      - no-new-privileges:true
-    devices:
-      - /dev/nvme0:/dev/nvme0
+      - no-new-privileges: true
     networks:
       - observability
 {% endif %}
@@ -78,7 +78,7 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
     security_opt:
-      - no-new-privileges:true
+      - no-new-privileges: true
     networks:
       - observability
 
@@ -91,8 +91,6 @@ services:
       - "{{ observability_control_root_dir }}/dozzle/dozzle.env"
     ports:
       - "{{ observability_control_dozzle_host_port}}:8080/tcp"
-    security_opt:
-      - no-new-privileges:true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - "{{ observability_control_root_dir }}/dozzle/data:/data"
@@ -102,6 +100,8 @@ services:
       retries: 5
       start_period: 5s
       start_interval: 5s
+    security_opt:
+      - no-new-privileges: true
     networks:
       - observability
 
@@ -113,8 +113,6 @@ services:
     restart: unless-stopped
     ports:
       - "{{ observability_control_grafana_host_port}}:3000/tcp"
-    security_opt:
-      - no-new-privileges:true
     volumes:
       - "{{ observability_control_root_dir }}/grafana/data:/var/lib/grafana"
       - "{{ observability_control_root_dir }}/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources"
@@ -124,6 +122,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    security_opt:
+      - no-new-privileges: true
     networks:
       - observability
 
@@ -138,13 +138,14 @@ services:
     volumes:
       - "{{ observability_control_root_dir }}/alloy/alloy-config.yml:/etc/alloy/config.alloy:ro"
       - /var/run/docker.sock:/var/run/docker.sock
-    security_opt:
-      - no-new-privileges:true
+
 {% if observability_control_alloy_journal_enabled %}
       - /var/log/journal:/var/log/journal:ro
       - /run/log/journal:/run/log/journal:ro
       - /etc/machine-id:/etc/machine-id:ro
 {% endif %}
+    security_opt:
+      - no-new-privileges: true
     networks:
       - observability
 
@@ -167,6 +168,6 @@ services:
       timeout: 10s
       retries: 5
     security_opt:
-      - no-new-privileges:true
+      - no-new-privileges: true
     networks:
       - observability

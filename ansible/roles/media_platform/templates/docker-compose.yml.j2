@@ -25,7 +25,7 @@ services:
       # - "{{ media_platform_jellyfin_host_port }}:7359/udp" #optional Service Discovery
       # - "{{ media_platform_jellyfin_host_port }}:1900/udp" #optional Client Discovery
     security_opt:
-      - no-new-privileges:true
+      - no-new-privileges: true
     restart: unless-stopped
 
   prowlarr:
@@ -109,6 +109,7 @@ services:
     container_name: "{{ media_platform_configarr_name }}"
     environment:
       RADARR__API__KEY: "{{ media_platform_radarr_api_key }}"
+      SONARR__API__KEY: "{{ media_platform_sonarr_api_key }}"
       LOG_STACKTRACE: true
       LOG_LEVEL: debug
     env_file:
@@ -131,8 +132,8 @@ services:
       - "{{ media_platform_seerr_host_port }}:5055"
     volumes:
       - "{{ media_platform_config_dir }}/seerr/data:/app/config"
-    security_opt:
-      - no-new-privileges: true
     cap_drop:
       - ALL
+    security_opt:
+      - no-new-privileges: true
     restart: unless-stopped
