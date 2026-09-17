@@ -37,6 +37,10 @@ Jump to [Quickstart](#quickstart) to bring up a deployment.
 
 ## Architecture
 
+Color key used across every diagram below: 🟣 control-plane tooling ·
+🟠 Proxmox VE / VM workloads · 🔵 per-host agents · 🟢 secrets (SOPS + age) ·
+⚫ CI automation · 🔴 blocked / failure path.
+
 ### Provisioning flow
 
 ```mermaid
@@ -60,6 +64,13 @@ flowchart LR
     GPU -->|hostpci passthrough| VM
     VM -->|"proxmox inventory plugin: tags become groups"| ANS
     ANS -->|Docker Compose workloads| VM
+
+    classDef ctrl fill:#7B42BC,color:#fff,stroke:#5a2f8f
+    classDef secrets fill:#2ea44f,color:#fff,stroke:#1f7a37
+    classDef proxmox fill:#E57000,color:#fff,stroke:#b35800
+    class TF,ANS ctrl
+    class SOPS secrets
+    class TPL,VM,GPU proxmox
 ```
 
 ### Runtime topology
@@ -97,7 +108,52 @@ flowchart TB
     PROM --> GRAF
     LOKI --> GRAF
     MEDIA --- NODES
+
+    classDef ctrl fill:#7B42BC,color:#fff,stroke:#5a2f8f
+    classDef proxmox fill:#E57000,color:#fff,stroke:#b35800
+    classDef node fill:#0969da,color:#fff,stroke:#0550ae
+    class PROM,LOKI,GRAF,DOZ ctrl
+    class JF,ARR,SAB,SEERR,LVM proxmox
+    class NE,CAD,ALLOY,SMART,PVEX node
 ```
+
+### CI / secrets trust flow
+
+```mermaid
+flowchart TD
+    DEV["Commit<br/>secrets/*.sops.yaml stays encrypted"]
+    PC["pre-commit<br/>sops · detect-private-key · lint"]
+    BLOCK["Blocked — fix and re-push"]
+    PUSH["git push"]
+    CI["GitHub Actions<br/>8 quality gates"]
+    GATE{"All gates pass?"}
+    MERGE["Merge to main"]
+    APPLY["terraform apply /<br/>ansible-playbook"]
+    DECRYPT["SOPS + age decrypt<br/>in memory only, never to disk"]
+
+    DEV --> PC
+    PC -->|encrypted, clean| PUSH
+    PC -->|plaintext secret or lint fail| BLOCK
+    PUSH --> CI
+    CI --> GATE
+    GATE -->|yes| MERGE
+    GATE -->|no| BLOCK
+    MERGE --> APPLY
+    APPLY --> DECRYPT
+
+    classDef ctrl fill:#7B42BC,color:#fff,stroke:#5a2f8f
+    classDef secrets fill:#2ea44f,color:#fff,stroke:#1f7a37
+    classDef ci fill:#24292f,color:#fff,stroke:#000
+    classDef blocked fill:#cf222e,color:#fff,stroke:#82071e
+    class DEV,PUSH,MERGE,APPLY ctrl
+    class PC,CI,GATE ci
+    class DECRYPT secrets
+    class BLOCK blocked
+```
+
+This is the guarantee behind [Secrets management](#secrets-management) and
+[Quality gates](#quality-gates) below: a decrypted secret exists only in the
+memory of the process applying it, never on disk and never in git history.
 
 ---
 
