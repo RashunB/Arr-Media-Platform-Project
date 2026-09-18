@@ -19,7 +19,8 @@ for verification.
 Read in this order when re-orienting from scratch: provisioning →
 configuration → secrets → observability → gpu-passthrough → ci-quality-gates
 → engineering-decisions. Each note stands alone as a reference for a single
-area.
+area. [[documentation-audit]] is the exception: read it last, or first if the
+question is what still needs doing rather than how something works.
 
 ## [[provisioning]]
 
@@ -89,6 +90,20 @@ Builds on the root README's "Engineering decisions" section but goes one
 level deeper for each rule: what the rejected alternative was, and what
 concretely breaks if the rule is violated. Not just the rationale, but the
 concrete failure mode in this repo if the rule were ignored.
+
+## [[documentation-audit]]
+
+The state of the documentation itself, verified against the tree rather than
+described. Part A lists defects in these notes and in the READMEs: a CI job
+count that disagrees with `ci.yml`, a `.sops.yaml` quotation superseded by a
+later commit, a `[!bug]` callout whose header contradicts its own body,
+several "(full file)" blocks that are reconstructions, seven byte-identical
+role READMEs still carrying Galaxy placeholder text, and 60 `n/a` rows in the
+generated Terraform tables. Part B runs the other direction: every `[!bug]`,
+`[!warning]`, and roadmap checkbox already written across this vault and the
+READMEs, consolidated into one re-verified list with the file and line that
+would carry each fix. Read it to find out what is left, not how anything
+works.
 
 ---
 
