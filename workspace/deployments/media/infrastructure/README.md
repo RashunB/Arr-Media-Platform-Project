@@ -17,7 +17,6 @@
 |------|---------|
 | <a name="provider_cloudflare"></a> [cloudflare](#provider\_cloudflare) | 5.24.0 |
 | <a name="provider_proxmox"></a> [proxmox](#provider\_proxmox) | 0.113.1 |
-| <a name="provider_sops"></a> [sops](#provider\_sops) | 1.4.1 |
 
 ## Modules
 
@@ -31,9 +30,6 @@
 |------|------|
 | [cloudflare_dns_record.media_platform](https://registry.terraform.io/providers/cloudflare/cloudflare/5.24.0/docs/resources/dns_record) | resource |
 | [proxmox_hardware_mapping_pci.transcoding_gpu](https://registry.terraform.io/providers/bpg/proxmox/0.113.1/docs/data-sources/hardware_mapping_pci) | data source |
-| [sops_file.cloudflare](https://registry.terraform.io/providers/carlpett/sops/1.4.1/docs/data-sources/file) | data source |
-| [sops_file.proxmox_id](https://registry.terraform.io/providers/carlpett/sops/1.4.1/docs/data-sources/file) | data source |
-| [sops_file.public_key](https://registry.terraform.io/providers/carlpett/sops/1.4.1/docs/data-sources/file) | data source |
 
 ## Inputs
 
@@ -41,21 +37,23 @@
 |------|-------------|------|---------|:--------:|
 | <a name="input_additional_disks"></a> [additional\_disks](#input\_additional\_disks) | Map of disks keyed by interface name. | <pre>map(object({<br/>    datastore_id      = string<br/>    size              = optional(number, 0)<br/>    iothread          = optional(bool, true)<br/>    cache             = optional(string, "none")<br/>    discard           = optional(string, "ignore")<br/>    file_format       = optional(string, "raw")<br/>    path_in_datastore = optional(string, null)<br/>    backup            = optional(bool, false)<br/>    replicate         = optional(bool, false)<br/>    serial            = optional(string, null)<br/>  }))</pre> | n/a | yes |
 | <a name="input_cloud_init_user_data_path"></a> [cloud\_init\_user\_data\_path](#input\_cloud\_init\_user\_data\_path) | Optional cloud-init #cloud-config YAML filepath. If null, a default is used. | `string` | `null` | no |
+| <a name="input_cloudflare_dns_comment"></a> [cloudflare\_dns\_comment](#input\_cloudflare\_dns\_comment) | n/a | `string` | `"Created with Terraform"` | no |
+| <a name="input_cloudflare_dns_type"></a> [cloudflare\_dns\_type](#input\_cloudflare\_dns\_type) | n/a | `string` | `"A"` | no |
+| <a name="input_cloudflare_proxied"></a> [cloudflare\_proxied](#input\_cloudflare\_proxied) | n/a | `bool` | `false` | no |
+| <a name="input_cloudflare_ttl"></a> [cloudflare\_ttl](#input\_cloudflare\_ttl) | n/a | `number` | `1` | no |
+| <a name="input_cloudflare_zone_id"></a> [cloudflare\_zone\_id](#input\_cloudflare\_zone\_id) | n/a | `string` | `""` | no |
 | <a name="input_cpu"></a> [cpu](#input\_cpu) | n/a | `number` | `4` | no |
 | <a name="input_datastore_files"></a> [datastore\_files](#input\_datastore\_files) | n/a | `string` | n/a | yes |
 | <a name="input_datastore_infra"></a> [datastore\_infra](#input\_datastore\_infra) | n/a | `string` | n/a | yes |
-| <a name="input_dns_comment"></a> [dns\_comment](#input\_dns\_comment) | n/a | `string` | `"Created with Terraform"` | no |
-| <a name="input_dns_type"></a> [dns\_type](#input\_dns\_type) | n/a | `string` | `"A"` | no |
+| <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | n/a | `list(string)` | <pre>[<br/>  "192.168.0.1"<br/>]</pre> | no |
 | <a name="input_memory"></a> [memory](#input\_memory) | n/a | `number` | `2048` | no |
 | <a name="input_personal_domain"></a> [personal\_domain](#input\_personal\_domain) | n/a | `string` | n/a | yes |
-| <a name="input_proxied"></a> [proxied](#input\_proxied) | n/a | `bool` | `false` | no |
 | <a name="input_proxmox_api_token"></a> [proxmox\_api\_token](#input\_proxmox\_api\_token) | n/a | `string` | n/a | yes |
 | <a name="input_proxmox_endpoint"></a> [proxmox\_endpoint](#input\_proxmox\_endpoint) | n/a | `string` | n/a | yes |
 | <a name="input_proxmox_node_name"></a> [proxmox\_node\_name](#input\_proxmox\_node\_name) | n/a | `string` | n/a | yes |
 | <a name="input_proxmox_password"></a> [proxmox\_password](#input\_proxmox\_password) | n/a | `string` | n/a | yes |
 | <a name="input_proxmox_user"></a> [proxmox\_user](#input\_proxmox\_user) | n/a | `string` | n/a | yes |
 | <a name="input_template_os_tag"></a> [template\_os\_tag](#input\_template\_os\_tag) | os tag of the template to clone. Defaults to default (ubuntu24) from \_base. | `string` | `"default"` | no |
-| <a name="input_ttl"></a> [ttl](#input\_ttl) | n/a | `number` | `1` | no |
 | <a name="input_vm_count"></a> [vm\_count](#input\_vm\_count) | n/a | `number` | n/a | yes |
 | <a name="input_vm_count_offset"></a> [vm\_count\_offset](#input\_vm\_count\_offset) | n/a | `number` | `1` | no |
 | <a name="input_vm_default_user"></a> [vm\_default\_user](#input\_vm\_default\_user) | n/a | `string` | n/a | yes |

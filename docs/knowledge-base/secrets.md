@@ -19,7 +19,7 @@ created: 2026-09-17
 ```yaml
 # .sops.yaml
 creation_rules:
-  - path_regex: '**\.sops\.yaml$'
+  - path_regex: '.*\.sops\.yaml$'
     age: age1zdcnr28uvud0k57mxeqvs8t07jrk7tz6hpfgauw0twdquwfh4yzshq4j7n
 ```
 (`.sops.yaml`, full file)

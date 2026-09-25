@@ -36,8 +36,9 @@ No modules.
 | <a name="input_cpu"></a> [cpu](#input\_cpu) | n/a | `number` | `2` | no |
 | <a name="input_datastore_files"></a> [datastore\_files](#input\_datastore\_files) | n/a | `string` | `"vmfiles"` | no |
 | <a name="input_datastore_infra"></a> [datastore\_infra](#input\_datastore\_infra) | n/a | `string` | `"vmdata"` | no |
+| <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | n/a | `list(string)` | <pre>[<br/>  "192.168.0.1"<br/>]</pre> | no |
 | <a name="input_memory"></a> [memory](#input\_memory) | n/a | `number` | `2048` | no |
-| <a name="input_pcie_devices"></a> [pcie\_devices](#input\_pcie\_devices) | n/a | <pre>map(object({<br/>    device  = optional(string, null)<br/>    mapping = optional(string, null)<br/>    pcie    = optional(bool, true)<br/>  }))</pre> | `{}` | no |
+| <a name="input_pcie_devices"></a> [pcie\_devices](#input\_pcie\_devices) | n/a | <pre>map(object({<br/>    device  = optional(string, null)<br/>    mapping = optional(string, null)<br/>    pcie    = optional(bool, true)<br/>    rombar  = optional(bool, true)<br/>  }))</pre> | `{}` | no |
 | <a name="input_personal_domain"></a> [personal\_domain](#input\_personal\_domain) | n/a | `string` | `"home.lab"` | no |
 | <a name="input_proxmox_node_name"></a> [proxmox\_node\_name](#input\_proxmox\_node\_name) | n/a | `string` | n/a | yes |
 | <a name="input_ssh_public_key"></a> [ssh\_public\_key](#input\_ssh\_public\_key) | n/a | `string` | `""` | no |

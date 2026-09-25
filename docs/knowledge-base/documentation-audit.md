@@ -300,13 +300,13 @@ written somewhere in the docs. Each was re-verified as still present at
 
 ### Observability
 
-- [ ] **B1. All four `file_sd` templates emit invalid YAML.** The target line
+- [X] **B1. All four `file_sd` templates emit invalid YAML.** The target line
       is missing its closing `"`, in
       `roles/observability_control/templates/prometheus/file_sd/`:
       `cadvisor.yml.j2:4`, `node_exporter.yml.j2:4`, `pve_exporter.yml.j2:5`,
       `smartctl_exporter.yml.j2:5`. Documented in `observability.md` (see A4
       for the header/body discrepancy).
-- [ ] **B2. All four `file_sd` templates use the wrong port variable.** Each
+- [X] **B2. All four `file_sd` templates use the wrong port variable.** Each
       interpolates `observability_node_pve_exporter_host_port` regardless of
       the exporter it targets, so the cAdvisor, node-exporter, and
       smartctl-exporter target files are built from the PVE exporter's port.
@@ -316,7 +316,7 @@ written somewhere in the docs. Each was re-verified as still present at
       `/dev/sda` through `/dev/sdd` plus `/dev/nvme0` as literals, derived
       from no fact. A host with different storage needs a template edit.
       Documented in `observability.md`.
-- [ ] **B4. Orphaned Ansible Vault file inside a role tree.**
+- [X] **B4. Orphaned Ansible Vault file inside a role tree.**
       `roles/observability_node/files/prometheus/pve.yml` opens with
       `$ANSIBLE_VAULT;1.2;AES256;pve` and is git-tracked. The role's real
       PVE-exporter config is templated from
@@ -324,11 +324,11 @@ written somewhere in the docs. Each was re-verified as still present at
       nothing references the `files/` copy. It sits outside the SOPS pipeline
       and outside the `sops` hook's `\.sops\.ya?ml$` pattern. Documented in
       `secrets.md`.
-- [ ] **B5. Dozzle default ports diverge.** `observability_control` defaults
+- [X] **B5. Dozzle default ports diverge.** `observability_control` defaults
       to 7070 (`defaults/main.yml:16`), `observability_node` to 7007
       (`defaults/main.yml:14`). Currently masked by the group_vars re-export;
       see A3.
-- [ ] **B6. Duplicate Grafana dashboards.**
+- [X] **B6. Duplicate Grafana dashboards.**
       `roles/observability_control/files/grafana/provisioning/dashboards/`
       holds both `media-server.json` (135 KB) and `Media Server.json`
       (50 KB). The provisioner loads both. Documented in `observability.md`
@@ -336,11 +336,11 @@ written somewhere in the docs. Each was re-verified as still present at
 
 ### Ansible
 
-- [ ] **B7. `media_platform.yml` does not set `force_handlers`.** Both
+- [X] **B7. `media_platform.yml` does not set `force_handlers`.** Both
       `observability_control.yml:5` and `observability_node.yml:5` do. A
       config change queued as a restart handler may not fire if a later task
       in the media play fails. Documented in `configuration.md`.
-- [ ] **B8. Live `groups:` key with an empty body.**
+- [X] **B8. Live `groups:` key with an empty body.**
       `ansible/inventory/00_inv.proxmox.yml:14`, with all five rules
       commented at `:15-19`. Delete or populate. See A5.
 
@@ -352,17 +352,17 @@ written somewhere in the docs. Each was re-verified as still present at
       settings, so no device can be passed with `pcie = true` and
       `rombar = false`. Documented in both `provisioning.md` and
       `gpu-passthrough.md`.
-- [ ] **B10. Module outputs describe only the first VM.**
+- [X] **B10. Module outputs describe only the first VM.**
       `workspace/modules/proxmox_vm/outputs.tf:3,8` both index `vms[0]`, so
       `vm_count > 1` produces VMs that nothing downstream can address through
       the module. Documented in `provisioning.md` as appearing nowhere else
       in the repo.
-- [ ] **B11. Template lookup has no uniqueness check.**
+- [X] **B11. Template lookup has no uniqueness check.**
       `workspace/modules/proxmox_vm/main.tf:19` takes
       `data.proxmox_virtual_environment_vms.templates.vms[0].vm_id`. Two VMs
       matching `["template", os_tag]` means Terraform clones whichever the API
       returns first. Documented in `provisioning.md`.
-- [ ] **B12. `insecure = true` and hardcoded DNS.** Every Proxmox provider
+- [X] **B12. `insecure = true` and hardcoded DNS.** Every Proxmox provider
       block sets `insecure = true`
       (`infrastructure/_base/providers.tf:30,45`,
       `deployments/media/infrastructure/providers.tf:34,49`), and

@@ -16,7 +16,6 @@
 |------|---------|
 | <a name="provider_proxmox"></a> [proxmox](#provider\_proxmox) | 0.113.1 |
 | <a name="provider_proxmox.root"></a> [proxmox.root](#provider\_proxmox.root) | 0.113.1 |
-| <a name="provider_sops"></a> [sops](#provider\_sops) | 1.4.1 |
 
 ## Modules
 
@@ -31,7 +30,6 @@ No modules.
 | [proxmox_hardware_mapping_pci.transcoding_gpu](https://registry.terraform.io/providers/bpg/proxmox/0.113.1/docs/resources/hardware_mapping_pci) | resource |
 | [proxmox_virtual_environment_vm.rocky9_template](https://registry.terraform.io/providers/bpg/proxmox/0.113.1/docs/resources/virtual_environment_vm) | resource |
 | [proxmox_virtual_environment_vm.ubuntu24_template](https://registry.terraform.io/providers/bpg/proxmox/0.113.1/docs/resources/virtual_environment_vm) | resource |
-| [sops_file.proxmox_id](https://registry.terraform.io/providers/carlpett/sops/1.4.1/docs/data-sources/file) | data source |
 
 ## Inputs
 
