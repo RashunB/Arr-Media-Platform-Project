@@ -40,8 +40,8 @@
 | <a name="input_cloudflare_dns_comment"></a> [cloudflare\_dns\_comment](#input\_cloudflare\_dns\_comment) | n/a | `string` | `"Created with Terraform"` | no |
 | <a name="input_cloudflare_dns_type"></a> [cloudflare\_dns\_type](#input\_cloudflare\_dns\_type) | n/a | `string` | `"A"` | no |
 | <a name="input_cloudflare_proxied"></a> [cloudflare\_proxied](#input\_cloudflare\_proxied) | n/a | `bool` | `false` | no |
-| <a name="input_cloudflare_ttl"></a> [cloudflare\_ttl](#input\_cloudflare\_ttl) | n/a | `number` | `1` | no |
-| <a name="input_cloudflare_zone_id"></a> [cloudflare\_zone\_id](#input\_cloudflare\_zone\_id) | n/a | `string` | `""` | no |
+| <a name="input_cloudflare_ttl"></a> [cloudflare\_ttl](#input\_cloudflare\_ttl) | n/a | `number` | `600` | no |
+| <a name="input_cloudflare_zone_id"></a> [cloudflare\_zone\_id](#input\_cloudflare\_zone\_id) | n/a | `string` | n/a | yes |
 | <a name="input_cpu"></a> [cpu](#input\_cpu) | n/a | `number` | `4` | no |
 | <a name="input_datastore_files"></a> [datastore\_files](#input\_datastore\_files) | n/a | `string` | n/a | yes |
 | <a name="input_datastore_infra"></a> [datastore\_infra](#input\_datastore\_infra) | n/a | `string` | n/a | yes |
@@ -50,6 +50,7 @@
 | <a name="input_personal_domain"></a> [personal\_domain](#input\_personal\_domain) | n/a | `string` | n/a | yes |
 | <a name="input_proxmox_api_token"></a> [proxmox\_api\_token](#input\_proxmox\_api\_token) | n/a | `string` | n/a | yes |
 | <a name="input_proxmox_endpoint"></a> [proxmox\_endpoint](#input\_proxmox\_endpoint) | n/a | `string` | n/a | yes |
+| <a name="input_proxmox_insecure"></a> [proxmox\_insecure](#input\_proxmox\_insecure) | n/a | `bool` | `true` | no |
 | <a name="input_proxmox_node_name"></a> [proxmox\_node\_name](#input\_proxmox\_node\_name) | n/a | `string` | n/a | yes |
 | <a name="input_proxmox_password"></a> [proxmox\_password](#input\_proxmox\_password) | n/a | `string` | n/a | yes |
 | <a name="input_proxmox_user"></a> [proxmox\_user](#input\_proxmox\_user) | n/a | `string` | n/a | yes |

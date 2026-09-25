@@ -346,7 +346,7 @@ written somewhere in the docs. Each was re-verified as still present at
 
 ### Terraform
 
-- [ ] **B9. `rombar` is derived from `pcie`.**
+- [X] **B9. `rombar` is derived from `pcie`.**
       `workspace/modules/proxmox_vm/main.tf:82` sets
       `rombar = hostpci.value["pcie"]`. The two are independent Proxmox
       settings, so no device can be passed with `pcie = true` and

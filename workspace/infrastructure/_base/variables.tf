@@ -20,6 +20,11 @@ variable "proxmox_node_name" {
   type = string
 }
 
+variable "proxmox_insecure" {
+  type    = bool
+  default = true
+}
+
 variable "datastore_infra" {
   type = string
 }

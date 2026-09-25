@@ -55,6 +55,6 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_primary_ip"></a> [primary\_ip](#output\_primary\_ip) | First non-loopback IPv4 address |
-| <a name="output_vm_id"></a> [vm\_id](#output\_vm\_id) | Proxmox VMID |
+| <a name="output_primary_ip"></a> [primary\_ip](#output\_primary\_ip) | First non-loopback IPv4 address(es) of VM(s) |
+| <a name="output_vm_id"></a> [vm\_id](#output\_vm\_id) | Proxmox VMID(s) |
 <!-- END_TF_DOCS -->
