@@ -39,6 +39,7 @@ No modules.
 | <a name="input_datastore_infra"></a> [datastore\_infra](#input\_datastore\_infra) | n/a | `string` | n/a | yes |
 | <a name="input_proxmox_api_token"></a> [proxmox\_api\_token](#input\_proxmox\_api\_token) | n/a | `string` | n/a | yes |
 | <a name="input_proxmox_endpoint"></a> [proxmox\_endpoint](#input\_proxmox\_endpoint) | n/a | `string` | n/a | yes |
+| <a name="input_proxmox_insecure"></a> [proxmox\_insecure](#input\_proxmox\_insecure) | n/a | `bool` | `true` | no |
 | <a name="input_proxmox_node_name"></a> [proxmox\_node\_name](#input\_proxmox\_node\_name) | n/a | `string` | n/a | yes |
 | <a name="input_proxmox_password"></a> [proxmox\_password](#input\_proxmox\_password) | n/a | `string` | n/a | yes |
 | <a name="input_proxmox_user"></a> [proxmox\_user](#input\_proxmox\_user) | n/a | `string` | n/a | yes |

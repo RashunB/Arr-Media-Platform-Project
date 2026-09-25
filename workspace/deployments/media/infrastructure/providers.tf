@@ -31,7 +31,7 @@ locals {
 provider "proxmox" {
   endpoint      = var.proxmox_endpoint
   api_token     = var.proxmox_api_token
-  insecure      = true
+  insecure      = var.proxmox_insecure
   random_vm_ids = true
 
   ssh {
@@ -46,7 +46,7 @@ provider "proxmox" {
   endpoint      = var.proxmox_endpoint
   username      = var.proxmox_user
   password      = var.proxmox_password
-  insecure      = true
+  insecure      = var.proxmox_insecure
   random_vm_ids = true
 
   ssh {

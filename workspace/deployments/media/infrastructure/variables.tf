@@ -20,6 +20,11 @@ variable "proxmox_node_name" {
   type = string
 }
 
+variable "proxmox_insecure" {
+  type    = bool
+  default = true
+}
+
 variable "datastore_infra" {
   type = string
 }
@@ -110,12 +115,11 @@ variable "cloudflare_dns_type" {
 }
 
 variable "cloudflare_zone_id" {
-  type    = string
-  default = ""
+  type = string
 }
 variable "cloudflare_ttl" {
   type    = number
-  default = 1
+  default = 600
 }
 
 variable "cloudflare_proxied" {
