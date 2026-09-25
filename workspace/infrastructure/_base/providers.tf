@@ -16,12 +16,12 @@ terraform {
   }
 }
 
-data "sops_file" "proxmox_id" {
+ephemeral "sops_file" "proxmox_id" {
   source_file = "${path.module}/../../../secrets/proxmox_id.sops.yaml"
 }
 
 locals {
-  proxmox_id_private_key = trimspace(data.sops_file.proxmox_id.data["ssh_private_key"])
+  proxmox_id_private_key = trimspace(ephemeral.sops_file.proxmox_id.data["ssh_private_key"])
 }
 
 provider "proxmox" {

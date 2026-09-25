@@ -94,11 +94,17 @@ variable "memory" {
   default = 2048
 }
 
+variable "dns_servers" {
+  type    = list(string)
+  default = ["192.168.0.1"]
+}
+
 variable "pcie_devices" {
   type = map(object({
     device  = optional(string, null)
     mapping = optional(string, null)
     pcie    = optional(bool, true)
+    rombar  = optional(bool, true)
   }))
   default = {}
 }

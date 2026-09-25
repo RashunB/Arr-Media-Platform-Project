@@ -20,12 +20,12 @@ terraform {
   }
 }
 
-data "sops_file" "proxmox_id" {
+ephemeral "sops_file" "proxmox_id" {
   source_file = "${path.module}/../../../../secrets/proxmox_id.sops.yaml"
 }
 
 locals {
-  proxmox_id_private_key = trimspace(data.sops_file.proxmox_id.data["ssh_private_key"])
+  proxmox_id_private_key = trimspace(ephemeral.sops_file.proxmox_id.data["ssh_private_key"])
 }
 
 provider "proxmox" {
@@ -57,10 +57,10 @@ provider "proxmox" {
 }
 
 
-data "sops_file" "cloudflare" {
+ephemeral "sops_file" "cloudflare" {
   source_file = "${path.module}/../../../../secrets/cloudflare.sops.yaml"
 }
 
 provider "cloudflare" {
-  api_token = data.sops_file.cloudflare.data["cloudflare_api_key"]
+  api_token = ephemeral.sops_file.cloudflare.data["cloudflare_api_key"]
 }

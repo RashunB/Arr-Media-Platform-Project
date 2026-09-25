@@ -97,21 +97,33 @@ variable "additional_disks" {
   }))
 }
 
+variable "dns_servers" {
+  type    = list(string)
+  default = ["192.168.0.1"]
+}
+
 # Cloudflare/DNS
 
-variable "dns_type" {
+variable "cloudflare_dns_type" {
   type    = string
   default = "A"
 }
-variable "ttl" {
+
+variable "cloudflare_zone_id" {
+  type    = string
+  default = ""
+}
+variable "cloudflare_ttl" {
   type    = number
   default = 1
 }
-variable "proxied" {
+
+variable "cloudflare_proxied" {
   type    = bool
   default = false
 }
-variable "dns_comment" {
+
+variable "cloudflare_dns_comment" {
   type    = string
   default = "Created with Terraform"
 }
