@@ -9,5 +9,6 @@ output "rocky9_template_id" {
 }
 
 output "transcoding_gpu" {
-  value = proxmox_hardware_mapping_pci.transcoding_gpu
+  description = "PCIE Transcoding GPU device for Media Platform VM"
+  value       = proxmox_hardware_mapping_pci.transcoding_gpu
 }
