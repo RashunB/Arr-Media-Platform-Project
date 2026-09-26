@@ -8,11 +8,11 @@ created: 2026-09-17
 
 > [!info] Scope
 > Deep dive into `ansible/roles/observability_control` and
-> `observability_node`: the actual scrape topology, the log path, and the
-> host-joins-monitoring mechanism. The root README's runtime-topology diagram
-> is the map; this note is the territory underneath it.
+> `observability_node`: the scrape topology, the log path, and how a host
+> joins monitoring. The root README's runtime-topology diagram is the map;
+> this page is the territory underneath it.
 
-## Control vs. node-local, concretely
+## Control vs. node-local
 
 ```mermaid
 flowchart TB
@@ -35,7 +35,7 @@ flowchart TB
         CAD["cAdvisor :8080"]
         SM["smartctl-exporter :9633<br/>(off by default)"]
         ALLN["Alloy<br/>local docker logs -> Loki"]
-        DOZA["Dozzle agent"]
+        DOZA["Dozzle agent :7007"]
     end
 
     NE -->|"file_sd (control-rendered)"| PROM
@@ -44,7 +44,7 @@ flowchart TB
     PVEX -->|"file_sd (control-rendered)"| PROM
     ALLN -->|"loki.write push"| LOKI
     ALLC -->|"loki.write push"| LOKI
-    DOZA -.->|"DOZZLE_REMOTE_AGENT<br/>see port-mismatch bug below"| DOZZ
+    DOZA -.->|"DOZZLE_REMOTE_AGENT<br/>(node's own agent port)"| DOZZ
     PROM --> GRAF
     LOKI --> GRAF
 
@@ -56,106 +56,95 @@ flowchart TB
 
 `observability_control` runs on `control` (192.168.0.60) only.
 `observability_node` runs on every host in that group, which per
-[[configuration]] is every QEMU guest automatically plus the two hosts
-statically listed under `observability_pve`/`observability` in
-`10_observability.ini`.
+[Configuration](configuration.md) means every QEMU guest automatically plus
+the `pve` host through `observability_pve` in `10_observability.ini`.
 
-## What each exporter actually scrapes
-
-Read the actual compose templates, not just the README's exporter list:
+## What each exporter scrapes
 
 | Exporter | Where it runs | What it reads | Enabled by default? |
 |---|---|---|---|
-| `node-exporter` | Every `observability_node` host, `network_mode: host` | Host `/proc`, `/sys`, root filesystem (`--path.rootfs=/host` etc., `roles/observability_node/templates/docker-compose.yml.j2:7-22`) | Yes |
-| `cAdvisor` | Every `observability_node` host | Container-level metrics via `/rootfs`, `/var/run`, `/sys`, `/var/lib/docker` bind mounts (`:48-64`) | Yes |
-| `smartctl-exporter` | Every `observability_node` host | **Hardcoded** device list: `/dev/sda`, `/dev/sdb`, `/dev/sdc`, `/dev/sdd`, `/dev/nvme0` (`:36-41`) | **No**, gated by `observability_node_smartctl_exporter_enabled`, `false` by default |
-| `pve-exporter` | Proxmox host only, via `observability_node_pve_exporter_enabled` | Proxmox API, using the *third* credential in `pve.sops.yaml` (`pve_prometheus_api_*`, see [[secrets]]) | **No** by default; flipped on specifically for `observability_pve` in `group_vars/observability_pve:3` |
-| `Alloy` | Every host (control + node) | Docker socket (`discovery.docker`) for container logs, plus optionally the systemd journal | Docker logs: yes. Journal: `observability_node_alloy_journal_enabled`, `false` by default, `true` for the PVE host specifically |
+| `node-exporter` | Every `observability_node` host, `network_mode: host` | Host `/proc`, `/sys`, and root filesystem (`--path.rootfs=/host` and friends) | Yes |
+| `cAdvisor` | Every `observability_node` host | Container-level metrics through `/rootfs`, `/var/run`, `/sys`, `/var/lib/docker` bind mounts | Yes |
+| `smartctl-exporter` | `observability_node` hosts with the flag on | Devices `/dev/sda`, `/dev/sdb`, `/dev/sdc`, `/dev/sdd`, `/dev/nvme0` | **No**, gated by `observability_node_smartctl_exporter_enabled`; `true` for `observability_pve` |
+| `pve-exporter` | Proxmox host only, through `observability_node_pve_exporter_enabled` | Proxmox API, using the *third* credential in `pve.sops.yaml` (`pve_prometheus_api_*`, see [Secrets](secrets.md)) | **No**; `true` for `observability_pve` |
+| `Alloy` | Every host (control and node) | Docker socket (`discovery.docker`) for container logs, plus optionally the systemd journal | Docker logs: yes. Journal: `observability_node_alloy_journal_enabled`, `true` for `observability_pve` |
 
-> [!bug] `smartctl-exporter`'s device list is not host-aware
-> `/dev/sda` through `/dev/sdd` plus `/dev/nvme0` are **literal, hardcoded**
-> device paths in both `observability_node/templates/docker-compose.yml.j2:36-41`
-> and the control-side equivalent (which only mounts `/dev/nvme0`,
-> `observability_control/templates/docker-compose.yml.j2:57-58`). Nothing
-> derives this from `ansible_devices` facts. A host without exactly that disk
-> layout either does not get metrics for its real disks, or Docker fails to
-> start the container over a missing device mount, depending on Docker's
-> exact behavior for a nonexistent `--device`. Adding a host with different
-> storage requires a manual edit to this template.
+The node role's smartctl-exporter maps its device list statically in
+`ansible/roles/observability_node/templates/docker-compose.yml.j2`; the
+control role's equivalent maps `/dev/nvme0` only. A host with a different
+disk layout takes its device list from that template.
 
-> [!info] `observability_pve` group_vars enables `pve_exporter_enabled`
-> `group_vars/observability_pve` sets three booleans, and
-> `pve_exporter_enabled: true` is one of them. This is the correct place for
-> it: only the Proxmox host itself can supply PVE API-adjacent metrics.
-> `pve_exporter` refers specifically to running `prometheus-pve-exporter`
-> against the local PVE API, not a generic "Proxmox metrics" service that
-> could run on any host, and it only functions on the `pve` host.
+`group_vars/observability_pve` sets three booleans for the Proxmox host:
 
-## Prometheus target discovery: file_sd, not live discovery
+```yaml
+---
+observability_node_alloy_journal_enabled: true
+observability_node_pve_exporter_enabled: true
+observability_node_smartctl_exporter_enabled: true
+```
+(`ansible/inventory/group_vars/observability_pve`, full file)
+
+`pve-exporter` runs `prometheus-pve-exporter` against the local PVE API,
+which only the Proxmox host serves.
+
+## Prometheus target discovery: `file_sd`
 
 `observability_control`'s `prometheus.yml.j2` mixes two patterns:
 
 ```yaml
-- job_name: Control Node-Exporter
-  static_configs:
-    - targets: ["host.docker.internal:{{ observability_control_node_exporter_host_port }}"]
+  - job_name: Control Node-Exporter
+    static_configs:
+      - targets: ["host.docker.internal:{{ observability_control_node_exporter_host_port }}"]
 # ...
-- job_name: Node Node-Exporter
-  file_sd_configs:
-    - files: ["/etc/prometheus/file_sd/node_exporter.yml"]
-      refresh_interval: 30s
+  - job_name: Node Node-Exporter
+    file_sd_configs:
+      - files:
+          - /etc/prometheus/file_sd/node_exporter.yml
+        refresh_interval: 30s
 ```
-(`roles/observability_control/templates/prometheus/prometheus.yml.j2`, full
-file)
+(`ansible/roles/observability_control/templates/prometheus/prometheus.yml.j2`, excerpt)
 
-Control-local exporters are `static_configs` (fixed at render time; there is
-only one control host, so this is adequate). Every **node** exporter is
-discovered via `file_sd_configs` pointing at four Jinja-rendered YAML files
-under `/etc/prometheus/file_sd/`, one per exporter type
-(`node_exporter.yml.j2`, `cadvisor.yml.j2`, `smartctl_exporter.yml.j2`,
-`pve_exporter.yml.j2`), each built by looping
-`{% for host in groups['observability_node'] %}` over Ansible's inventory
-(`roles/observability_control/tasks/prometheus.yml:15-24`).
+Control-local exporters use `static_configs`, fixed at render time, since
+only one control host exists. Every **node** exporter comes through
+`file_sd_configs` pointing at four rendered files under
+`/etc/prometheus/file_sd/`, one per exporter type. The `prometheus.yml` task
+in `observability_control` renders each from a template listed in
+`observability_control_prometheus_file_sd_configs` (`pve_exporter`,
+`smartctl_exporter`, `node_exporter`, `cadvisor`):
 
-> [!warning] The target list is only as fresh as the last `observability_control` run
-> Prometheus itself re-reads these files every 30 seconds
-> (`refresh_interval: 30s`), so within Prometheus that part *is* live. But
-> the **file contents** are static output from an Ansible template render;
-> they only change when the `observability_control` role runs again against
-> the control host. A newly provisioned VM that lands in `observability_node`
-> (automatically, via `proxmox_all_qemu`, see [[configuration]]) is not
-> scraped until `ansible-playbook site.yml --tags observability` (or
-> equivalent) is re-run against the control host, which regenerates these
-> four files. Tag-based auto-join gets a host *eligible* for the inventory
-> group; it does not, by itself, get the host into Prometheus's live scrape
-> list.
+```jinja
+---
+{% for host in groups['observability_node'] | default([]) %}
+- targets:
+    - "{{ hostvars[host]['ansible_host'] }}:{{ hostvars[host]['observability_node_cadvisor_host_port'] }}"
+  labels:
+    instance: "{{ host }}"
+{% endfor %}
+```
+(`ansible/roles/observability_control/templates/prometheus/file_sd/cadvisor.yml.j2`, full file)
 
-> [!bug] Three of the four `file_sd` templates are missing a closing quote
-> `node_exporter.yml.j2`, `pve_exporter.yml.j2`, and `cadvisor.yml.j2` all
-> render:
-> ```
-> - targets:
->     - "{{ hostvars[host].ansible_host }}:{{ hostvars[host].observability_node_pve_exporter_host_port }}
->   labels:
-> ```
-> (`roles/observability_control/templates/prometheus/file_sd/{node_exporter,pve_exporter,cadvisor}.yml.j2`)
-> without a closing `"` after the port variable. This produces syntactically
-> invalid YAML for the `targets` list entry. `smartctl_exporter.yml.j2` has
-> the same missing quote. All four templates also reference
-> `observability_node_pve_exporter_host_port` regardless of which exporter
-> they target: `cadvisor.yml.j2` and `smartctl_exporter.yml.j2` both point at
-> the PVE-exporter's port variable, not `cadvisor_host_port` or
-> `smartctl_exporter_host_port`
-> (`roles/observability_control/templates/prometheus/file_sd/*.yml.j2`).
-> `pve_exporter` is disabled by default, so in practice the `cadvisor` and
-> `node_exporter` scrape jobs are fed a malformed or wrong-port target list
-> under the current configuration.
+Each template loops over `groups['observability_node']` and reads the
+target's address and **its own exporter's port** from `hostvars`:
+`observability_node_node_exporter_host_port`,
+`observability_node_cadvisor_host_port`,
+`observability_node_smartctl_exporter_host_port`, or
+`observability_node_pve_exporter_host_port`. The `pve_exporter` and
+`smartctl_exporter` templates also skip hosts whose matching `_enabled` flag
+is false, so Prometheus only scrapes exporters that run.
 
-## The log path: Alloy → Loki
+Prometheus re-reads the four files every 30 seconds (`refresh_interval:
+30s`). The file contents come from an Ansible template render and change
+when `observability_control` runs again against the control host. A new VM
+that lands in `observability_node` (automatically, through
+`proxmox_all_qemu`) enters the scrape list on the next
+`ansible-playbook site.yml --tags observability` run, which regenerates all
+four files.
 
-Every host (control and node) runs Grafana Alloy, configured near-identically
-(`roles/observability_control/templates/alloy/alloy-config.yml.j2` and the
-node equivalent are line-for-line the same structure):
+## The log path: Alloy to Loki
+
+Every host (control and node) runs Grafana Alloy with near-identical config
+(`observability_control/templates/alloy/alloy-config.yml.j2` and the node
+equivalent share their structure line for line):
 
 ```
 discovery.docker "docker_scrape" { host = "unix:///var/run/docker.sock" ... }
@@ -164,96 +153,67 @@ loki.source.docker "docker_scrape" { targets = ...; forward_to = [loki.write.def
 loki.write "default" { endpoint { url = "{{ ..._loki_remote_url }}" } }
 ```
 
-Every host's Alloy instance pushes **directly** to the control host's Loki
-(`loki_remote_url: http://{{ control_host_ip }}:{{ loki_host_port }}/loki/api/v1/push`,
-`group_vars/observability:23-24`); there is no local buffering tier, no
-per-node Loki, just a push straight across the LAN. Journal-log collection
-(`loki.source.journal`) is conditional on
-`{alloy_role}_alloy_journal_enabled`, off everywhere except the PVE host.
+Every Alloy instance pushes **directly** to the control host's Loki
+(`loki_remote_url: http://{{ control_host_ip }}:{{ loki_host_port }}/loki/api/v1/push`
+in `group_vars/observability`). No local buffering tier or per-node Loki
+sits in between. Journal collection (`loki.source.journal`) depends on
+`{alloy_role}_alloy_journal_enabled`, which only the PVE host turns on.
 
-Loki itself runs single-node, filesystem-backed, `inmemory` ring
-(`loki-config.yml.j2:8-18`); no replication, no object storage. Consistent
-with homelab scale. Running Loki HA would require a rework, not a config
-flag.
+Loki runs single-node, filesystem-backed, with an `inmemory` ring: no
+replication and no object storage, consistent with homelab scale. Loki HA
+would take a redesign, not a config flag.
 
 ## Dozzle: control hub, per-node agents
 
-Every node runs a Dozzle **agent** (`command: agent`,
-`observability_node/templates/docker-compose.yml.j2:66-86`). The control
-host runs a full Dozzle instance that's told which remote agents to connect
-to via an env file rendered per-host:
+Every node runs a Dozzle **agent** (`command: agent`), publishing container
+port `7007` on `observability_node_dozzle_host_port`. The control host runs
+the full Dozzle UI on `dozzle_host_port` (`7070`) and connects to the agents
+listed in a rendered env file:
 
+```jinja
+DOZZLE_REMOTE_AGENT=
+{%- for host in groups['observability_node'] -%}
+{{ hostvars[host]['ansible_host'] }}:{{ hostvars[host]['observability_node_dozzle_host_port'] }}|{{ host }}{{"," if not loop.last}}
+{%- endfor -%}
 ```
-DOZZLE_REMOTE_AGENT={{ hostvars[host].ansible_host }}:{{ observability_control_dozzle_host_port }}|{{ host }},...
-```
-(`roles/observability_control/templates/dozzle/dozzle.env.j2`, full file)
+(`ansible/roles/observability_control/templates/dozzle/dozzle.env.j2`, full file)
 
-> [!bug] Dozzle's remote-agent port does not match the node agent's port by default
-> The template builds each remote agent's address using
-> **`observability_control_dozzle_host_port`**, the *control* role's own
-> Dozzle port variable (default `7070`,
-> `roles/observability_control/defaults/main.yml:16`), for every node in
-> `groups['observability_node']`. Each node's actual Dozzle agent is
-> published on **`observability_node_dozzle_host_port`**, which defaults to
-> **`7007`** (`roles/observability_node/defaults/main.yml:14`): a different
-> port number, not just a different variable name. Unless a node's
-> `observability_node_dozzle_host_port` is explicitly overridden to match
-> the control host's port, `DOZZLE_REMOTE_AGENT` points at the wrong port
-> and the control Dozzle instance cannot reach that node's agent. This
-> surfaces as unreachable remote-agent tiles in the Dozzle UI, with the
-> cause visible in `docker logs dozzle` on the control host.
+The agent port flows through the standard re-export chain:
+
+1. `group_vars/observability` sets `dozzle_node_port: 7007` alongside the
+   control UI's `dozzle_host_port: 7070`.
+2. `group_vars/observability_node` maps it onto the role:
+   `observability_node_dozzle_host_port: "{{ dozzle_node_port }}"`.
+3. The node role publishes `7007:7007`.
+4. The control role reads each node's `observability_node_dozzle_host_port`
+   from `hostvars`, so every `DOZZLE_REMOTE_AGENT` entry carries the port
+   that node actually publishes, including any per-host override.
 
 ## How a newly provisioned host joins monitoring
 
 1. Terraform's `proxmox_vm` module tags the new VM (default `["terraform"]`
-   plus whatever the deployment passed, see [[provisioning]]). This makes
-   the VM a QEMU guest, full stop; no monitoring-specific tag is required.
-2. Ansible's dynamic inventory plugin discovers it on the next inventory
+   plus the deployment's tags, see [Provisioning](provisioning.md)). Being a
+   QEMU guest is enough; no monitoring-specific tag applies.
+2. Ansible's dynamic inventory plugin discovers the VM on the next inventory
    parse (`community.proxmox.proxmox`, `want_facts: true`).
-3. Because it's a QEMU guest, it's automatically a member of the implicit
-   `proxmox_all_qemu` group, which `10_observability.ini` wires into
-   `observability_node:children`. **No Ansible file edit is required for
-   this step**.
-4. It is **not** scraped by Prometheus, aggregated by the control Dozzle, or
-   receiving log config until the `observability_control` role is run again
-   against the control host (to regenerate the `file_sd` target files and
-   the Dozzle env file) **and** the `observability_node` role is run against
-   the new host itself (to actually start its exporters and Alloy).
-5. Running `ansible-playbook site.yml` (which touches both
-   `observability_control.yml` and `observability_node.yml` in order, per
-   `site.yml`) satisfies both halves in one invocation.
+3. As a QEMU guest, the VM belongs to the implicit `proxmox_all_qemu` group,
+   which `10_observability.ini` wires into `observability_node:children`.
+   No Ansible file changes.
+4. The `observability_control` role, run against the control host,
+   regenerates the `file_sd` target files and the Dozzle env file. The
+   `observability_node` role, run against the new host, starts its exporters,
+   Dozzle agent, and Alloy.
+5. `ansible-playbook site.yml` imports `observability_control.yml` and
+   `observability_node.yml` in order, covering both halves in one run.
 
-So: tag-driven inventory membership is automatic. Actually being monitored
-still requires an Ansible run touching both the control host and the new
-node. It is not a consequence of `terraform apply` alone.
+Inventory membership follows automatically from the tag. Active monitoring
+follows from the next Ansible run that touches both the control host and the
+new node.
 
-## Duplicate-looking Grafana dashboards
+## Grafana dashboards
 
-`roles/observability_control/files/grafana/provisioning/dashboards/` contains
-both `media-server.json` and `Media Server.json` (confirmed via directory
-listing) alongside `container.json`, `server.json`, `storage.json`,
-`thermals.json`, and `provider.yml`. Grafana's file provisioner
-(`foldersFromFilesStructure: true`, `provider.yml:7`) will load both as
-separate dashboards. Whether this is an intentional pair or a leftover
-duplicate from a rename is not determinable from the file contents alone;
-verifying which dashboards actually render in Grafana would resolve it.
-
-## Check your understanding
-
-- [ ] Walk through, step by step, what happens between `terraform apply`
-      creating a new VM and that VM's metrics appearing in Grafana. Which
-      steps are automatic and which require a manual Ansible run?
-- [ ] Why is `pve_exporter_enabled` only ever true for the `observability_pve`
-      group, never for a generic node?
-- [ ] What's the actual refresh mechanism for Prometheus's node-level scrape
-      targets: is it push, pull-with-live-discovery, or something else?
-- [ ] Name the specific variable-name bug in the `file_sd` Jinja templates
-      that means cAdvisor's and smartctl-exporter's rendered target files are
-      probably scraping the wrong port (or malformed YAML entirely).
-- [ ] Why does the control Dozzle instance likely fail to reach node Dozzle
-      agents out of the box, and which two port variables are involved?
-- [ ] Where does a log line originating in a container on a node host
-      physically travel before it's queryable in Grafana?
-- [ ] What would you need to change to make `smartctl-exporter` work
-      correctly on a host with a different disk layout than
-      `/dev/sda`-`/dev/sdd` + `/dev/nvme0`?
+`roles/observability_control/files/grafana/provisioning/dashboards/` holds
+`container.json`, `server.json`, `storage.json`, and `thermals.json`, plus
+`provider.yml`. Grafana's file provisioner (`foldersFromFilesStructure:
+true`) loads every JSON file in the directory, so the dashboards live in git
+and survive container rebuilds.
