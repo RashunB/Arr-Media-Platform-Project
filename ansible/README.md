@@ -4,17 +4,17 @@ Configuration layer. Everything that happens *inside* a host lives here: package
 installation, storage, users, container runtimes, and the Docker Compose
 workloads themselves.
 
-Terraform in [`../workspace`](../workspace/README.md) creates the machines this
-layer configures. The two never call each other; they
+The machines being configured are created by Terraform in
+[`../workspace`](../workspace/README.md). The two never call each other; they
 meet at Proxmox VM tags.
 
 ---
 
 ## Inventory: dynamic first, static overlay second
 
-Files in `inventory/` carry numeric prefixes because Ansible merges a directory
-in lexical order, and the static files reference hosts that the dynamic source
-must discover first.
+Files in `inventory/` are numbered because Ansible merges a directory in
+lexical order, and the static files reference hosts that the dynamic source has
+to have discovered first.
 
 | File | Kind | Role |
 |---|---|---|
@@ -40,8 +40,8 @@ name. Terraform's `proxmox_vm` module writes those tags at VM creation
 a newly provisioned VM lands in the right groups with **no inventory edit at
 all**.
 
-The plugin computes each host's address rather than recording it, handling both
-VM and container guests:
+Host addressing is computed rather than recorded, handling both VM and container
+guests:
 
 ```yaml
 compose:
@@ -61,8 +61,7 @@ observability_pve
 proxmox_all_qemu
 ```
 
-Every QEMU guest Terraform creates joins `observability_node` without an
-inventory edit.
+Adding a monitored host is therefore a Terraform tag change, not an Ansible one.
 
 The plugin's own credentials come from SOPS at inventory-parse time via
 `community.sops` lookups, so even the inventory file contains no secret.
@@ -96,12 +95,13 @@ ansible-playbook site.yml --tags observability
 ansible-playbook site.yml --check --diff       # dry run
 ```
 
-`site.yml` declares tags at import level (`sops`, `observability`, `control`,
-`node`, `media_platform`), and each playbook tags its role imports (`docker`,
-`lvm`). A run targets either a whole subsystem or one concern across hosts.
+Tags are declared at import level in `site.yml` (`sops`, `secrets`,
+`observability`, `control`, `node`, `media_platform`) and again per-role inside
+each playbook (`docker`, `lvm`), so you can target either a whole subsystem or
+one concern across hosts.
 
-All three host playbooks set `force_handlers: true`, so a container restart
-queued by a config change still fires when a later task in the play fails.
+Both observability playbooks set `force_handlers: true`, so a container restart
+queued by a config change still fires even if a later task in the play fails.
 
 ---
 
@@ -121,9 +121,9 @@ queued by a config change still fires when a later task in the play fails.
 
 ### Vendored
 
-The repo commits `geerlingguy.docker` and `geerlingguy.pip` under `roles/`
-rather than resolving them at runtime, so a play never depends on Galaxy being
-reachable and git history records the exact role version.
+`geerlingguy.docker` and `geerlingguy.pip` are committed under `roles/` rather
+than resolved at runtime, so a play never depends on Galaxy being reachable and
+the exact role version is visible in git history.
 
 ### Role internals worth noting
 
@@ -153,9 +153,9 @@ exporter type.
 
 ### Namespacing and re-export
 
-Role defaults carry the role name as a prefix (`media_platform_*`,
-`observability_node_*`). A parent `group_vars` file defines each shared value
-once, unprefixed, and the child file maps it onto role variables:
+Role defaults are prefixed with the role name (`media_platform_*`,
+`observability_node_*`). Shared values are defined unprefixed once in a parent
+`group_vars` file and mapped onto role variables in the child:
 
 ```yaml
 # group_vars/observability        (the shared truth)
@@ -177,7 +177,8 @@ inherits everything from `observability`, then flips on `pve_exporter`,
 Every first-party role has `meta/argument_specs.yml`. Ansible validates role
 input against it before the first task runs, so a malformed variable produces a
 typed error at role entry rather than a confusing failure partway through a
-play. These specs are the authoritative reference for what each role accepts.
+play. Until the role `README.md` files are filled in, these specs are the
+authoritative reference for what each role accepts.
 
 ---
 
@@ -189,20 +190,19 @@ play. These specs are the authoritative reference for what each role accepts.
 vars_plugins_enabled = host_group_vars, community.sops.sops
 ```
 
-Symlinks place encrypted group variables in the inventory without duplicating
-them:
+Encrypted group variables are symlinked into the inventory rather than
+duplicated:
 
 ```
 inventory/group_vars/media_platform.sops.yml -> ../../../secrets/media_platform.sops.yaml
-vault/pve.sops.yaml                          -> ../../secrets/pve.sops.yaml
+vault/pve.sops.yaml                          -> ../secrets/pve.sops.yaml
 ```
 
 The plugin decrypts in memory at var-load time. The inventory plugin uses
-`community.sops.sops` lookups for its own API credentials. Neither writes
-plaintext to disk, and `secrets/` stays the single place a credential lives.
+`community.sops.sops` lookups for its own API credentials. Nothing is written
+to disk in plaintext, and `secrets/` stays the single place a credential lives.
 
-Decryption requires `SOPS_AGE_KEY_FILE` pointing at the matching `age` private
-key.
+Export `SOPS_AGE_KEY_FILE` before running anything.
 
 ---
 
@@ -213,14 +213,13 @@ From `ansible.cfg`:
 | Setting | Value | Why |
 |---|---|---|
 | `remote_user` | `ansible` | The unprivileged account cloud-init seeds into every guest |
-| `private_key_file` | `~/.ssh/ansible_id` | Matches `secrets/ansible_id.pub`, which Terraform injects through cloud-init |
+| `private_key_file` | `~/.ssh/ansible_id` | Matches the public key in `secrets/ansible_id.sops.yaml` that Terraform injects |
 | `become` | `true`, via `sudo` | Escalation at the play level, not baked into the login user |
 | `interpreter_python` | `/usr/bin/python3` | Silences discovery warnings and pins behavior across Ubuntu and Rocky |
 | `forks` | `10` | Parallelism across the fleet |
 
-The public key lives in `secrets/ansible_id.pub` and the private key in
-`secrets/ansible_id.sops.yaml`. Terraform's cloud-init template seeds the public
-key into every guest, so no manual key distribution step exists.
+The SSH keypair is generated once, stored encrypted, injected into guests by
+Terraform's cloud-init template, and consumed here. No manual key distribution.
 
 ---
 
@@ -241,7 +240,8 @@ ansible-galaxy role init my_new_role
 ```
 
 The skeleton scaffolds `meta/argument_specs.yml` alongside the usual
-directories, so every new role starts with validated input.
+directories, so validated input is the default for a new role rather than
+something to remember later.
 
 ---
 

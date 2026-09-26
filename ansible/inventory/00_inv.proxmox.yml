@@ -11,7 +11,7 @@ keyed_groups:
     separator: ""
     prefix: ""
 
-# groups:
+groups:
   # rhce_proxy: "proxmox_name == 'rhce-1'"
   # rhce_webservers: "proxmox_name in ['rhce-2', 'rhce-3']"
   # rhce_database: "proxmox_name == 'rhce-4'"
