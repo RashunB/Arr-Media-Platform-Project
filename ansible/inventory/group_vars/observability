@@ -14,7 +14,6 @@ cadvisor_host_port: 8080
 
 dozzle_name: dozzle
 dozzle_host_port: 7070
-dozzle_node_port: 7007
 dozzle_agent_pve_ip: "{{ pve_node_ip }}"
 
 grafana_name: grafana

@@ -13,11 +13,11 @@ by code.
 - **Terraform** provisions VMs on Proxmox VE.
 - **Ansible** configures them, using a dynamic inventory built from
   Terraform-applied tags — no hardcoded host list to maintain.
-- CI lints, validates, security-scans, and secret-scans every change before it
-  merges.
+- Every change is linted, validated, security-scanned, and secret-scanned in
+  CI before it merges.
 - No plaintext secret ever touches git.
 
-[Quickstart](#quickstart) brings up a deployment end to end.
+Jump to [Quickstart](#quickstart) to bring up a deployment.
 
 ---
 
@@ -31,7 +31,7 @@ by code.
 | **Secrets** | SOPS with `age`, consumed natively by both Terraform (provider) and Ansible (vars plugin) |
 | **Observability** | Prometheus, Loki, Grafana, Alloy, cAdvisor, node/smartctl/PVE exporters, hub-and-spoke across every host |
 | **Hardware** | Intel GPU passed through to the VM via PCI hardware mapping for VA-API transcoding |
-| **Quality gates** | 8 CI jobs plus a pre-commit suite: lint, format, validate, documentation lint, IaC misconfiguration scan, full-history secret scan |
+| **Quality gates** | 8 CI jobs plus a pre-commit suite: lint, format, validate, IaC misconfiguration scan, full-history secret scan |
 
 ---
 
@@ -57,7 +57,7 @@ flowchart LR
         GPU["PCI hardware mapping<br/>Intel GPU"]
     end
 
-    SOPS -.->|ephemeral sops_file| TF
+    SOPS -.->|sops_file data source| TF
     SOPS -.->|community.sops vars plugin| ANS
     TF -->|downloads image, builds| TPL
     TPL -->|linked clone + cloud-init| VM
@@ -176,11 +176,11 @@ memory of the process applying it, never on disk and never in git history.
 │
 ├── secrets/                    # SOPS-encrypted, age-recipient controlled
 ├── .github/workflows/ci.yml    # 8 quality gates
-├── .pre-commit-config.yaml     # the same gates, locally, before push
+├── .pre-commit-config.yaml     # the same gates, locally, before you push
 └── trivy.yaml / .ansible-lint / .yamllint
 ```
 
-Each half has its own README because they solve different problems
+The two halves are documented separately because they solve different problems
 and have different lifecycles:
 
 - **[`workspace/README.md`](workspace/README.md)** covers provisioning: state,
@@ -198,12 +198,12 @@ and have different lifecycles:
 |---|---|
 | Terraform `>= 1.15` | Pinned provider versions, lockfiles committed |
 | `ansible-core` | Collections installed from `ansible/requirements.yml` |
-| `sops` + `age` | Requires the private key matching the recipient in `.sops.yaml` |
+| `sops` + `age` | You need the private key matching the recipient in `.sops.yaml` |
 | Proxmox VE | API token for Terraform, a second token for Ansible inventory |
 | `pre-commit` | Optional locally, enforced in CI |
 
 Tooling installers for the Terraform-side binaries (trivy, terraform-docs,
-tflint) live in [`terraform_precommit.txt`](terraform_precommit.txt).
+tflint) are collected in [`terraform_precommit.txt`](terraform_precommit.txt).
 
 ### 1. Decrypt-capable environment
 
@@ -264,20 +264,20 @@ through `pre-commit run --all-files`.
 |---|---|
 | `ansible-lint` | Role and playbook correctness, idempotency smells, FQCN usage |
 | `yaml-lint` | YAML style across the whole repo |
-| `terraform-static` | `terraform fmt -check -recursive` plus recursive TFLint with the `all` preset (`workspace/.tflint.hcl`), including required descriptions on every variable and output |
+| `terraform-static` | `terraform fmt -check -recursive` plus recursive TFLint |
 | `terraform-validate` | Matrix `init -backend=false` + `validate` across all three stacks |
 | `trivy` | IaC misconfiguration scanning of `workspace/` |
 | `gitleaks` | Secret scanning across the **full git history**, not just the diff |
 | `actionlint` | The workflow files themselves |
 | `hooks` | Whitespace/EOF hygiene, private key detection, verifies every `*.sops.yaml` is actually encrypted |
 
-Every third-party action pins a commit SHA rather than a tag.
+All third-party actions are pinned to commit SHAs rather than tags.
 
 ---
 
 ## Secrets management
 
-- No plaintext secret enters git. `.sops.yaml` binds every
+- No plaintext secret is ever committed. `.sops.yaml` binds every
   `*.sops.yaml` file in the repo to a single `age` recipient.
 - Both Terraform and Ansible read the encrypted files directly — there is no
   decrypt-to-disk step and no `.env` to leak.
@@ -285,18 +285,13 @@ Every third-party action pins a commit SHA rather than a tag.
 ```
 secrets/
 ├── pve.sops.yaml              # Proxmox API tokens (terraform, ansible, prometheus: one each)
-├── proxmox_id.sops.yaml       # SSH private key Terraform uses against the PVE node
-├── proxmox_id.pub             # its public half
-├── ansible_id.sops.yaml       # SSH private key Ansible uses against guests
-├── ansible_id.pub             # its public half, seeded into guests via cloud-init
-├── cloudflare.sops.yaml       # Cloudflare API token
+├── proxmox_id.sops.yaml       # SSH key Terraform uses against the PVE node
+├── ansible_id.sops.yaml       # SSH keypair seeded into guests via cloud-init
+├── cloudflare.sops.yaml       # Cloudflare API token + zone ID
 └── media_platform.sops.yaml   # Application API keys and service credentials
 ```
 
-- **Terraform** reads them with the `carlpett/sops` provider. The infrastructure
-  stacks use `ephemeral "sops_file"`, which keeps provider credentials out of
-  state entirely. The application stack uses a `data "sops_file"` source because
-  its secrets feed resource arguments.
+- **Terraform** reads them with the `carlpett/sops` provider as a `sops_file` data source.
 - **Ansible** reads them with the `community.sops` vars plugin and lookup, wired
   in through symlinks under `inventory/group_vars/`.
 - **CI** enforces it: the `sops` pre-commit hook fails on any unencrypted
@@ -310,7 +305,8 @@ secrets/
 
 ## Engineering decisions
 
-Rules this repo follows, and the reasoning behind each.
+Rules this repo follows, and why — read these before proposing a change that
+seems to cut a corner.
 
 **Never call Ansible from Terraform, or create VMs from Ansible.** Provisioning
 and configuration stay in separate tools with independent state — no
@@ -321,8 +317,7 @@ and configuration stay in separate tools with independent state — no
 
 **Discover templates by tag, not by VM ID.** The `proxmox_vm` module queries
 `proxmox_virtual_environment_vms` filtered on
-`["template", var.template_os_tag]` and `template = true`, and a precondition
-fails the plan unless exactly one template matches.
+`["template", var.template_os_tag]`.
 - **Why:** rebuilding a template doesn't require touching every deployment
   stack that consumes it.
 
@@ -360,21 +355,23 @@ shared values onto them from `group_vars`.**
 
 ## Known gaps and roadmap
 
-Planned work, in priority order.
+Deliberately listed. These are the things a reviewer would ask about.
 
 - [ ] **Remote state.** Terraform state is currently local. Migrating to a
       locking backend is the highest-value next change, and the prerequisite
       for running `apply` from CI.
 - [ ] **CI is plan-only.** Workflows validate and scan but never apply. Automated
       `plan` output on pull requests is the next step.
-- [ ] **Role documentation.** Per-role `README.md` files. Each role's
-      `meta/argument_specs.yml` currently serves as its interface reference.
+- [ ] **Role documentation.** Role `README.md` files are still galaxy skeleton
+      boilerplate. The `argument_specs.yml` files are the accurate reference
+      until those are written.
 - [ ] **No test harness.** Molecule scenarios for the first-party roles, plus
       `terraform test` for the module, would close the loop.
-- [ ] **TLS.** Proxmox providers default to `proxmox_insecure = true` against
-      the lab CA, and services serve plain HTTP behind the LAN boundary.
-- [ ] **`terraform_docs` in CI.** The `hooks` job skips `terraform_docs`, so
-      generated README tables regenerate only through local pre-commit.
+- [ ] **TLS.** Proxmox providers run with `insecure = true` against the lab CA,
+      and services are served over plain HTTP behind the LAN boundary.
+- [ ] **Re-enable the full pre-commit CI job** and the `terraform-docs` diff
+      check, both currently commented out in `ci.yml` (the docs action generates
+      output that does not match local runs).
 - [ ] **Backups.** No automated backup or restore path for application state or
       Terraform state yet.
 
@@ -382,4 +379,4 @@ Planned work, in priority order.
 
 ## License
 
-Personal project. No license granted.
+Personal project. No license granted; see the repository owner.

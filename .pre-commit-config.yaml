@@ -34,12 +34,6 @@ repos:
           # - --hook-config=--custom-marker-begin=<!-- BEGIN_TF_DOCS -->  # String.
           # - --hook-config=--custom-marker-end=<!-- END_TF_DOCS -->      # String.
       - id: terraform_tflint
-        args:
-          - --args=--enable-rule=terraform_documented_variables
-          - --args=--enable-rule=terraform_documented_outputs
-          - --args=--enable-rule=terraform_module_shallow_clone
-          - --args=--enable-rule=terraform_standard_module_structure
-          - --args=--enable-rule=terraform_naming_convention
       - id: terraform_trivy
         files: ^workspace/
         args:

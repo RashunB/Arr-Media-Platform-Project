@@ -7,12 +7,12 @@ created: 2026-09-17
 # GPU Passthrough (Intel VA-API)
 
 > [!info] Scope
-> End-to-end trace of the Intel GPU's path from a physical PCI slot on the
+> End-to-end trace of how the Intel GPU gets from a physical PCI slot on the
 > Proxmox host into a running Jellyfin container, across all three layers:
 > Proxmox hardware mapping, Terraform VM config, and the Ansible
 > `media_platform` role.
 
-## Four hops
+## The mechanism has four distinct hops
 
 ```mermaid
 flowchart LR
@@ -55,11 +55,12 @@ flowchart LR
     class DRI,DRIVERS,MOUNT ans
 ```
 
-VA-API transcoding depends on all four hops at once. A gap in any one leaves
-a VM that boots normally and a Jellyfin instance that falls back to software
-transcoding.
+Getting VA-API transcoding to work requires all four hops to be correct
+simultaneously. Missing any one leaves a VM that boots fine but a Jellyfin
+that falls back to software transcoding with no obvious error pointing at
+*why*.
 
-## Hop 1: the Proxmox-side hardware mapping
+## Hop 1: the Proxmox-side hardware mapping (defined once)
 
 ```hcl
 resource "proxmox_hardware_mapping_pci" "transcoding_gpu" {
@@ -78,17 +79,25 @@ resource "proxmox_hardware_mapping_pci" "transcoding_gpu" {
 ```
 (`workspace/infrastructure/_base/main-gpu.tf`, full file)
 
-This is a **cluster-scoped** Proxmox resource: a named hardware mapping, not
-a per-VM setting. `_base` defines it once. It identifies the physical device
-by PCI vendor:device ID (`8086:56a5`, Intel), bus path, IOMMU group, and
-subsystem ID. `node`, `path`, and `iommu_group` come from the host itself
-(`lspci`, `/sys/kernel/iommu_groups/`), so moving to different hardware
-means new values for this resource and only this resource.
+This is a **cluster-scoped** Proxmox resource, a named hardware mapping, not
+a per-VM setting. It's defined exactly once, in `_base`, and identifies the
+physical device by PCI vendor:device ID (`8086:56a5`, Intel), bus path,
+IOMMU group, and subsystem ID, all specific to this one physical machine's
+GPU. Moving this homelab to different hardware requires new values for this
+resource, and only this resource.
 
-## Hop 2: Terraform reads the mapping and builds the module input
+> [!warning] Every field here is hand-specified for this one physical host
+> `node = "pve"`, `path = "0000:03:00.0"`, `iommu_group = 15`: none of these
+> are computed or discovered by Terraform. These values were most likely
+> read off the actual Proxmox host (`lspci`, `/sys/kernel/iommu_groups/`)
+> and entered directly. There's no drift detection if the physical hardware
+> ever changes slot or the host's IOMMU grouping shifts after a BIOS/kernel
+> update.
 
-`workspace/deployments/media/infrastructure/main.tf` looks the mapping up
-instead of redefining it:
+## Hop 2: Terraform reads the mapping as data, builds the module input
+
+`deployments/media/infrastructure/main.tf` never redefines the mapping; it
+looks it up:
 
 ```hcl
 data "proxmox_hardware_mapping_pci" "transcoding_gpu" {
@@ -96,33 +105,36 @@ data "proxmox_hardware_mapping_pci" "transcoding_gpu" {
 }
 
 locals {
-  pcie_map = [
-    data.proxmox_hardware_mapping_pci.transcoding_gpu.name,
-  ]
-
+  pcie_map = [data.proxmox_hardware_mapping_pci.transcoding_gpu.name]
   pcie_devices = {
     for idx, name in local.pcie_map : "hostpci${idx}" => {
       device  = "hostpci${idx}"
       mapping = name
       pcie    = true
-      rombar  = true
     }
   }
 }
 ```
-(`workspace/deployments/media/infrastructure/main.tf`, excerpt)
+(`main.tf:5-23`)
 
-This follows the pattern in [Engineering decisions](engineering-decisions.md)
-and [Provisioning](provisioning.md): `_base` *defines* shared, cluster-scoped
-resources and every other stack *reads* them, so a deployment stack never
-owns (or destroys) a cluster resource. `pcie_devices` becomes a one-entry
-map, `{"hostpci0" = {device="hostpci0", mapping="transcoding_gpu",
-pcie=true, rombar=true}}`, passed straight through as
-`module "media_vm" { pcie_devices = local.pcie_devices }`.
+This is the pattern documented in [[engineering-decisions]] and
+[[provisioning]]: shared, cluster-scoped resources are *defined* in `_base`
+and *read* everywhere else, so a deployment stack never owns (and can't
+accidentally destroy) a cluster resource. `pcie_devices` ends up as a
+one-entry map, `{"hostpci0" = {device="hostpci0", mapping="transcoding_gpu",
+pcie=true}}`, which is passed straight through to the module:
+
+```hcl
+module "media_vm" {
+  ...
+  pcie_devices = local.pcie_devices
+}
+```
+(`main.tf:44`)
 
 ## Hop 3: the module's single-variable switch
 
-Inside `workspace/modules/proxmox_vm/main.tf`:
+Inside `modules/proxmox_vm/main.tf`:
 
 ```hcl
 gpu_passthrough = length(var.pcie_devices) > 0
@@ -148,38 +160,43 @@ dynamic "hostpci" {
     device  = hostpci.value["device"]
     mapping = hostpci.value["mapping"]
     pcie    = hostpci.value["pcie"]
-    rombar  = hostpci.value["rombar"]
+    rombar  = hostpci.value["pcie"]
   }
 }
 ```
+(`main.tf:23`, `:52-53`, `:76-93`)
 
-One input, "is `pcie_devices` non-empty?", produces three coupled outcomes:
-`q35` machine type, OVMF/UEFI BIOS, and an EFI disk. PCIe passthrough does
-not function on `i440fx` + SeaBIOS, so the module's interface offers no path
-to a passthrough VM on the wrong machine type (see
-[Engineering decisions](engineering-decisions.md)).
+One caller-facing decision, "is `pcie_devices` non-empty?", deterministically
+produces three coupled outcomes: `q35` machine type, OVMF/UEFI BIOS, and an
+EFI disk. This is intentional per [[engineering-decisions]]: PCIe passthrough
+does not function on `i440fx` + SeaBIOS, so there is no way, through this
+module's interface, to end up with a passthrough VM on the wrong machine
+type. All three change together or none do.
 
-`pcie` and `rombar` stay separate per device. `pcie` selects the PCIe bus
-over legacy PCI; `rombar` controls whether the guest sees the device's ROM
-BAR. Both default to `true` in the `pcie_devices` object type, and the media
-stack sets both explicitly.
+> [!bug] `rombar` is coupled to `pcie`, not independently controlled
+> `rombar = hostpci.value["pcie"]` in the `hostpci` block sets `rombar`
+> (ROM BAR exposure to the guest) from `pcie` (PCIe vs. legacy PCI bus).
+> These are independent Proxmox settings that both default to `true` in the
+> current configuration. There is no way to pass a device with `pcie = true`
+> but `rombar = false` through this module; the two values move together.
+> This has no effect with the single GPU currently configured at
+> `pcie: true`, but constrains adding a device that requires `rombar` off.
+> See [[provisioning]] for the same finding in context.
 
-## Hop 4: guest OS and container requirements
+## Hop 4: guest OS and container requirements beyond passthrough
 
-PCI passthrough makes `/dev/dri/renderD128` *available inside the VM's
-kernel*, given the right guest driver. A working Jellyfin transcode needs
-three more pieces, all inside the `media_platform` Ansible role and none
-visible from Terraform.
+Passing the PCI device through makes a `/dev/dri/renderD128` node
+*available inside the VM's kernel*, assuming the guest kernel has the right
+driver. It does **not** produce a working Jellyfin transcode by itself.
+Three more things have to happen, all inside the `media_platform` Ansible
+role, none of them visible from the Terraform side at all:
 
 ### 1. Guest-OS driver packages (`roles/media_platform/tasks/gpu.yml`)
 
 ```yaml
 - name: Esure GPU packages are installed
   ansible.builtin.apt:
-    name:
-      - "linux-modules-extra-{{ ansible_kernel }}"
-    state: present
-    update_cache: true
+    name: ["linux-modules-extra-{{ ansible_kernel }}"]
   notify: Reboot
 
 - name: Esure GPU/Transcoding tools packages are installed
@@ -189,42 +206,39 @@ visible from Terraform.
       - intel-gpu-tools
       - vainfo
       - intel-media-va-driver-non-free
-    state: present
-    update_cache: true
 
 - name: Ensure Media User GPU groups
   ansible.builtin.user:
     name: "{{ media_platform_user }}"
-    groups:
-      - video
-      - render
+    groups: [video, render]
     append: true
 
 - name: Reboot if needed
   ansible.builtin.meta: flush_handlers
 ```
-(`ansible/roles/media_platform/tasks/gpu.yml`, full file)
 
-`linux-modules-extra-{{ ansible_kernel }}` supplies kernel modules missing
-from the base kernel package. Installing it queues a reboot, and `gpu.yml`
-**runs that reboot immediately** through `meta: flush_handlers` instead of
-deferring it to end-of-play (see [Configuration](configuration.md)).
-`compose.yml`, the next task file in the role, starts containers that mount
-`/dev/dri/renderD128`, and the new kernel modules must be active before
+`linux-modules-extra-{{ ansible_kernel }}` supplies kernel modules not in
+the base kernel package. Installing it queues a reboot, and `gpu.yml`
+**forces that reboot to happen immediately** via `meta: flush_handlers`,
+rather than letting Ansible's normal end-of-play handler timing defer it
+(see [[configuration]]). This matters specifically because `compose.yml`,
+the very next task file in `media_platform`'s `tasks/main.yml`, starts
+containers that mount `/dev/dri/renderD128`. If the reboot were deferred to
+end-of-play, the freshly loaded kernel modules might not be active yet when
 Jellyfin starts.
 
-`intel-media-va-driver-non-free` is the **non-free** iHD driver. The
-open-source `intel-media-va-driver` lacks support for newer Intel hardware
-acceleration features, so the role installs the non-free package
-deliberately.
+`intel-media-va-driver-non-free` is specifically the **non-free** iHD driver
+package. The open-source `intel-media-va-driver` (without `-non-free`) does
+not support newer Intel hardware acceleration features. This is a
+deliberate package choice, not the Debian/Ubuntu default.
 
-The role adds the `media` service user to the host's `video` and `render`
-groups. `/dev/dri/renderD128` is group-owned, and containers inherit
-host-level device permissions through the bind mount, so device access fails
-at the OS permission layer without this membership even when the device
-node exists.
+The `media` service user is added to the host's `video` and `render`
+groups. **Without this, the container's device access fails at the OS
+permission layer even with the PCI passthrough and the device node both
+present**, because `/dev/dri/renderD128` is group-owned and containers
+inherit host-level device permissions through the bind mount.
 
-### 2. Container-level device mount and environment
+### 2. Container-level device mount and env vars (`docker-compose.yml.j2`)
 
 ```yaml
 jellyfin:
@@ -235,20 +249,46 @@ jellyfin:
   devices:
     - /dev/dri/renderD128:/dev/dri/renderD128
 ```
-(`ansible/roles/media_platform/templates/docker-compose.yml.j2`, excerpt)
+(`roles/media_platform/templates/docker-compose.yml.j2:7-24`)
 
-- `DOCKER_MODS: linuxserver/mods:jellyfin-opencl-intel` pulls Intel's OpenCL
-  runtime in at container start. Jellyfin's hardware tone mapping and other
-  OpenCL features need it, separately from the VA-API decode/encode path.
-- `NEOReadDebugKeys` and `OverrideGpuAddressSpace` configure Intel's `neo`
-  compute runtime inside a container on certain iGPU generations. Without
-  them, some Intel GPUs report the wrong addressable memory space and
-  hardware acceleration fails.
-- The container mounts only `/dev/dri/renderD128`, the render-only node, not
-  the whole `/dev/dri` directory or the display-capable `card0` node.
+Three more Intel-specific details:
 
-### 3. `vainfo` and `intel-gpu-tools` for diagnostics
+- `DOCKER_MODS: linuxserver/mods:jellyfin-opencl-intel` pulls in Intel's
+  OpenCL runtime at container start, needed for Jellyfin's hardware
+  tonemapping/OpenCL-based features, separate from the VA-API path used for
+  basic hardware decode/encode.
+- `NEOReadDebugKeys` and `OverrideGpuAddressSpace` are known environment-variable
+  workarounds for Intel's `neo` (compute-runtime) driver stack running
+  inside a container on certain iGPU generations. Without these, some Intel
+  GPUs report the wrong addressable memory space to the driver and hardware
+  acceleration fails or crashes without a clear error.
+- Only `/dev/dri/renderD128` is mounted, not the whole `/dev/dri` directory
+  and not `/dev/dri/card0`. `renderD128` is the render-only node; Jellyfin
+  does not need (and in a headless container context should not have) the
+  display-capable `card0` node.
 
-Both install on the host, not inside the container. `vainfo` on the **host**
-confirms whether the VA-API driver stack sees the device at all,
-independently of Docker or Jellyfin.
+### 3. `vainfo` and `intel-gpu-tools` are diagnostic, not functional dependencies
+
+They're installed on the host, not inside the container. If transcoding
+stops working, `vainfo` run on the **host** (not in the container) confirms
+whether the VA-API driver stack sees the device at all, independent of
+anything Docker or Jellyfin are doing.
+
+## Check your understanding
+
+- [ ] Name all four layers a GPU frame's "access path" passes through, from
+      the physical PCI device to a Jellyfin transcode actually happening.
+- [ ] Which Terraform resource is cluster-scoped and defined exactly once,
+      and which stack merely reads it as a data source?
+- [ ] What three VM properties flip together when `pcie_devices` becomes
+      non-empty, and why can't PCIe passthrough work without that coupling?
+- [ ] Why does `gpu.yml` force an immediate reboot instead of letting the
+      handler fire normally at the end of the play?
+- [ ] Why is `intel-media-va-driver-non-free` specifically required instead
+      of the driver package Ubuntu installs by default?
+- [ ] If Jellyfin's container can see `/dev/dri/renderD128` but transcoding
+      still fails, what host-level group membership would you check first,
+      and why would it matter even though the device node exists?
+- [ ] What does `rombar` control on the `hostpci` Terraform block, and why
+      is it currently unable to be set independently of `pcie` in this
+      module?

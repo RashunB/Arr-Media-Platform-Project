@@ -11,20 +11,12 @@ terraform {
 
 data "proxmox_virtual_environment_vms" "templates" {
   tags = ["template", var.template_os_tag]
-
-  filter {
-    name   = "template"
-    values = ["true"]
-  }
 }
 
 locals {
-  vm_tag_list = distinct(concat(var.vm_tag_list, [var.vm_group, var.vm_name_prefix]))
-  tag_list    = distinct(concat(var.vm_default_tag_list, local.vm_tag_list))
-
-  matched_templates = data.proxmox_virtual_environment_vms.templates.vms
-  template_vm_id    = try(data.proxmox_virtual_environment_vms.templates.vms[0].vm_id, null)
-
+  vm_tag_list             = distinct(concat(var.vm_tag_list, [var.vm_group, var.vm_name_prefix]))
+  tag_list                = distinct(concat(var.vm_default_tag_list, local.vm_tag_list))
+  template_vm_id          = data.proxmox_virtual_environment_vms.templates.vms[0].vm_id
   default_cloud_init_path = "${path.module}/templates/cloud-init.yml.tpl"
   cloud_init_data_path    = coalesce(var.cloud_init_user_data_path, local.default_cloud_init_path)
 
@@ -60,18 +52,6 @@ resource "proxmox_virtual_environment_vm" "vms" {
   machine         = local.gpu_passthrough ? "q35" : "pc"
   bios            = local.gpu_passthrough ? "ovmf" : "seabios"
 
-  lifecycle {
-    precondition {
-      condition = length(local.matched_templates) == 1
-      error_message = format(
-        "Expected exactly one VM tagged [\"template\",%q] with template = true, found %d: %s.",
-        var.template_os_tag,
-        length(local.matched_templates),
-        jsonencode([for t in local.matched_templates : t.name]),
-      )
-    }
-  }
-
   clone {
     vm_id = local.template_vm_id
     full  = false
@@ -99,7 +79,7 @@ resource "proxmox_virtual_environment_vm" "vms" {
       device  = hostpci.value["device"]
       mapping = hostpci.value["mapping"]
       pcie    = hostpci.value["pcie"]
-      rombar  = hostpci.value["rombar"]
+      rombar  = hostpci.value["pcie"]
     }
   }
 
@@ -145,7 +125,7 @@ resource "proxmox_virtual_environment_vm" "vms" {
     }
 
     dns {
-      servers = var.dns_servers
+      servers = ["192.168.0.1"]
     }
   }
 }
