@@ -16,18 +16,18 @@ terraform {
   }
 }
 
-data "sops_file" "proxmox_id" {
+ephemeral "sops_file" "proxmox_id" {
   source_file = "${path.module}/../../../secrets/proxmox_id.sops.yaml"
 }
 
 locals {
-  proxmox_id_private_key = trimspace(data.sops_file.proxmox_id.data["ssh_private_key"])
+  proxmox_id_private_key = trimspace(ephemeral.sops_file.proxmox_id.data["ssh_private_key"])
 }
 
 provider "proxmox" {
   endpoint      = var.proxmox_endpoint
   api_token     = var.proxmox_api_token
-  insecure      = true
+  insecure      = var.proxmox_insecure
   random_vm_ids = true
 
   ssh {
@@ -42,7 +42,7 @@ provider "proxmox" {
   endpoint      = var.proxmox_endpoint
   username      = var.proxmox_user
   password      = var.proxmox_password
-  insecure      = true
+  insecure      = var.proxmox_insecure
   random_vm_ids = true
 
   ssh {
