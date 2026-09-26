@@ -1,29 +1,42 @@
 variable "proxmox_endpoint" {
-  type = string
+  description = "Endpoint for the proxmox host in format of 'https://hostname:port/'"
+  type        = string
 }
 
 variable "proxmox_api_token" {
-  type      = string
-  sensitive = true
+  description = "Proxmox host API token for routine connectivity"
+  type        = string
+  sensitive   = true
 }
 
 variable "proxmox_user" {
-  type = string
+  description = "Proxmox user for escalated, privileged actions"
+  type        = string
 }
 
 variable "proxmox_password" {
-  type      = string
-  sensitive = true
+  description = "Password for proxmox user defined for escalated, privileged actions"
+  type        = string
+  sensitive   = true
 }
 
 variable "proxmox_node_name" {
-  type = string
+  description = "Proxmox host node name"
+  type        = string
+}
+
+variable "proxmox_insecure" {
+  description = "Skip TLS certificate verification for Proxmox API"
+  type        = bool
+  default     = true
 }
 
 variable "datastore_infra" {
-  type = string
+  description = "Proxmox datastore to store infrastructure components provisioned by Terraform"
+  type        = string
 }
 
 variable "datastore_files" {
-  type = string
+  description = "Proxmox datastore to store file components provisioned by Terraform"
+  type        = string
 }

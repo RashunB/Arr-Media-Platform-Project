@@ -7,167 +7,119 @@ created: 2026-09-17
 # Secrets (SOPS + age)
 
 > [!info] Scope
-> This note does not read or reproduce any decrypted secret value. It maps
-> which files hold which credentials (by key name only, since SOPS leaves
-> map keys in plaintext by design; only the values are encrypted), which
-> consumer reads which file, and exactly what the quality gates do and don't
-> catch. `secrets/*.sops.yaml` is otherwise treated as opaque, per the
-> instruction this vault was built under.
+> Which files hold which credentials (by key name only: SOPS leaves map keys
+> in plaintext and encrypts only the values), which consumer reads which
+> file, and which quality gate covers which leak path. No decrypted value
+> appears here.
 
 ## The recipient binding
 
 ```yaml
-# .sops.yaml
 creation_rules:
-  - path_regex: '**\.sops\.yaml$'
+  - path_regex: '.*\.sops\.yaml$'
     age: age1zdcnr28uvud0k57mxeqvs8t07jrk7tz6hpfgauw0twdquwfh4yzshq4j7n
 ```
 (`.sops.yaml`, full file)
 
 One rule, one `age` recipient, applied to every path in the repo matching
-`*.sops.yaml`. This is the entire trust root: anything encrypted for this
-recipient can only be decrypted by whoever holds the matching private key
-(`SOPS_AGE_KEY_FILE`, per the root README's quickstart). There is no
-per-file or per-team recipient split today; one key opens every secret in
-the repo.
+`*.sops.yaml`. This is the entire trust root: the matching private key
+(`SOPS_AGE_KEY_FILE`, per the root README's quickstart) decrypts every
+secret in the repo, and nothing else does. Adding a second recipient means
+adding it to this rule and re-encrypting each file with `sops updatekeys`.
 
-## What's in each file, and who reads it
+## What each file holds, and who reads it
 
 ```
 secrets/
-├── pve.sops.yaml              # Proxmox API tokens (terraform, ansible, prometheus consumers)
-├── proxmox_id.sops.yaml       # SSH key Terraform uses against the PVE host itself
-├── ansible_id.sops.yaml       # SSH keypair seeded into guests via cloud-init
-├── cloudflare.sops.yaml       # Cloudflare API token + zone ID
+├── pve.sops.yaml              # Proxmox API tokens (terraform, ansible, prometheus consumers) + pve_password
+├── proxmox_id.sops.yaml       # SSH private key Terraform uses against the PVE host
+├── proxmox_id.pub             # its public half
+├── ansible_id.sops.yaml       # SSH private key for the guest automation account
+├── ansible_id.pub             # its public half, seeded into guests via cloud-init
+├── cloudflare.sops.yaml       # Cloudflare API token
 └── media_platform.sops.yaml   # Application API keys and service credentials
 ```
-(`workspace/README.md:284-292`, confirmed against actual `ls` of `secrets/`)
 
-Key *names* referenced by consuming code (not values; every value below is
-`ENC[...]` ciphertext in the file itself):
+Key *names* referenced by consuming code (every value is `ENC[...]`
+ciphertext in the file):
 
-| File | Keys referenced in source | Consumer |
+| File | Keys | Consumer |
 |---|---|---|
-| `proxmox_id.sops.yaml` | `ssh_private_key` | Terraform, both `_base` and every `proxmox`-facing deployment stack, via `data.sops_file.proxmox_id.data["ssh_private_key"]` (`workspace/infrastructure/_base/providers.tf:19-25`, `workspace/deployments/media/infrastructure/providers.tf:23-29`). This is the key the `bpg/proxmox` provider uses over SSH against the Proxmox **host**, not a guest. |
-| `ansible_id.sops.yaml` | `ssh_public_key` | Terraform's `deployments/media/infrastructure/main.tf:1-3,10` reads the **public** half and threads it into the `proxmox_vm` module as `ssh_public_key`, which the cloud-init template embeds in the new guest's `authorized_keys`. The matching private key is what `ansible.cfg`'s `private_key_file = ~/.ssh/ansible_id` expects to find locally. Ansible never reads this file directly; it is a pre-generated keypair on disk, the Terraform half of which is sourced from SOPS. |
-| `cloudflare.sops.yaml` | `cloudflare_api_key`, `cloudflare_zone_id` | Terraform only, via `deployments/media/infrastructure/providers.tf:60-66` (provider auth) and `main-cf.tf:2` (zone ID for the DNS record resource) |
-| `pve.sops.yaml` | `pve_ansible_api_user_name`, `pve_ansible_api_token_id`, `pve_ansible_api_token_secret` | Ansible's **dynamic inventory plugin** (`ansible/inventory/00_inv.proxmox.yml:4-6`), via `community.sops.sops` lookup against the `vault/pve.sops.yaml` symlink |
-| `pve.sops.yaml` (same file) | `pve_prometheus_api_user_name`, `pve_prometheus_api_token_id`, `pve_prometheus_api_token_secret` | The `observability_node` role's `pve-exporter/pve.yml.j2` template (`ansible/roles/observability_node/templates/pve-exporter/pve.yml.j2`), a **separate, third token** from the same file, scoped to whatever Prometheus's `pve-exporter` needs read access to |
-| `media_platform.sops.yaml` | `media_platform_{prowlarr,sonarr,radarr,sabnzbd}_api_key`, `media_platform_arr_webapp_{username,password}`, plus others referenced in role templates | Both Ansible (role templates, `no_log: true` on every task that renders them) **and** Terraform's `deployments/media/application` stack, via `data.sops_file.media_platform` |
+| `proxmox_id.sops.yaml` | `ssh_private_key` | Terraform, `_base` and `deployments/media/infrastructure`, through `ephemeral.sops_file.proxmox_id.data["ssh_private_key"]` in each stack's `providers.tf`. The `bpg/proxmox` provider uses this key over SSH against the Proxmox **host**, not a guest. |
+| `ansible_id.pub` | (plaintext public key) | Terraform's `deployments/media/infrastructure/main.tf` reads it with `file()` and passes it to the `proxmox_vm` module as `ssh_public_key`; the cloud-init template writes it into the guest's `authorized_keys`. |
+| `ansible_id.sops.yaml` | `ssh_private_key` | Encrypted copy of the private key that `ansible.cfg`'s `private_key_file = ~/.ssh/ansible_id` expects on the control machine. No code decrypts it at runtime; it provides the key's canonical, versioned home. |
+| `cloudflare.sops.yaml` | `cloudflare_api_key` | Terraform only, through `ephemeral.sops_file.cloudflare` in `deployments/media/infrastructure/providers.tf` (provider auth). The DNS zone ID is a plain tfvar (`cloudflare_zone_id`). |
+| `pve.sops.yaml` | `pve_ansible_api_user_name`, `pve_ansible_api_token_id`, `pve_ansible_api_token_secret` | Ansible's **dynamic inventory plugin** (`ansible/inventory/00_inv.proxmox.yml`), through `community.sops.sops` lookups against the `vault/pve.sops.yaml` symlink |
+| `pve.sops.yaml` (same file) | `pve_prometheus_api_user_name`, `pve_prometheus_api_token_id`, `pve_prometheus_api_token_secret` | The `observability_node` role's `templates/pve-exporter/pve.yml.j2`: a **separate, third token** scoped to what `pve-exporter` reads |
+| `media_platform.sops.yaml` | `media_platform_{prowlarr,sonarr,radarr,sabnzbd}_api_key`, `media_platform_arr_webapp_{username,password}`, plus others referenced in role templates | Both Ansible (role templates, with `no_log: true` on every task that renders them) **and** Terraform's `deployments/media/application` stack, through `data.sops_file.media_platform` |
 
-`pve.sops.yaml` is the one file with three separate credentials:
-`terraform`, `ansible`, and `prometheus`, each its own API token, confirmed
-by the distinct `pve_ansible_api_*` vs. `pve_prometheus_api_*` key prefixes
-referenced across `00_inv.proxmox.yml` and `pve.yml.j2`. See
-[[engineering-decisions]] for the rationale (blast-radius containment,
-one-file rotation).
+`pve.sops.yaml` holds three separate API tokens, one per consumer:
+`pve_terraform_api_*`, `pve_ansible_api_*`, and `pve_prometheus_api_*`. See
+[Engineering decisions](engineering-decisions.md) for the rationale
+(blast-radius containment, one-file rotation).
 
 ## `media_platform.sops.yaml` feeds both tools from one source
 
-The same API-key values under `media_platform.sops.yaml` show up in three
-independent places without ever being typed by hand more than once:
+The same API-key values appear in three places without anyone typing them
+twice:
 
 1. Ansible's `media_platform` role renders them into the Docker Compose
    environment (`PROWLARR__API__KEY`, `RADARR__API__KEY`,
-   `SONARR__API__KEY`, in `roles/media_platform/templates/docker-compose.yml.j2`).
-2. The same values are templated into `configarr.yml.j2`'s config via
-   Configarr's own `!env` indirection (`api_key: !env SONARR__API__KEY`);
-   Configarr reads the value from its container's environment at runtime,
-   never storing it a second time inside the YAML file on disk.
-3. Terraform's `application` stack configures the *arr web UIs and Prowlarr's
-   application links using `data.sops_file.media_platform.data["media_platform_sonarr_api_key"]`
-   directly (`workspace/deployments/media/application/main.tf`).
+   `SONARR__API__KEY`) in `roles/media_platform/templates/docker-compose.yml.j2`.
+2. `configarr.yml.j2` references them through Configarr's `!env`
+   indirection (`api_key: !env SONARR__API__KEY`). Configarr reads the value
+   from its container's environment at runtime, so the rendered YAML on disk
+   never contains it.
+3. Terraform's `application` stack configures the *arr web UIs and
+   Prowlarr's application links with
+   `data.sops_file.media_platform.data["media_platform_sonarr_api_key"]`
+   and its siblings (`workspace/deployments/media/application/main.tf`).
 
-Because all three read the one encrypted source of truth, rotating an API
-key is a single-file edit that stays consistent across the running
-containers and the Terraform-managed application config. There is no manual
-copy-paste step between "the container's env var" and "what Terraform tells
-Prowlarr to expect."
+All three read one encrypted source, so rotating an API key is a single-file
+edit that stays consistent across the running containers and the
+Terraform-managed application config.
 
-## What actually decrypts, and where
+## Where decryption happens
 
-- **Terraform**: `carlpett/sops` provider, `sops_file` data source, resolved
-  at `plan`/`apply` time. The decrypted value lives only in Terraform's
-  in-memory plan graph (and, notably, in **state**: state is not encrypted
-  at rest by this setup; see [[provisioning]]'s note on state being local
-  and gitignored, which is the only thing currently keeping
-  plaintext-in-state off disk in a shared location).
-- **Ansible**: `community.sops.sops` lookup plugin, invoked either directly
-  in inventory (`00_inv.proxmox.yml`) or via the `community.sops.sops`
-  **vars plugin**, enabled in `ansible.cfg`
-  (`vars_plugins_enabled = host_group_vars, community.sops.sops`). Encrypted
-  group vars are **symlinked** into the inventory tree rather than
-  duplicated:
-  ```
-  inventory/group_vars/media_platform.sops.yml -> ../../../secrets/media_platform.sops.yaml
-  vault/pve.sops.yaml                          -> ../secrets/pve.sops.yaml
-  ```
-  (confirmed via `readlink -f` on both symlinks). `secrets/` stays the one
-  place a credential physically lives; everything else is a pointer.
+**Terraform** uses the `carlpett/sops` provider in two forms:
 
-In both cases, decryption happens in memory at load/plan time. Nothing is
-ever written to disk in plaintext by design, and there's no `.env` file to
-leak.
+- **`ephemeral "sops_file"`** in `_base` and `deployments/media/infrastructure`.
+  Terraform decrypts the file in memory for the duration of the run and never
+  records the value in the plan or state. Ephemeral values can feed provider
+  configuration, locals, and write-only arguments, which covers the Proxmox
+  SSH key and the Cloudflare API token.
+- **`data "sops_file"`** in `deployments/media/application`. Its secrets feed
+  resource arguments (`authentication.password`, `api_key`, and similar) on
+  the `devopsarr` providers. Those providers mark the attributes `sensitive`,
+  which hides them from plan output, but offer no write-only variants, so the
+  values persist in that stack's state. Local, gitignored state keeps them
+  off shared storage (see [Provisioning](provisioning.md)).
 
-## The orphaned Ansible Vault file, a gap outside the SOPS pipeline
+**Ansible** uses the `community.sops.sops` lookup plugin, called directly in
+the inventory (`00_inv.proxmox.yml`), and the `community.sops.sops` **vars
+plugin**, enabled in `ansible.cfg`
+(`vars_plugins_enabled = host_group_vars, community.sops.sops`). Symlinks
+place the encrypted files in the inventory tree rather than duplicating
+them:
 
-> [!bug] `ansible/roles/observability_node/files/prometheus/pve.yml` is Ansible-Vault-encrypted, not SOPS, and is not the file the role uses
-> The role's real PVE-exporter config comes from
-> `templates/pve-exporter/pve.yml.j2`, rendered at
-> `{{ observability_node_root_dir }}/pve-exporter/pve.yml` by
-> `tasks/pve_exporter.yml`. A second, tracked-in-git file sits alongside it
-> in the role tree, `ansible/roles/observability_node/files/prometheus/pve.yml`,
-> which opens with `$ANSIBLE_VAULT;1.2;AES256;pve`. This is
-> `ansible-vault`-format encryption, a different mechanism from the SOPS
-> pipeline the rest of the repo uses. It is `git ls-files`-tracked
-> (confirmed), so its presence is not an artifact of a local checkout.
->
-> The `sops` pre-commit hook only matches `'\.sops\.ya?ml$'`
-> (`.pre-commit-config.yaml:49-51`). This file does not match that pattern,
-> so the hook never inspects it. The file is AES256 ciphertext, so this is
-> not a plaintext leak, but no tooling in the repo flags this file as using
-> a different encryption mechanism than the rest of `secrets/`. A commit
-> that decrypted this file with `ansible-vault` and recommitted it as
-> plaintext would not be blocked by any current CI check; see the gap table
-> below.
+```
+inventory/group_vars/media_platform.sops.yml -> ../../../secrets/media_platform.sops.yaml
+vault/pve.sops.yaml                          -> ../../secrets/pve.sops.yaml
+```
 
-## Precisely which gate catches what
+`secrets/` stays the one place a credential physically lives; everything else
+points at it. Both tools decrypt in memory at load or plan time and write no
+plaintext file.
 
-| Threat | Catches it? | Mechanism |
+## Which gate covers which leak path
+
+| Leak path | Gate | Runs |
 |---|---|---|
-| A `secrets/*.sops.yaml` file committed **unencrypted** | **Yes** | `sops` pre-commit hook (`squat/pre-commit-sops`), run in CI's `hooks` job. Parses the file and fails if SOPS metadata / `ENC[...]` markers aren't present |
-| A private key file (PEM, etc.) committed anywhere in the tree | **Yes** | `detect-private-key` hook, same `hooks` CI job |
-| A secret value pasted in **plaintext** into a `.tf`, `.yml`, or any non-`*.sops.yaml` file, anywhere in history | **Yes, but only in full-history scan, not pre-commit** | `gitleaks`, a dedicated CI job with `fetch-depth: 0`. Scans the **entire git history**, not just the diff. This job has no local pre-commit equivalent at all. |
-| A secret value pasted in plaintext into a file, **within the same PR/commit that also gets rejected on other grounds before push** | **Not guaranteed locally** | Pre-commit is optional to run locally (see [[ci-quality-gates]]). Skipping it does not block `git push` with a plaintext secret sitting in a regular file; only CI's `gitleaks` job catches it, after push |
-| The Ansible-Vault file above, if it were ever re-encrypted incorrectly or accidentally decrypted to plaintext and recommitted | **No** | Doesn't match `*.sops.yaml`, so the `sops` hook ignores it. `yamllint` and `ansible-lint` also explicitly **exclude** `**/*sops.yaml` and `**/*sops.yml` patterns (`.yamllint:9-14`, `.ansible-lint:14-20`), but this file's actual name (`pve.yml`, no `sops` in the name) means it is not excluded from `yamllint`/`ansible-lint` scrutiny either. It would be treated as an ordinary YAML file, and both linters would likely fail on its Vault header; neither is a secret-content check regardless |
-| A secret decrypted to a temp file during local development and left on disk | **No** | Nothing in this repo's tooling watches the filesystem outside the git tree; this is purely operator discipline |
+| A `*.sops.yaml` file committed unencrypted | `sops` hook (`squat/pre-commit-sops`), matching `\.sops\.ya?ml$`; fails when SOPS metadata or `ENC[...]` markers are missing | Local pre-commit and CI `hooks` job |
+| A private key file (PEM and similar) committed anywhere in the tree | `detect-private-key` hook | Local pre-commit and CI `hooks` job |
+| A secret value pasted in plaintext into any file, at any point in history | `gitleaks`, with `fetch-depth: 0` so it scans the **entire git history** | CI `gitleaks` job |
 
-> [!warning] "No plaintext secret ever touches git" is a design goal, not a guarantee enforced on every push
-> The root README states this as a property of the system, and the design
-> supports it: SOPS is used correctly for every secret currently in
-> `secrets/`. But the *enforcement* of that property, for anything outside
-> `secrets/*.sops.yaml` specifically, depends on `gitleaks`, which only runs
-> in CI, after push. Locally, before push, only whatever hooks are run
-> manually via `pre-commit run --all-files` stand between a plaintext paste
-> and the remote. See [[ci-quality-gates]] for the full breakdown of what's
-> optional versus enforced.
-
-## Check your understanding
-
-- [ ] How many separate credentials live inside `pve.sops.yaml`, and what's
-      the naming pattern that distinguishes them?
-- [ ] Why does `secrets/ansible_id.sops.yaml`'s key get read by *Terraform*,
-      not Ansible? What does Ansible use instead to authenticate the same
-      keypair?
-- [ ] Trace one API key from `media_platform.sops.yaml` through to three
-      different places it ends up being used. What keeps all three in sync?
-- [ ] What's the one `.sops.yaml` rule that governs every encrypted file in
-      the repo, and what would happen if a second `age` recipient needed
-      access?
-- [ ] Which pre-commit/CI check would catch a plaintext secret pasted into a
-      `.tf` file, and does it run before or after `git push`?
-- [ ] What is `ansible/roles/observability_node/files/prometheus/pve.yml`,
-      why doesn't the `sops` hook ever look at it, and is it actually used by
-      any task?
-- [ ] Where does a decrypted secret value physically exist at any point in
-      the Terraform apply lifecycle, and is that location itself protected?
+`yamllint` and `ansible-lint` exclude `**/*sops.yaml` and `**/*sops.yml`
+(`.yamllint`, `.ansible-lint`), so the linters never parse ciphertext; the
+`sops` hook alone checks encryption state. [CI and quality
+gates](ci-quality-gates.md) lists every job and hook.

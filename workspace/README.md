@@ -35,8 +35,8 @@ Cluster-wide primitives that every deployment consumes:
 | `proxmox_virtual_environment_vm.*_template` | Converts each image into a tagged Proxmox template |
 | `proxmox_hardware_mapping_pci.transcoding_gpu` | Cluster-level PCI mapping for the Intel GPU |
 
-Templates are tagged (`template` + an OS tag, with `default` on Ubuntu 24.04)
-and carry `lifecycle { prevent_destroy = true }`. Downloads set
+Each template carries `template` plus an OS tag (Ubuntu 24.04 also carries
+`default`) and `lifecycle { prevent_destroy = true }`. Downloads set
 `overwrite = false` so a re-apply never silently re-pulls a multi-gigabyte image.
 
 Apply this stack first. Nothing else works without it.
@@ -47,8 +47,10 @@ A single module every deployment goes through, rather than hand-rolled VM
 resources per stack. It handles:
 
 - **Template discovery by tag.** Queries `proxmox_virtual_environment_vms`
-  filtered on `["template", var.template_os_tag]` and clones the result. No VM
-  IDs are hardcoded anywhere in a deployment stack.
+  filtered on `["template", var.template_os_tag]` and `template = true`, then
+  clones the match. A `lifecycle.precondition` on the VM resource requires
+  exactly one match and fails the plan with the names of every candidate
+  otherwise. No deployment stack hardcodes a VM ID.
 - **Cloud-init rendering.** Generates a per-VM snippet from
   `templates/cloud-init.yml.tpl` (override with `cloud_init_user_data_path`),
   injecting hostname, domain, default user, and the SSH public key.
@@ -61,10 +63,14 @@ resources per stack. It handles:
 - **Additional disks.** A `map(object(...))` keyed by interface name, supporting
   both newly-created disks and attaching existing ones via `path_in_datastore`,
   with `size`/`iothread`/`discard` conditionally nulled when attaching.
-- **Conditional PCIe passthrough.** See below.
+- **DNS resolvers.** `dns_servers` sets the resolvers written into each VM's
+  cloud-init network config (default `["192.168.0.1", "8.8.8.8"]`).
+- **Conditional PCIe passthrough.** See below. Each `pcie_devices` entry sets
+  `pcie` and `rombar` independently; both default to `true`.
 
-Outputs `vm_id` and `primary_ip` (the first non-loopback IPv4 from the guest
-agent), which is what the Cloudflare DNS record consumes.
+Outputs `vm_id` and `primary_ip` are lists with one element per VM (the IPv4
+address is the first non-loopback address reported by the guest agent). The
+media deployment's Cloudflare record uses `primary_ip[0]`.
 
 #### GPU passthrough is one variable
 
@@ -86,7 +92,7 @@ Each deployment is split into two stacks because they have different
 dependencies and different failure modes.
 
 **`infrastructure/`** calls the `proxmox_vm` module and creates the VM, then
-creates a Cloudflare `A` record pointing at `module.media_vm.primary_ip`. It
+creates a Cloudflare `A` record pointing at `module.media_vm.primary_ip[0]`. It
 looks the GPU mapping up as a *data source* rather than redefining it, so the
 mapping stays owned by `_base`.
 
@@ -95,7 +101,7 @@ providers (`devopsarr/prowlarr`, `devopsarr/sonarr`, `devopsarr/radarr`):
 host settings, authentication, root folders, the SABnzbd download client, and
 the Prowlarr application links that sync indexers into Sonarr and Radarr.
 
-This stack **must run after Ansible**, because its providers point at HTTP
+This stack **runs after Ansible**, because its providers point at HTTP
 endpoints that only exist once the containers are up. Keeping it separate means
 a provider that cannot reach a service does not block a VM rebuild.
 
@@ -111,32 +117,35 @@ Both Proxmox-facing stacks declare the provider twice:
 | `proxmox.root` | Username + password | Template creation and VM cloning |
 
 Proxmox does not permit API tokens to perform some cloning and template
-operations. Rather than giving the whole stack root credentials, the elevated
-alias is passed explicitly and only to the resources that need it. The module
-declares this requirement through `configuration_aliases = [proxmox.root]`, so a
-caller that forgets to wire it up fails at `init` rather than at `apply`.
+operations. Rather than giving the whole stack root credentials, each stack
+passes the elevated alias explicitly and only to the resources that need it. The
+module declares this requirement through `configuration_aliases =
+[proxmox.root]`, so a module call without the alias fails at `init` rather than
+at `apply`.
 
-SSH connectivity for the provider's file operations uses a private key read from
-SOPS at plan time, never from disk.
+SSH connectivity for the provider's file operations uses a private key from an
+`ephemeral "sops_file"` resource, which Terraform decrypts in memory and never
+writes to state. `insecure` comes from `var.proxmox_insecure` (default `true`
+for the lab's self-signed certificate).
 
 ---
 
 ## State
 
-Terraform state is **local** to each stack directory and is gitignored
-(`*.tfstate`, `*.tfstate.*`, `.terraform/`). Provider lockfiles
-(`.terraform.lock.hcl`) **are** committed, so every apply and every CI run
-resolves identical provider builds.
+Terraform state is **local** to each stack directory, and `.gitignore` excludes
+it (`*.tfstate`, `*.tfstate.*`, `.terraform/`). The repo **does** commit provider
+lockfiles (`.terraform.lock.hcl`), so every apply and every CI run resolves
+identical provider builds.
 
-Migrating to a locking remote backend is the top item on the roadmap in the
-[root README](../README.md); it is the prerequisite for applying from CI.
+A locking remote backend is the top item on the roadmap in the
+[root README](../README.md) and the prerequisite for applying from CI.
 
 ---
 
 ## Inputs and secrets
 
-`*.tfvars` files are gitignored, so each stack expects its variables to be
-supplied locally. A stack's required inputs are the variables without defaults
+`.gitignore` excludes `*.tfvars` files, so each stack reads its inputs from a local
+`terraform.tfvars`. A stack's required inputs are the variables without defaults
 in its `variables.tf`.
 
 `infrastructure/_base` and `deployments/media/infrastructure` both need:
@@ -151,22 +160,32 @@ datastore_infra   = "<disk-datastore>"
 datastore_files   = "<file-datastore>"
 ```
 
-The deployment stack additionally needs `vm_name_prefix`, `vm_count`,
-`vm_group`, `vm_default_user`, `personal_domain`, and `additional_disks`.
-`deployments/media/application` needs only `arr_host`; every other input has a
-sensible default.
+Both also accept `proxmox_insecure` (default `true`).
 
-Secrets are never passed as variables. They are read at plan time from the
-encrypted files in [`../secrets/`](../secrets) via the `carlpett/sops` provider:
+The deployment stack additionally requires `vm_name_prefix`, `vm_count`,
+`vm_group`, `vm_default_user`, and `cloudflare_zone_id`, and accepts
+`additional_disks`, `dns_servers`, `cpu`, `memory`, and `personal_domain` with
+defaults. `deployments/media/application` requires only `arr_host`.
 
-| Stack | Reads |
-|---|---|
-| `infrastructure/_base` | `proxmox_id.sops.yaml` |
-| `deployments/media/infrastructure` | `proxmox_id`, `ansible_id`, `cloudflare` |
-| `deployments/media/application` | `media_platform.sops.yaml` |
+Credentials never pass through variables. Each stack reads them from the
+encrypted files in [`../secrets/`](../secrets) through the `carlpett/sops`
+provider:
 
-You need `SOPS_AGE_KEY_FILE` pointing at the private key matching the recipient
-in `.sops.yaml` before any `plan` or `apply` will succeed.
+| Stack | Reads | Mechanism |
+|---|---|---|
+| `infrastructure/_base` | `proxmox_id.sops.yaml` | `ephemeral "sops_file"` |
+| `deployments/media/infrastructure` | `proxmox_id.sops.yaml`, `cloudflare.sops.yaml` | `ephemeral "sops_file"` |
+| `deployments/media/infrastructure` | `ansible_id.pub` | `file()` (public key, not encrypted) |
+| `deployments/media/application` | `media_platform.sops.yaml` | `data "sops_file"` |
+
+Ephemeral values feed provider configuration only and never reach state. The
+application stack passes its secrets into resource arguments (API keys, web UI
+credentials), and the `devopsarr` providers expose those as `sensitive` rather
+than write-only, so that stack keeps a `data` source and its state holds the
+values.
+
+`plan` and `apply` require `SOPS_AGE_KEY_FILE` pointing at the private key that
+matches the recipient in `.sops.yaml`.
 
 ---
 
@@ -183,6 +202,11 @@ terraform fmt -check -recursive workspace
 cd workspace && tflint --init && tflint --recursive --format compact
 ```
 
+`workspace/.tflint.hcl` enables the bundled `terraform` ruleset with the `all`
+preset, which includes `terraform_documented_variables` and
+`terraform_documented_outputs`: every variable and output carries a
+`description`, and those descriptions populate the generated README tables.
+
 Order matters: `_base` -> `deployments/*/infrastructure` -> Ansible ->
 `deployments/*/application`.
 
@@ -190,27 +214,27 @@ Order matters: `_base` -> `deployments/*/infrastructure` -> Ansible ->
 
 ## Per-stack input/output reference
 
-Every stack and module directory has its own `README.md` whose tables are
-generated by [terraform-docs](https://terraform-docs.io) between
-`<!-- BEGIN_TF_DOCS -->` markers, driven by
-[`.terraform-docs.yaml`](.terraform-docs.yaml) and regenerated by the
-`terraform_docs` pre-commit hook. Prose written above the marker is preserved.
+Every stack and module directory has its own `README.md`.
+[terraform-docs](https://terraform-docs.io) generates the tables between the
+`<!-- BEGIN_TF_DOCS -->` markers from
+[`.terraform-docs.yaml`](.terraform-docs.yaml), and the `terraform_docs`
+pre-commit hook regenerates them. The hook leaves prose above the marker intact.
 
 - [`modules/proxmox_vm`](modules/proxmox_vm/README.md)
 - [`infrastructure/_base`](infrastructure/_base/README.md)
 - [`deployments/media/infrastructure`](deployments/media/infrastructure/README.md)
 - [`deployments/media/application`](deployments/media/application/README.md)
 
-Do not hand-edit inside the markers.
+The markers enclose generated output only.
 
 ---
 
 ## Conventions
 
-- Provider versions are pinned exactly; `required_version` is a floor (`>= 1.15`).
-- Lockfiles are committed. Validation runs with `-lockfile=readonly`.
-- Variables carrying credentials are marked `sensitive = true`.
-- Shared, cluster-scoped resources are **defined** in `_base` and **read** as
-  data sources everywhere else. A deployment stack never owns a cluster resource.
+- Provider versions use exact pins; `required_version` sets a floor (`>= 1.15`).
+- The repo commits lockfiles. Validation runs with `-lockfile=readonly`.
+- Variables carrying credentials set `sensitive = true`.
+- `_base` **defines** shared, cluster-scoped resources, and every other stack
+  **reads** them as data sources. A deployment stack never owns a cluster resource.
 - Anything irreplaceable (OS templates) carries `prevent_destroy`.
-- `terraform fmt` is enforced, not suggested.
+- CI enforces `terraform fmt`.
