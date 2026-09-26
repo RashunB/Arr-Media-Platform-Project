@@ -1,7 +1,7 @@
 ---
 - name: Setup SOPS on control
   ansible.builtin.import_playbook: sops.yml
-  tags: [sops, secrets]
+  tags: [sops]
 
 - name: Setup observability control
   ansible.builtin.import_playbook: observability_control.yml

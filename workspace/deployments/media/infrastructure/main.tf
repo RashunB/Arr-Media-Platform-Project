@@ -1,13 +1,9 @@
-data "sops_file" "public_key" {
-  source_file = "${path.module}/../../../../secrets/ansible_id.sops.yaml"
-}
-
 data "proxmox_hardware_mapping_pci" "transcoding_gpu" {
   name = "transcoding_gpu"
 }
 
 locals {
-  public_key = trimspace(data.sops_file.public_key.data["ssh_public_key"])
+  public_key = trimspace(file("${path.module}/../../../../secrets/ansible_id.pub"))
 
   pcie_map = [
     data.proxmox_hardware_mapping_pci.transcoding_gpu.name,
@@ -18,6 +14,7 @@ locals {
       device  = "hostpci${idx}"
       mapping = name
       pcie    = true
+      rombar  = true
     }
   }
 }
@@ -42,6 +39,7 @@ module "media_vm" {
   cpu                       = var.cpu
   memory                    = var.memory
   pcie_devices              = local.pcie_devices
+  dns_servers               = var.dns_servers
 
   providers = {
     proxmox      = proxmox
