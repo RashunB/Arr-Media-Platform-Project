@@ -43,22 +43,22 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_arr_host"></a> [arr\_host](#input\_arr\_host) | IP address or hostname of the Media Platform target | `string` | n/a | yes |
-| <a name="input_prowlarr_port"></a> [prowlarr\_port](#input\_prowlarr\_port) | Port for Prowlarr service | `number` | `9696` | no |
-| <a name="input_radarr_name"></a> [radarr\_name](#input\_radarr\_name) | Name for Radarr instance | `string` | `"Radarr"` | no |
-| <a name="input_radarr_port"></a> [radarr\_port](#input\_radarr\_port) | Port for Radarr service | `number` | `7878` | no |
-| <a name="input_radarr_root_folder"></a> [radarr\_root\_folder](#input\_radarr\_root\_folder) | Radarr root folder for movies | `string` | `"/movies"` | no |
-| <a name="input_radarr_sync"></a> [radarr\_sync](#input\_radarr\_sync) | Prowlarr's sync level for keeping Radarr within intended state | `string` | `"addOnly"` | no |
-| <a name="input_radarr_sync_categories"></a> [radarr\_sync\_categories](#input\_radarr\_sync\_categories) | Radarr sync categories for movies | `list(number)` | <pre>[<br/>  2000,<br/>  2010,<br/>  2030<br/>]</pre> | no |
-| <a name="input_sabnzbd_enabled"></a> [sabnzbd\_enabled](#input\_sabnzbd\_enabled) | Toggle for enabling SABnzbd | `bool` | `true` | no |
-| <a name="input_sabnzbd_name"></a> [sabnzbd\_name](#input\_sabnzbd\_name) | Name of SABnzbd instance | `string` | `"SABnzbd"` | no |
-| <a name="input_sabnzbd_port"></a> [sabnzbd\_port](#input\_sabnzbd\_port) | Port for SABnzbd service | `number` | `6060` | no |
-| <a name="input_sabnzbd_prio"></a> [sabnzbd\_prio](#input\_sabnzbd\_prio) | Priority level for SABnzbd as a download client | `number` | `1` | no |
-| <a name="input_sonarr_name"></a> [sonarr\_name](#input\_sonarr\_name) | Name of Sonarr instance | `string` | `"Sonarr"` | no |
-| <a name="input_sonarr_port"></a> [sonarr\_port](#input\_sonarr\_port) | Port for Sonarr service | `number` | `8989` | no |
-| <a name="input_sonarr_root_folder"></a> [sonarr\_root\_folder](#input\_sonarr\_root\_folder) | Sonarr root folder for tv series | `string` | `"/tv"` | no |
-| <a name="input_sonarr_sync"></a> [sonarr\_sync](#input\_sonarr\_sync) | Prowlarr's sync level for keeping Sonarr within intended state | `string` | `"addOnly"` | no |
-| <a name="input_sonarr_sync_categories"></a> [sonarr\_sync\_categories](#input\_sonarr\_sync\_categories) | Sonarr sync categories for tv series | `list(number)` | <pre>[<br/>  5000,<br/>  5010,<br/>  5030<br/>]</pre> | no |
+| <a name="input_arr_host"></a> [arr\_host](#input\_arr\_host) | n/a | `string` | n/a | yes |
+| <a name="input_prowlarr_port"></a> [prowlarr\_port](#input\_prowlarr\_port) | n/a | `number` | `9696` | no |
+| <a name="input_radarr_name"></a> [radarr\_name](#input\_radarr\_name) | n/a | `string` | `"Radarr"` | no |
+| <a name="input_radarr_port"></a> [radarr\_port](#input\_radarr\_port) | n/a | `number` | `7878` | no |
+| <a name="input_radarr_root_folder"></a> [radarr\_root\_folder](#input\_radarr\_root\_folder) | n/a | `string` | `"/movies"` | no |
+| <a name="input_radarr_sync"></a> [radarr\_sync](#input\_radarr\_sync) | n/a | `string` | `"addOnly"` | no |
+| <a name="input_radarr_sync_categories"></a> [radarr\_sync\_categories](#input\_radarr\_sync\_categories) | n/a | `list(number)` | <pre>[<br/>  2000,<br/>  2010,<br/>  2030<br/>]</pre> | no |
+| <a name="input_sabnzbd_enabled"></a> [sabnzbd\_enabled](#input\_sabnzbd\_enabled) | n/a | `bool` | `true` | no |
+| <a name="input_sabnzbd_name"></a> [sabnzbd\_name](#input\_sabnzbd\_name) | n/a | `string` | `"SABnzbd"` | no |
+| <a name="input_sabnzbd_port"></a> [sabnzbd\_port](#input\_sabnzbd\_port) | n/a | `number` | `6060` | no |
+| <a name="input_sabnzbd_prio"></a> [sabnzbd\_prio](#input\_sabnzbd\_prio) | n/a | `number` | `1` | no |
+| <a name="input_sonarr_name"></a> [sonarr\_name](#input\_sonarr\_name) | n/a | `string` | `"Sonarr"` | no |
+| <a name="input_sonarr_port"></a> [sonarr\_port](#input\_sonarr\_port) | n/a | `number` | `8989` | no |
+| <a name="input_sonarr_root_folder"></a> [sonarr\_root\_folder](#input\_sonarr\_root\_folder) | n/a | `string` | `"/tv"` | no |
+| <a name="input_sonarr_sync"></a> [sonarr\_sync](#input\_sonarr\_sync) | n/a | `string` | `"addOnly"` | no |
+| <a name="input_sonarr_sync_categories"></a> [sonarr\_sync\_categories](#input\_sonarr\_sync\_categories) | n/a | `list(number)` | <pre>[<br/>  5000,<br/>  5010,<br/>  5030<br/>]</pre> | no |
 
 ## Outputs
 

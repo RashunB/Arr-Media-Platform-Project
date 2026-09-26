@@ -16,6 +16,7 @@
 |------|---------|
 | <a name="provider_proxmox"></a> [proxmox](#provider\_proxmox) | 0.113.1 |
 | <a name="provider_proxmox.root"></a> [proxmox.root](#provider\_proxmox.root) | 0.113.1 |
+| <a name="provider_sops"></a> [sops](#provider\_sops) | 1.4.1 |
 
 ## Modules
 
@@ -30,25 +31,25 @@ No modules.
 | [proxmox_hardware_mapping_pci.transcoding_gpu](https://registry.terraform.io/providers/bpg/proxmox/0.113.1/docs/resources/hardware_mapping_pci) | resource |
 | [proxmox_virtual_environment_vm.rocky9_template](https://registry.terraform.io/providers/bpg/proxmox/0.113.1/docs/resources/virtual_environment_vm) | resource |
 | [proxmox_virtual_environment_vm.ubuntu24_template](https://registry.terraform.io/providers/bpg/proxmox/0.113.1/docs/resources/virtual_environment_vm) | resource |
+| [sops_file.proxmox_id](https://registry.terraform.io/providers/carlpett/sops/1.4.1/docs/data-sources/file) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_datastore_files"></a> [datastore\_files](#input\_datastore\_files) | Proxmox datastore to store file components provisioned by Terraform | `string` | n/a | yes |
-| <a name="input_datastore_infra"></a> [datastore\_infra](#input\_datastore\_infra) | Proxmox datastore to store infrastructure components provisioned by Terraform | `string` | n/a | yes |
-| <a name="input_proxmox_api_token"></a> [proxmox\_api\_token](#input\_proxmox\_api\_token) | Proxmox host API token for routine connectivity | `string` | n/a | yes |
-| <a name="input_proxmox_endpoint"></a> [proxmox\_endpoint](#input\_proxmox\_endpoint) | Endpoint for the proxmox host in format of 'https://hostname:port/' | `string` | n/a | yes |
-| <a name="input_proxmox_insecure"></a> [proxmox\_insecure](#input\_proxmox\_insecure) | Skip TLS certificate verification for Proxmox API | `bool` | `true` | no |
-| <a name="input_proxmox_node_name"></a> [proxmox\_node\_name](#input\_proxmox\_node\_name) | Proxmox host node name | `string` | n/a | yes |
-| <a name="input_proxmox_password"></a> [proxmox\_password](#input\_proxmox\_password) | Password for proxmox user defined for escalated, privileged actions | `string` | n/a | yes |
-| <a name="input_proxmox_user"></a> [proxmox\_user](#input\_proxmox\_user) | Proxmox user for escalated, privileged actions | `string` | n/a | yes |
+| <a name="input_datastore_files"></a> [datastore\_files](#input\_datastore\_files) | n/a | `string` | n/a | yes |
+| <a name="input_datastore_infra"></a> [datastore\_infra](#input\_datastore\_infra) | n/a | `string` | n/a | yes |
+| <a name="input_proxmox_api_token"></a> [proxmox\_api\_token](#input\_proxmox\_api\_token) | n/a | `string` | n/a | yes |
+| <a name="input_proxmox_endpoint"></a> [proxmox\_endpoint](#input\_proxmox\_endpoint) | n/a | `string` | n/a | yes |
+| <a name="input_proxmox_node_name"></a> [proxmox\_node\_name](#input\_proxmox\_node\_name) | n/a | `string` | n/a | yes |
+| <a name="input_proxmox_password"></a> [proxmox\_password](#input\_proxmox\_password) | n/a | `string` | n/a | yes |
+| <a name="input_proxmox_user"></a> [proxmox\_user](#input\_proxmox\_user) | n/a | `string` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
 | <a name="output_rocky9_template_id"></a> [rocky9\_template\_id](#output\_rocky9\_template\_id) | VM ID of the Rocky 9 template, used by deployments |
-| <a name="output_transcoding_gpu"></a> [transcoding\_gpu](#output\_transcoding\_gpu) | PCIE Transcoding GPU device for Media Platform VM |
+| <a name="output_transcoding_gpu"></a> [transcoding\_gpu](#output\_transcoding\_gpu) | n/a |
 | <a name="output_ubuntu24_template_id"></a> [ubuntu24\_template\_id](#output\_ubuntu24\_template\_id) | VM ID of the Ubuntu 24 template, used by deployments |
 <!-- END_TF_DOCS -->
