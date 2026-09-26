@@ -237,12 +237,12 @@ above the marker is preserved"), and nothing currently uses it. A caller
 reading `proxmox_vm/README.md` gets a variable table and no statement of what
 the module does.
 
-### A10. `cloun-init` typo, propagated into generated output
+### A10. `cloud-init` typo, propagated into generated output
 
 `workspace/modules/proxmox_vm/variables.tf:56`:
 
 ```hcl
-description = "Path to cloun-init .tpl file. If null, the module default is used."
+description = "Path to cloud-init .tpl file. If null, the module default is used."
 ```
 
 Copied verbatim into `workspace/modules/proxmox_vm/README.md:35` by
