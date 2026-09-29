@@ -1,38 +1,40 @@
-Role Name
-=========
+# docker_base
 
-A brief description of the role goes here.
+Installs Docker Engine and the Docker Python SDK so that every host can run
+Compose projects through `community.docker`. Every workload playbook applies
+this role before its own: `observability_control.yml`, `observability_node.yml`,
+and `media_platform.yml`.
 
-Requirements
-------------
+## What it does
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+1. Imports `geerlingguy.docker`, passing `docker_base_users` through as
+   `docker_users` so those accounts join the `docker` group.
+2. Imports `geerlingguy.pip` to install the `docker` Python package that the
+   `community.docker` modules require on the managed host.
 
-Role Variables
---------------
+The role is a thin, validated wrapper: its only interface is the user list,
+and the two upstream roles keep their own defaults.
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+## Requirements
 
-Dependencies
-------------
+- `geerlingguy.docker` and `geerlingguy.pip`, present under `ansible/roles/`.
+- A Debian or Ubuntu host with outbound access to the Docker package
+  repository.
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+## Variables
 
-Example Playbook
-----------------
+| Variable | Type | Default | Description |
+|---|---|---|---|
+| `docker_base_users` | list of str | `["ansible"]` | System users added to the docker group. |
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+## Example
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
-
-License
--------
-
-BSD
-
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+```yaml
+- name: Docker hosts
+  hosts: observability_node
+  become: true
+  roles:
+    - role: docker_base
+      vars:
+        docker_base_users: [ansible]
+```

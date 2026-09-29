@@ -40,12 +40,13 @@
 | <a name="input_cloudflare_dns_comment"></a> [cloudflare\_dns\_comment](#input\_cloudflare\_dns\_comment) | Cloudflare DNS comment for the DNS record created | `string` | `"Created with Terraform"` | no |
 | <a name="input_cloudflare_dns_type"></a> [cloudflare\_dns\_type](#input\_cloudflare\_dns\_type) | Cloudflare DNS type, pertains to the record to create: A, CNAME, AAAA, MX, etc. | `string` | `"A"` | no |
 | <a name="input_cloudflare_proxied"></a> [cloudflare\_proxied](#input\_cloudflare\_proxied) | Cloudflare toggle to proxy a DNS record. Defaults to false for local addresses | `bool` | `false` | no |
-| <a name="input_cloudflare_ttl"></a> [cloudflare\_ttl](#input\_cloudflare\_ttl) | Cloudflare Time-to-Live in seconds | `number` | `600` | no |
+| <a name="input_cloudflare_record_name"></a> [cloudflare\_record\_name](#input\_cloudflare\_record\_name) | Domain name for the DNS record | `string` | n/a | yes |
+| <a name="input_cloudflare_ttl"></a> [cloudflare\_ttl](#input\_cloudflare\_ttl) | Cloudflare Time-to-Live in seconds | `number` | `1` | no |
 | <a name="input_cloudflare_zone_id"></a> [cloudflare\_zone\_id](#input\_cloudflare\_zone\_id) | Cloudflare Zone ID | `string` | n/a | yes |
 | <a name="input_cpu"></a> [cpu](#input\_cpu) | Number of CPUs | `number` | `2` | no |
 | <a name="input_datastore_files"></a> [datastore\_files](#input\_datastore\_files) | Proxmox datastore to store file components provisioned by Terraform | `string` | n/a | yes |
 | <a name="input_datastore_infra"></a> [datastore\_infra](#input\_datastore\_infra) | Proxmox datastore to store infrastructure components provisioned by Terraform | `string` | n/a | yes |
-| <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | List of DNS servers written to VMs cloud-init network config | `list(string)` | <pre>[<br/>  "192.168.0.1",<br/>  "8.8.8.8"<br/>]</pre> | no |
+| <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | List of DNS servers written to VMs cloud-init network config | `list(string)` | <pre>[<br/>  "1.1.1.1",<br/>  "8.8.8.8"<br/>]</pre> | no |
 | <a name="input_memory"></a> [memory](#input\_memory) | Total amount of memory in MBs | `number` | `2048` | no |
 | <a name="input_personal_domain"></a> [personal\_domain](#input\_personal\_domain) | Personal domain to use for VM hostname | `string` | `"home.lab"` | no |
 | <a name="input_proxmox_api_token"></a> [proxmox\_api\_token](#input\_proxmox\_api\_token) | Proxmox host API token for routine connectivity | `string` | n/a | yes |
@@ -55,7 +56,7 @@
 | <a name="input_proxmox_password"></a> [proxmox\_password](#input\_proxmox\_password) | Password for proxmox user defined for escalated, privileged actions | `string` | n/a | yes |
 | <a name="input_proxmox_user"></a> [proxmox\_user](#input\_proxmox\_user) | Proxmox user for escalated, privileged actions | `string` | n/a | yes |
 | <a name="input_template_os_tag"></a> [template\_os\_tag](#input\_template\_os\_tag) | os tag of the template to clone. Defaults to default (ubuntu24) from \_base. | `string` | `"default"` | no |
-| <a name="input_vm_count"></a> [vm\_count](#input\_vm\_count) | Counf for VMs to create. Defaults to one | `number` | `1` | no |
+| <a name="input_vm_count"></a> [vm\_count](#input\_vm\_count) | Count for VMs to create. Defaults to one | `number` | `1` | no |
 | <a name="input_vm_count_offset"></a> [vm\_count\_offset](#input\_vm\_count\_offset) | VM count offset. Used for deploying vms with the same name, but different configurations. This offsets the count to keep it consecutive across two deployments | `number` | `1` | no |
 | <a name="input_vm_default_user"></a> [vm\_default\_user](#input\_vm\_default\_user) | Default user for VM setup and configuration | `string` | n/a | yes |
 | <a name="input_vm_group"></a> [vm\_group](#input\_vm\_group) | Group to initially put the VM in | `string` | n/a | yes |

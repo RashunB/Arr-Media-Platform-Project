@@ -1,38 +1,53 @@
-Role Name
-=========
+# nfs_server
 
-A brief description of the role goes here.
+Exports local directories over NFS. The role creates each export directory
+with the requested ownership and mode, renders `/etc/exports`, and keeps
+`nfs-server` enabled and running. No playbook in the repository applies it
+at present; it is a building block for shared storage between hosts.
 
-Requirements
-------------
+## What it does
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+1. `install.yml` installs `nfs-kernel-server` and `nfs-common`.
+2. `exports.yml` creates the `/exports` parent, creates each export directory,
+   and renders `/etc/exports` from `templates/exports.j2`. A change notifies
+   the `Reload NFS Exports` handler (`exportfs -ra`), so existing clients stay
+   mounted.
+3. `service.yml` enables and starts `nfs-server`.
 
-Role Variables
---------------
+## Requirements
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+- A Debian or Ubuntu host.
+- Client specifications in `clients` narrow enough for the network. The
+  default options include `no_root_squash`, which suits container volumes
+  and trusts client root.
 
-Dependencies
-------------
+## Variables
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+| Variable | Type | Default | Description |
+|---|---|---|---|
+| `nfs_server_exports` | list of dict | **required** | Directories exported by the NFS server. |
 
-Example Playbook
-----------------
+Each entry in `nfs_server_exports` accepts:
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `path` | str | **required** | Absolute path of the exported directory. |
+| `clients` | str | **required** | Client specification allowed to mount the export. |
+| `options` | str | `rw,sync,no_subtree_check,no_root_squash` | NFS export options. |
+| `owner` | str | `root` | Owner of the exported directory. |
+| `group` | str | `root` | Group of the exported directory. |
+| `mode` | str | `0770` | Permission mode of the exported directory. |
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+## Example
 
-License
--------
-
-BSD
-
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+```yaml
+- name: NFS server
+  hosts: control
+  become: true
+  roles:
+    - role: nfs_server
+      vars:
+        nfs_server_exports:
+          - path: /exports/appdata
+            clients: 192.0.2.0/24
+```

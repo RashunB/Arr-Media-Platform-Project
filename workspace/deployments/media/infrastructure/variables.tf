@@ -53,7 +53,7 @@ variable "vm_name_prefix" {
 }
 
 variable "vm_count" {
-  description = "Counf for VMs to create. Defaults to one"
+  description = "Count for VMs to create. Defaults to one"
   type        = number
   default     = 1
 }
@@ -125,10 +125,15 @@ variable "memory" {
 variable "dns_servers" {
   description = "List of DNS servers written to VMs cloud-init network config"
   type        = list(string)
-  default     = ["192.168.0.1", "8.8.8.8"]
+  default     = ["1.1.1.1", "8.8.8.8"]
 }
 
 # Cloudflare/DNS
+
+variable "cloudflare_record_name" {
+  description = "Domain name for the DNS record"
+  type        = string
+}
 
 variable "cloudflare_dns_type" {
   description = "Cloudflare DNS type, pertains to the record to create: A, CNAME, AAAA, MX, etc."
@@ -144,7 +149,7 @@ variable "cloudflare_zone_id" {
 variable "cloudflare_ttl" {
   description = "Cloudflare Time-to-Live in seconds"
   type        = number
-  default     = 600
+  default     = 1
 }
 
 variable "cloudflare_proxied" {

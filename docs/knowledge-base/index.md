@@ -16,9 +16,7 @@ throughout.
 
 Suggested order for a full read: provisioning, configuration, secrets,
 observability, gpu-passthrough, ci-quality-gates, engineering-decisions. Each
-page stands alone as the reference for a single area. The
-[documentation audit](documentation-audit.md) tracks remaining work rather
-than describing how anything works.
+page stands alone as the reference for a single area.
 
 ## [Provisioning](provisioning.md)
 
@@ -79,11 +77,3 @@ preset, which requires a description on every Terraform variable and output.
 Builds on the root README's "Engineering decisions" section one level deeper
 for each rule: the rejected alternative, the reasoning, and the concrete
 failure mode in this repo if the rule were broken.
-
-## [Documentation audit](documentation-audit.md)
-
-A verification pass over the documentation as of `7096e20`. Part A lists
-defects found in these pages and in the READMEs at that commit. Part B
-consolidates every recorded bug, warning, and roadmap item into one
-re-verified list with the file that carries each fix. The audit tracks what
-remains, not how anything works.

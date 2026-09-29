@@ -1,38 +1,54 @@
-Role Name
-=========
+# nfs_client
 
-A brief description of the role goes here.
+Mounts remote NFS exports and records them in `fstab`. It pairs with
+[`nfs_server`](../nfs_server/README.md). No playbook in the repository
+applies it at present.
 
-Requirements
-------------
+## What it does
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+1. `install.yml` installs `nfs-client` and `nfs-common`.
+2. `mount.yml` mounts each entry in `nfs_client_mounts` with
+   `ansible.posix.mount`.
 
-Role Variables
---------------
+The default mount options (`hard`, `timeo=600`, `retrans=2`, `_netdev`) make
+I/O wait through a server restart instead of failing, and delay the mount
+until the network is up at boot.
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+## Requirements
 
-Dependencies
-------------
+- Collection `ansible.posix`.
+- A reachable NFS server exporting each `src`.
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+## Variables
 
-Example Playbook
-----------------
+| Variable | Type | Default | Description |
+|---|---|---|---|
+| `nfs_client_mounts` | list of dict | **required** | Remote NFS exports to mount on this host. |
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+Each entry in `nfs_client_mounts` accepts:
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `path` | str | **required** | Absolute local mount point. |
+| `src` | str | **required** | Remote export in host:/export form. |
+| `fstype` | str | `nfs4` | Mount filesystem type. |
+| `options` | str | `rw,hard,timeo=600,retrans=2,_netdev` | Mount options passed to ansible.posix.mount. |
+| `state` | str | `absent` | Mount state passed to ansible.posix.mount. |
 
-License
--------
+`state` defaults to `absent` so that a partially filled entry never mounts
+anything. Set it to `mounted` to activate a mount.
 
-BSD
+## Example
 
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+```yaml
+- name: NFS clients
+  hosts: media_platform
+  become: true
+  roles:
+    - role: nfs_client
+      vars:
+        nfs_client_mounts:
+          - path: /mnt/appdata
+            src: nfs.example.internal:/exports/appdata
+            state: mounted
+```

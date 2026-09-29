@@ -64,7 +64,7 @@ resources per stack. It handles:
   both newly-created disks and attaching existing ones via `path_in_datastore`,
   with `size`/`iothread`/`discard` conditionally nulled when attaching.
 - **DNS resolvers.** `dns_servers` sets the resolvers written into each VM's
-  cloud-init network config (default `["192.168.0.1", "8.8.8.8"]`).
+  cloud-init network config (default `["1.1.1.1", "8.8.8.8"]`).
 - **Conditional PCIe passthrough.** See below. Each `pcie_devices` entry sets
   `pcie` and `rombar` independently; both default to `true`.
 
@@ -92,7 +92,8 @@ Each deployment is split into two stacks because they have different
 dependencies and different failure modes.
 
 **`infrastructure/`** calls the `proxmox_vm` module and creates the VM, then
-creates a Cloudflare `A` record pointing at `module.media_vm.primary_ip[0]`. It
+creates a Cloudflare `A` record named by `cloudflare_record_name` and pointing
+at `module.media_vm.primary_ip[0]`. It
 looks the GPU mapping up as a *data source* rather than redefining it, so the
 mapping stays owned by `_base`.
 
@@ -137,8 +138,8 @@ it (`*.tfstate`, `*.tfstate.*`, `.terraform/`). The repo **does** commit provide
 lockfiles (`.terraform.lock.hcl`), so every apply and every CI run resolves
 identical provider builds.
 
-A locking remote backend is the top item on the roadmap in the
-[root README](../README.md) and the prerequisite for applying from CI.
+CI validates but never applies; applying from CI requires a locking remote
+backend.
 
 ---
 
@@ -146,7 +147,8 @@ A locking remote backend is the top item on the roadmap in the
 
 `.gitignore` excludes `*.tfvars` files, so each stack reads its inputs from a local
 `terraform.tfvars`. A stack's required inputs are the variables without defaults
-in its `variables.tf`.
+in its `variables.tf`, and each stack commits a `terraform.tfvars.example` to copy
+from.
 
 `infrastructure/_base` and `deployments/media/infrastructure` both need:
 
@@ -162,10 +164,10 @@ datastore_files   = "<file-datastore>"
 
 Both also accept `proxmox_insecure` (default `true`).
 
-The deployment stack additionally requires `vm_name_prefix`, `vm_count`,
-`vm_group`, `vm_default_user`, and `cloudflare_zone_id`, and accepts
-`additional_disks`, `dns_servers`, `cpu`, `memory`, and `personal_domain` with
-defaults. `deployments/media/application` requires only `arr_host`.
+The deployment stack additionally requires `vm_name_prefix`, `vm_group`,
+`vm_default_user`, `cloudflare_zone_id`, and `cloudflare_record_name`, and
+accepts `vm_count`, `additional_disks`, `dns_servers`, `cpu`, `memory`, and
+`personal_domain` with defaults. `deployments/media/application` requires only `arr_host`.
 
 Credentials never pass through variables. Each stack reads them from the
 encrypted files in [`../secrets/`](../secrets) through the `carlpett/sops`

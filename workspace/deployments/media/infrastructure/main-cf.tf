@@ -1,6 +1,6 @@
 resource "cloudflare_dns_record" "media_platform" {
   zone_id = var.cloudflare_zone_id
-  name    = "www.media.baucummail.com"
+  name    = var.cloudflare_record_name
   content = module.media_vm.primary_ip[0]
   type    = var.cloudflare_dns_type
   ttl     = var.cloudflare_ttl

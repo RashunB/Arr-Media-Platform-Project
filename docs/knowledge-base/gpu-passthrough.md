@@ -174,6 +174,7 @@ visible from Terraform.
 ### 1. Guest-OS driver packages (`roles/media_platform/tasks/gpu.yml`)
 
 ```yaml
+---
 - name: Esure GPU packages are installed
   ansible.builtin.apt:
     name:

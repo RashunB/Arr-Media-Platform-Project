@@ -46,6 +46,7 @@ terraform.rc
 # The default root path for Ansible config files on the controller
 .ansible/
 **/collections
+ansible/inventory/host_vars/*.yml
 
 # Retry files generated for failed Ansible playbook runs
 *.retry

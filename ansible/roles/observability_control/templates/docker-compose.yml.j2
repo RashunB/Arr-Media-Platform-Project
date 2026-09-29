@@ -42,10 +42,13 @@ services:
       - --path.procfs=/host/proc
       - --path.sysfs=/host/sys
       - --collector.cpu.info
+      - --collector.systemd
+      - --collector.processes
     security_opt:
       - no-new-privileges:true
     volumes:
       - /:/host:ro,rslave
+      - /run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro
 
 {% if observability_control_smartctl_exporter_enabled %}
   smartctl-exporter:
