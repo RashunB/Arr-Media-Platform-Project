@@ -27,7 +27,7 @@ variable "vm_name_prefix" {
 }
 
 variable "vm_count" {
-  description = "Counf for VMs to create. Defaults to one"
+  description = "Count for VMs to create. Defaults to one"
   type        = number
   default     = 1
 }
@@ -111,7 +111,7 @@ variable "memory" {
 variable "dns_servers" {
   description = "List of DNS servers written to VMs cloud-init network config"
   type        = list(string)
-  default     = ["192.168.0.1", "8.8.8.8"]
+  default     = ["1.1.1.1", "8.8.8.8"]
 }
 
 variable "pcie_devices" {

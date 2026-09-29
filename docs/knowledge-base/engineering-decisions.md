@@ -110,8 +110,8 @@ shows up at credential rotation or compromise: with `root` everywhere,
 answering "what can this credential touch" means reading every resource
 block. With the alias pattern, `grep -rn "proxmox.root" workspace/` returns
 the complete list. Inside the module, the VM clone resource is the only
-consumer. [Secrets](secrets.md) covers how `proxmox_password` and
-`proxmox_api_token` reach each stack.
+consumer. [Provisioning](provisioning.md#deployment-inputs) covers how
+`proxmox_password` and `proxmox_api_token` reach each stack.
 
 ## Let `pcie_devices` drive the machine type instead of setting it manually
 

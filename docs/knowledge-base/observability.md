@@ -54,7 +54,7 @@ flowchart TB
     class NE,CAD,SM,ALLN,DOZA,PVEX,NE_P,SM_P node
 ```
 
-`observability_control` runs on `control` (192.168.0.60) only.
+`observability_control` runs on `control` only.
 `observability_node` runs on every host in that group, which per
 [Configuration](configuration.md) means every QEMU guest automatically plus
 the `pve` host through `observability_pve` in `10_observability.ini`.
@@ -63,7 +63,7 @@ the `pve` host through `observability_pve` in `10_observability.ini`.
 
 | Exporter | Where it runs | What it reads | Enabled by default? |
 |---|---|---|---|
-| `node-exporter` | Every `observability_node` host, `network_mode: host` | Host `/proc`, `/sys`, and root filesystem (`--path.rootfs=/host` and friends) | Yes |
+| `node-exporter` | Every `observability_node` host, `network_mode: host` | Host `/proc`, `/sys`, and root filesystem (`--path.rootfs=/host` and friends). The `systemd` collector reads unit state over the host D-Bus socket, bind-mounted read-only at `/var/run/dbus/system_bus_socket`; the `processes` collector reports process and thread counts from `/proc` | Yes |
 | `cAdvisor` | Every `observability_node` host | Container-level metrics through `/rootfs`, `/var/run`, `/sys`, `/var/lib/docker` bind mounts | Yes |
 | `smartctl-exporter` | `observability_node` hosts with the flag on | Devices `/dev/sda`, `/dev/sdb`, `/dev/sdc`, `/dev/sdd`, `/dev/nvme0` | **No**, gated by `observability_node_smartctl_exporter_enabled`; `true` for `observability_pve` |
 | `pve-exporter` | Proxmox host only, through `observability_node_pve_exporter_enabled` | Proxmox API, using the *third* credential in `pve.sops.yaml` (`pve_prometheus_api_*`, see [Secrets](secrets.md)) | **No**; `true` for `observability_pve` |

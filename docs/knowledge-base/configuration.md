@@ -23,7 +23,7 @@ dynamic source must discover first.
 ```yaml
 ---
 plugin: community.proxmox.proxmox
-url: https://192.168.0.63:8006
+url: "{{ lookup('community.sops.sops', 'vault/pve.sops.yaml', extract='[\"pve_ansible_api_url\"]')}}"
 user: "{{ lookup('community.sops.sops', 'vault/pve.sops.yaml', extract='[\"pve_ansible_api_user_name\"]')}}"
 token_id: "{{ lookup('community.sops.sops', 'vault/pve.sops.yaml', extract='[\"pve_ansible_api_token_id\"]')}}"
 token_secret: "{{ lookup('community.sops.sops', 'vault/pve.sops.yaml', extract='[\"pve_ansible_api_token_secret\"]')}}"
@@ -35,11 +35,7 @@ keyed_groups:
     prefix: ""
 
 # groups:
-  # rhce_proxy: "proxmox_name == 'rhce-1'"
-  # rhce_webservers: "proxmox_name in ['rhce-2', 'rhce-3']"
-  # rhce_database: "proxmox_name == 'rhce-4'"
   # media: "'media' in (proxmox_tags_parsed|list)"
-  # rhce: "'rhce' in (proxmox_tags_parsed|list)"
 
 compose:
   ansible_host: >-
@@ -51,10 +47,10 @@ want_proxmox_nodes_ansible_host: true
 ```
 (`ansible/inventory/00_inv.proxmox.yml`, full file)
 
-The credentials come from `vault/pve.sops.yaml`, a symlink to
+The API endpoint and credentials come from `vault/pve.sops.yaml`, a symlink to
 `secrets/pve.sops.yaml`, decrypted through a `community.sops.sops` lookup with
 a jq-style `extract` path. **The inventory file that queries Proxmox holds no
-plaintext credential.**
+plaintext credential or address.**
 
 `keyed_groups` with an **empty `separator` and `prefix`** drives the whole
 tag-to-group mechanism: a Proxmox tag named `media_platform` becomes an
@@ -73,6 +69,24 @@ Proxmox node itself as an inventory host. `01_baremetal.ini` defines the same
 `pve` host statically, and Ansible merges same-named hosts from multiple
 sources, so the two definitions layer rather than conflict.
 
+### `host_vars/`: per-host connection details
+
+`01_baremetal.ini` lists host names only. Each bare-metal host's address and
+connection user live in `ansible/inventory/host_vars/<host>.yml`, which
+`.gitignore` excludes, so no LAN address enters the repo. Committed
+`control.yml.example` and `pve.yml.example` files show the expected keys:
+
+```yaml
+---
+ansible_host: 192.0.2.20
+ansible_user: root
+```
+(`ansible/inventory/host_vars/pve.yml.example`, full file)
+
+`group_vars/observability` derives `control_host_ip` and `pve_node_ip` from
+`hostvars[...]['ansible_host']`, so every role that needs these addresses
+reads them from `host_vars/` indirectly.
+
 The commented `groups:` block holds example Jinja-conditional group rules
 from an earlier iteration. Every line of it, including the `groups:` key, is
 commented, so it has no effect; `keyed_groups` plus the static overlay files
@@ -82,7 +96,7 @@ below define all group membership.
 
 | File | Role |
 |---|---|
-| `01_baremetal.ini` | The two physical hosts Proxmox cannot report about itself: `control` (192.168.0.60) and `pve` (192.168.0.63, `ansible_user=root`) |
+| `01_baremetal.ini` | The two physical hosts Proxmox cannot report about itself, `control` and `pve`, by name only; addresses and `ansible_user` come from `host_vars/` |
 | `10_observability.ini` | Composes `observability_node`, `observability_control`, and `observability` from dynamic and static groups |
 | `11_media_platform.ini` | `[media_platform]` containing `media-1` |
 
@@ -147,6 +161,7 @@ Each host playbook is a short, flat list of `import_role` calls with
 per-task tags:
 
 ```yaml
+---
 - name: Media Platform
   hosts: media_platform
   become: true

@@ -19,7 +19,8 @@ must discover first.
 | File | Kind | Role |
 |---|---|---|
 | `00_inv.proxmox.yml` | dynamic | `community.proxmox.proxmox` plugin. Queries the PVE API for every guest |
-| `01_baremetal.ini` | static | The two physical hosts, which Proxmox cannot report about itself |
+| `01_baremetal.ini` | static | The two physical hosts, which Proxmox cannot report about itself, by name only |
+| `host_vars/<host>.yml` | static, gitignored | Each bare-metal host's `ansible_host` (and `ansible_user` for `pve`); committed `*.yml.example` files show the keys |
 | `10_observability.ini` | static | Composes observability groups from dynamic and static sources |
 | `11_media_platform.ini` | static | Assigns discovered hosts to the media workload |
 
@@ -83,9 +84,9 @@ ansible-inventory --host media-1
 |---|---|---|
 | `site.yml` | everything | Entry point. Imports the four below in dependency order |
 | `sops.yml` | `localhost` | Installs SOPS on the control node via `community.sops.install` |
-| `observability_control.yml` | `observability_control` | Docker + the metrics/logs hub |
-| `observability_node.yml` | `observability_node` | Docker + the per-host exporter set |
-| `media_platform.yml` | `media_platform` | Docker + LVM + the media stack |
+| `observability_control.yml` | [`observability_control`](roles/observability_control/README.md) | Docker + the metrics/logs hub |
+| `observability_node.yml` | [`observability_node`](roles/observability_node/README.md) | Docker + the per-host exporter set |
+| `media_platform.yml` | [`media_platform`](roles/media_platform/README.md) | Docker + LVM + the media stack |
 
 ```bash
 ansible-galaxy install -r requirements.yml   # collections, pinned by major version
@@ -111,13 +112,13 @@ queued by a config change still fires when a later task in the play fails.
 
 | Role | Responsibility |
 |---|---|
-| `docker_base` | Thin composition layer over `geerlingguy.docker` and `geerlingguy.pip`, adding the `docker` Python SDK that the `community.docker` modules need |
-| `lvm_storage` | Declarative PV to VG to LV to filesystem to mount pipeline, driven by one nested data structure |
+| [`docker_base`](roles/docker_base/README.md) | Thin composition layer over `geerlingguy.docker` and `geerlingguy.pip`, adding the `docker` Python SDK that the `community.docker` modules need |
+| [`lvm_storage`](roles/lvm_storage/README.md) | Declarative PV to VG to LV to filesystem to mount pipeline, driven by one nested data structure |
 | `media_platform` | Service user/group with fixed UID/GID, directory tree, per-app config templating, Intel GPU enablement, Compose deployment |
 | `observability_control` | Prometheus, Loki, Grafana (with provisioned datasources and dashboards), Alloy, Dozzle, and a local exporter set |
 | `observability_node` | node-exporter, cAdvisor, smartctl-exporter, Dozzle agent, Alloy, and conditionally pve-exporter |
-| `nfs_server` | Export management. Available, not currently wired into a playbook |
-| `nfs_client` | Mount management. Available, not currently wired into a playbook |
+| [`nfs_server`](roles/nfs_server/README.md) | Export management. Available, not currently wired into a playbook |
+| [`nfs_client`](roles/nfs_client/README.md) | Mount management. Available, not currently wired into a playbook |
 
 ### Vendored
 
@@ -130,7 +131,7 @@ reachable and git history records the exact role version.
 **`lvm_storage`** takes the entire storage layout as one list of dicts and walks
 it through four imported task files (`install` -> `volumes` -> `filesystem` ->
 `mount`). Per-item `vg_state`, `lv_state`, `fs_state`, and `mount_state` keys
-mean the same structure can create or tear down storage.
+set the desired state of each stage independently.
 
 **`media_platform`** does more than run Compose. It creates a `media` user and
 group at a fixed UID/GID 6000 so container and host file ownership line up, then
