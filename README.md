@@ -151,10 +151,6 @@ flowchart TD
     class BLOCK blocked
 ```
 
-This is the guarantee behind [Secrets management](#secrets-management) and
-[Quality gates](#quality-gates) below: a decrypted secret exists only in the
-memory of the process applying it, never on disk and never in git history.
-
 ---
 
 ## Repository layout
@@ -186,7 +182,8 @@ and have different lifecycles:
 - **[`workspace/README.md`](workspace/README.md)** covers provisioning: state,
   stack layering, the module contract, and GPU passthrough.
 - **[`ansible/README.md`](ansible/README.md)** covers configuration: inventory
-  composition, the role catalog, variable conventions, and secret injection.
+  composition, the role catalog, and variable conventions.
+  - Both uses SOPS for secrets management.
 
 ---
 

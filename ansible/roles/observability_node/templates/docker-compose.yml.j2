@@ -17,6 +17,8 @@ services:
       - --path.procfs=/host/proc
       - --path.sysfs=/host/sys
       - --collector.cpu.info
+      - --collector.systemd
+      - --collector.processes
     pid: host
     volumes:
       - /:/host:ro,rslave
