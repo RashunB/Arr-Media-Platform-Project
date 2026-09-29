@@ -1,38 +1,69 @@
-Role Name
-=========
+# lvm_storage
 
-A brief description of the role goes here.
+Builds LVM storage from a declarative list: volume groups, logical volumes,
+filesystems, and mounts. `media_platform.yml` applies it to give the media
+host a dedicated volume at `/opt/media_platform` before the application
+stack starts.
 
-Requirements
-------------
+## What it does
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+Each task file loops over `lvm_storage_logical_volumes`, in this order:
 
-Role Variables
---------------
+1. `install.yml` installs `lvm2`.
+2. `volumes.yml` creates each volume group from its `pvs`
+   (`community.general.lvg`), then each logical volume
+   (`community.general.lvol`).
+3. `filesystem.yml` creates the filesystem on `/dev/<vg>/<lv>`.
+4. `mount.yml` mounts it and writes the `fstab` entry
+   (`ansible.posix.mount`).
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+Each stage reads its own `*_state` key from the entry (`vg_state`,
+`lv_state`, `fs_state`, `mount_state`).
 
-Dependencies
-------------
+## Requirements
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+- Collections `community.general` and `ansible.posix`.
+- Physical devices attached to the host. Stable `/dev/disk/by-id/` paths are
+  preferred over `/dev/sdX`, which can reorder across reboots.
 
-Example Playbook
-----------------
+## Variables
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+| Variable | Type | Default | Description |
+|---|---|---|---|
+| `lvm_storage_logical_volumes` | list of dict | **required** | Logical volumes to provision, format, and mount. |
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+Each entry in `lvm_storage_logical_volumes` accepts:
 
-License
--------
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `vg` | str | **required** | Volume group name. |
+| `lv` | str | **required** | Logical volume name. |
+| `pvs` | list of str | **required** | Physical volume device paths backing the volume group. |
+| `mountpoint` | str | **required** | Absolute path where the volume is mounted. |
+| `size` | str | `100%VG` | Logical volume size in lvol size syntax. |
+| `fstype` | str | `ext4` | Filesystem type created on the volume. |
+| `mount_state` | str | `mounted` | Mount state passed to ansible.posix.mount. |
+| `fs_state` | str | `present` | Filesystem creation state. |
+| `lv_state` | str | `present` | Logical volume state. |
+| `vg_state` | str | `present` | Volume group state. |
 
-BSD
+## Example
 
-Author Information
-------------------
+This is the media host's configuration in
+`ansible/inventory/group_vars/media_platform`:
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+```yaml
+lvm_storage_logical_volumes:
+  - vg: vg.media
+    lv: lv.media
+    pvs:
+      - /dev/disk/by-id/scsi-SQEMU_QEMU_HARDDISK_vgmedia-d0
+      - /dev/disk/by-id/scsi-SQEMU_QEMU_HARDDISK_vgmedia-d1
+    size: 100%VG
+    fstype: ext4
+    mountpoint: /opt/media_platform
+```
+
+The `by-id` names derive from the `serial` that each entry in the Terraform
+media stack's `additional_disks` input sets, which ties the two tools together
+without either one depending on device letters.

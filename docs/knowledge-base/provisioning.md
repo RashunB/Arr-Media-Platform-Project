@@ -210,7 +210,7 @@ and starting it through `runcmd`. The `primary_ip` output depends on the
 guest agent reporting addresses back to Proxmox.
 
 The `initialization.dns` block takes its resolvers from `var.dns_servers`
-(default `["192.168.0.1", "8.8.8.8"]`); the media stack passes its own
+(default `["1.1.1.1", "8.8.8.8"]`); the media stack passes its own
 `dns_servers` variable through.
 
 ## Provider strategy: two aliases, one elevated
@@ -256,21 +256,27 @@ it (`.terraform/`, `*.tfstate`, `*.tfstate.*`). The repo commits provider
 lockfiles (`.terraform.lock.hcl`), so every `init` resolves identical
 provider builds across machines and CI.
 
-A locking remote backend is the prerequisite for CI running `apply` (root
-README, "Known gaps and roadmap"). The `terraform-validate` CI job runs
+CI never runs `apply`; that would require a locking remote backend. The
+`terraform-validate` CI job runs
 `init -backend=false`, so validation needs no real state or credentials (see
 [CI and quality gates](ci-quality-gates.md)).
 
 ## Deployment inputs
 
 `.gitignore` excludes `*.tfvars`, so each stack reads non-default inputs from
-a local `terraform.tfvars`. Credentials never pass through tfvars:
+a local `terraform.tfvars`. Each stack commits a `terraform.tfvars.example`
+listing its required inputs with placeholder values.
 
-- **Provider credentials** (Proxmox SSH key, Cloudflare API token) come from
+- **Proxmox API credentials** (`proxmox_api_token`, `proxmox_password`) are
+  `sensitive` tfvars. They live only in the local, gitignored
+  `terraform.tfvars`; Terraform uses them for provider configuration and never
+  writes them to state.
+- **Provider SSH key and Cloudflare API token** come from
   `ephemeral "sops_file"` resources in each stack's `providers.tf`.
 - **The guest SSH public key** comes from `secrets/ansible_id.pub` through
   `file()`; a public key needs no encryption.
-- **The Cloudflare zone ID** is a required tfvar (`cloudflare_zone_id`).
+- **The Cloudflare zone ID and record name** are required tfvars
+  (`cloudflare_zone_id`, `cloudflare_record_name`).
 - **Application secrets** in `deployments/media/application` come from
   `data "sops_file" "media_platform"`, because they feed resource arguments
   rather than provider configuration.

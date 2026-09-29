@@ -87,6 +87,34 @@ enforces. Every other check has an independent CI job.
 > Every check that blocks a merge has its own CI job. Local pre-commit adds
 > fast feedback before push and keeps the generated README tables current.
 
+## Local tooling
+
+The Terraform-side hooks call binaries that `pre-commit` does not install.
+The versions below match the ones that generated the committed README tables
+and that the hooks were last run with:
+
+```bash
+# trivy v0.74.0
+curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+  | sudo sh -s -- -b /usr/local/bin v0.74.0
+
+# terraform-docs v0.20.0
+curl -sSLo /tmp/terraform-docs.tar.gz \
+  "https://github.com/terraform-docs/terraform-docs/releases/download/v0.20.0/terraform-docs-v0.20.0-$(uname)-amd64.tar.gz"
+tar -xzf /tmp/terraform-docs.tar.gz -C /tmp terraform-docs
+sudo install /tmp/terraform-docs /usr/local/bin/terraform-docs
+
+# tflint v0.64.0, verified against its signed checksums
+curl -sSLO https://github.com/terraform-linters/tflint/releases/download/v0.64.0/tflint_linux_amd64.zip
+curl -sSLO https://github.com/terraform-linters/tflint/releases/download/v0.64.0/checksums.txt
+gh attestation verify checksums.txt -R terraform-linters/tflint
+sha256sum --ignore-missing -c checksums.txt
+unzip tflint_linux_amd64.zip && sudo install tflint /usr/local/bin/
+```
+
+A different `terraform-docs` version can reorder or reformat the generated
+tables, which shows up as a diff on the next hook run.
+
 ## Pinning
 
 Every `uses:` line in `ci.yml` references a full commit SHA rather than a tag

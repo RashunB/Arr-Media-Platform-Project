@@ -48,6 +48,7 @@ services:
       - no-new-privileges:true
     volumes:
       - /:/host:ro,rslave
+      - /run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro
 
 {% if observability_control_smartctl_exporter_enabled %}
   smartctl-exporter:

@@ -129,7 +129,7 @@ flowchart TD
     GATE{"All gates pass?"}
     MERGE["Merge to main"]
     APPLY["terraform apply /<br/>ansible-playbook"]
-    DECRYPT["SOPS + age decrypt<br/>in memory only, never to disk"]
+    DECRYPT["SOPS + age decrypt<br/>at apply time"]
 
     DEV --> PC
     PC -->|encrypted, clean| PUSH
@@ -182,8 +182,7 @@ and have different lifecycles:
 - **[`workspace/README.md`](workspace/README.md)** covers provisioning: state,
   stack layering, the module contract, and GPU passthrough.
 - **[`ansible/README.md`](ansible/README.md)** covers configuration: inventory
-  composition, the role catalog, and variable conventions.
-  - Both uses SOPS for secrets management.
+  composition, the role catalog, variable conventions, and secret injection.
 
 ---
 
@@ -199,8 +198,8 @@ and have different lifecycles:
 | Proxmox VE | API token for Terraform, a second token for Ansible inventory |
 | `pre-commit` | Optional locally, enforced in CI |
 
-Tooling installers for the Terraform-side binaries (trivy, terraform-docs,
-tflint) live in [`terraform_precommit.txt`](terraform_precommit.txt).
+Pinned installers for the Terraform-side binaries (trivy, terraform-docs,
+tflint) live in [CI and quality gates](docs/knowledge-base/ci-quality-gates.md#local-tooling).
 
 ### 1. Decrypt-capable environment
 
@@ -209,7 +208,29 @@ export SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt
 sops -d secrets/pve.sops.yaml >/dev/null   # smoke test
 ```
 
-### 2. Build the shared base (once)
+### 2. Local inputs
+
+Addresses and environment-specific values stay out of git. Each one has a
+committed `.example` to copy:
+
+```bash
+# Terraform inputs, one per stack
+for s in infrastructure/_base deployments/media/infrastructure deployments/media/application; do
+  cp "workspace/$s/terraform.tfvars.example" "workspace/$s/terraform.tfvars"
+done
+
+# Bare-metal host addresses for Ansible
+cp ansible/inventory/host_vars/control.yml.example ansible/inventory/host_vars/control.yml
+cp ansible/inventory/host_vars/pve.yml.example     ansible/inventory/host_vars/pve.yml
+
+# Proxmox API URL for the dynamic inventory (key: pve_ansible_api_url)
+sops secrets/pve.sops.yaml
+```
+
+Every copied file and the new SOPS key need real values before the next step.
+Each stack README's "Inputs" table lists what its `terraform.tfvars` requires.
+
+### 3. Build the shared base (once)
 
 ```bash
 terraform -chdir=workspace/infrastructure/_base init
@@ -220,14 +241,14 @@ This downloads the Ubuntu 24.04 and Rocky 9 cloud images, converts them into
 Proxmox templates, and registers the GPU hardware mapping. Both templates carry
 `prevent_destroy`.
 
-### 3. Provision a deployment
+### 4. Provision a deployment
 
 ```bash
 terraform -chdir=workspace/deployments/media/infrastructure init
 terraform -chdir=workspace/deployments/media/infrastructure apply
 ```
 
-### 4. Configure everything
+### 5. Configure everything
 
 ```bash
 cd ansible
@@ -240,7 +261,7 @@ the Proxmox inventory plugin discovers it and turns its tags into groups, and it
 joins the monitored fleet through group children. Static overlays in
 `ansible/inventory/` assign it to a specific workload group.
 
-### 5. Apply application-level config
+### 6. Apply application-level config
 
 ```bash
 terraform -chdir=workspace/deployments/media/application init
@@ -276,8 +297,10 @@ Every third-party action pins a commit SHA rather than a tag.
 
 - No plaintext secret enters git. `.sops.yaml` binds every
   `*.sops.yaml` file in the repo to a single `age` recipient.
-- Both Terraform and Ansible read the encrypted files directly — there is no
-  decrypt-to-disk step and no `.env` to leak.
+- Both Terraform and Ansible read the encrypted files directly, with no
+  separate decrypt step and no `.env` to leak. Decrypted values reach disk in
+  one place only: the application stack's local, gitignored Terraform state
+  (see below).
 
 ```
 secrets/
@@ -293,7 +316,8 @@ secrets/
 - **Terraform** reads them with the `carlpett/sops` provider. The infrastructure
   stacks use `ephemeral "sops_file"`, which keeps provider credentials out of
   state entirely. The application stack uses a `data "sops_file"` source because
-  its secrets feed resource arguments.
+  its secrets feed resource arguments, so those values are stored in that
+  stack's local state, which `.gitignore` excludes.
 - **Ansible** reads them with the `community.sops` vars plugin and lookup, wired
   in through symlinks under `inventory/group_vars/`.
 - **CI** enforces it: the `sops` pre-commit hook fails on any unencrypted
@@ -352,28 +376,6 @@ disk automatically.
 **Prefix role defaults (`media_platform_*`, `observability_node_*`) and map
 shared values onto them from `group_vars`.**
 - **Why:** one place to change a port, no collisions between roles.
-
----
-
-## Known gaps and roadmap
-
-Planned work, in priority order.
-
-- [ ] **Remote state.** Terraform state is currently local. Migrating to a
-      locking backend is the highest-value next change, and the prerequisite
-      for running `apply` from CI.
-- [ ] **CI is plan-only.** Workflows validate and scan but never apply. Automated
-      `plan` output on pull requests is the next step.
-- [ ] **Role documentation.** Per-role `README.md` files. Each role's
-      `meta/argument_specs.yml` currently serves as its interface reference.
-- [ ] **No test harness.** Molecule scenarios for the first-party roles, plus
-      `terraform test` for the module, would close the loop.
-- [ ] **TLS.** Proxmox providers default to `proxmox_insecure = true` against
-      the lab CA, and services serve plain HTTP behind the LAN boundary.
-- [ ] **`terraform_docs` in CI.** The `hooks` job skips `terraform_docs`, so
-      generated README tables regenerate only through local pre-commit.
-- [ ] **Backups.** No automated backup or restore path for application state or
-      Terraform state yet.
 
 ---
 
