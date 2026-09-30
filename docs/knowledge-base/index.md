@@ -8,7 +8,7 @@ created: 2026-09-17
 
 A component-by-component reference that sits beneath the getting-started
 guides: the [root README](../../README.md),
-[workspace/README.md](../../workspace/README.md), and
+[terraform/README.md](../../terraform/README.md), and
 [ansible/README.md](../../ansible/README.md). These pages cover the module
 contracts, the task flows inside each role, the keys that flow through SOPS,
 and the reasoning behind each design rule, citing repo-relative file paths
