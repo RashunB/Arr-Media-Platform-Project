@@ -1,2 +1,0 @@
-# Copy to terraform.tfvars (gitignored) and replace every placeholder.
-arr_host = "192.0.2.30"

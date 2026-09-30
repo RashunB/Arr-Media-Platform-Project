@@ -1,9 +1,0 @@
-# Copy to terraform.tfvars (gitignored) and replace every placeholder.
-proxmox_endpoint  = "https://pve.example.internal:8006/"
-proxmox_api_token = "terraform@pve!terraform=00000000-0000-0000-0000-000000000000" # sensitive
-proxmox_user      = "root@pam"
-proxmox_password  = "change-me" # sensitive
-proxmox_node_name = "pve"
-
-datastore_infra = "vmdata"
-datastore_files = "vmfiles"
