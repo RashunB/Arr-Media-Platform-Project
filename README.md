@@ -1,6 +1,6 @@
 # Arr Media Platform
 
-[![CI](https://github.com/RashunB/Arr-Media-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/RashunB/Arr-Media-Platform/actions/workflows/ci.yml)
+[![CI](https://github.com/RashunB/Arr-Media-Platform-Project/actions/workflows/ci.yml/badge.svg)](https://github.com/RashunB/Arr-Media-Platform-Project/actions/workflows/ci.yml)
 [![Terraform](https://img.shields.io/badge/Terraform-%3E%3D1.15-7B42BC?logo=terraform&logoColor=white)](https://developer.hashicorp.com/terraform)
 [![Ansible](https://img.shields.io/badge/Ansible-core-EE0000?logo=ansible&logoColor=white)](https://docs.ansible.com/)
 [![Proxmox VE](https://img.shields.io/badge/Proxmox-VE-E57000?logo=proxmox&logoColor=white)](https://www.proxmox.com/)
