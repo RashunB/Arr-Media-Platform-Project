@@ -1,9 +1,10 @@
 # Arr Media Platform
 
 [![CI](https://github.com/RashunB/Arr-Media-Platform-Project/actions/workflows/ci.yml/badge.svg)](https://github.com/RashunB/Arr-Media-Platform-Project/actions/workflows/ci.yml)
-[![Terraform](https://img.shields.io/badge/Terraform-%3E%3D1.15-7B42BC?logo=terraform&logoColor=white)](https://developer.hashicorp.com/terraform)
-[![Ansible](https://img.shields.io/badge/Ansible-core-EE0000?logo=ansible&logoColor=white)](https://docs.ansible.com/)
-[![Proxmox VE](https://img.shields.io/badge/Proxmox-VE-E57000?logo=proxmox&logoColor=white)](https://www.proxmox.com/)
+[![Terraform](https://img.shields.io/badge/Terraform-7B42BC?logo=terraform&logoColor=white)](https://developer.hashicorp.com/terraform)
+[![Ansible](https://img.shields.io/badge/Ansible-dd4343?logo=ansible&logoColor=white)](https://docs.ansible.com/)
+[![Docker](https://img.shields.io/badge/Docker-007ec6?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Proxmox VE](https://img.shields.io/badge/Proxmox-ea7233?logo=proxmox&logoColor=white)](https://www.proxmox.com/)
 [![SOPS](https://img.shields.io/badge/secrets-SOPS%20%2B%20age-2ea44f)](https://github.com/getsops/sops)
 
 Provision and configure a homelab Arr Media Platform on Proxmox VE with Terraform and Ansible from bare metal to a monitored, GPU-enabled application stack.
