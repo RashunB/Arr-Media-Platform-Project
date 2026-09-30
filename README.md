@@ -1,14 +1,12 @@
-# Homelab Infrastructure
+# Arr Media Platform
 
-[![CI](https://github.com/RashunB/Homelab-Infra/actions/workflows/ci.yml/badge.svg)](https://github.com/RashunB/Homelab-Infra/actions/workflows/ci.yml)
+[![CI](https://github.com/RashunB/Arr-Media-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/RashunB/Arr-Media-Platform/actions/workflows/ci.yml)
 [![Terraform](https://img.shields.io/badge/Terraform-%3E%3D1.15-7B42BC?logo=terraform&logoColor=white)](https://developer.hashicorp.com/terraform)
 [![Ansible](https://img.shields.io/badge/Ansible-core-EE0000?logo=ansible&logoColor=white)](https://docs.ansible.com/)
 [![Proxmox VE](https://img.shields.io/badge/Proxmox-VE-E57000?logo=proxmox&logoColor=white)](https://www.proxmox.com/)
 [![SOPS](https://img.shields.io/badge/secrets-SOPS%20%2B%20age-2ea44f)](https://github.com/getsops/sops)
 
-Provision and configure a homelab on Proxmox VE with Terraform and Ansible —
-bare metal to a monitored, GPU-accelerated application stack, driven entirely
-by code.
+Provision and configure a homelab Arr Media Platform on Proxmox VE with Terraform and Ansible from bare metal to a monitored, GPU-enabled application stack.
 
 - **Terraform** provisions VMs on Proxmox VE.
 - **Ansible** configures them, using a dynamic inventory built from
