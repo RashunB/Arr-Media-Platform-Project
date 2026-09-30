@@ -1,4 +1,4 @@
-# Terraform (`workspace/`)
+# Terraform (`terraform/`)
 
 Provisioning layer. Everything that creates or destroys infrastructure lives
 here: Proxmox VE guests, OS templates, PCI hardware mappings, DNS records, and
@@ -12,7 +12,7 @@ other half of the repo, in [`../ansible`](../ansible/README.md).
 ## Layering model
 
 ```
-workspace/
+terraform/
 ├── modules/
 │   └── proxmox_vm/                 # reusable, versioned-in-place VM factory
 ├── infrastructure/
@@ -195,16 +195,16 @@ matches the recipient in `.sops.yaml`.
 
 ```bash
 # per stack
-terraform -chdir=workspace/infrastructure/_base init
-terraform -chdir=workspace/infrastructure/_base plan
-terraform -chdir=workspace/infrastructure/_base apply
+terraform -chdir=terraform/infrastructure/_base init
+terraform -chdir=terraform/infrastructure/_base plan
+terraform -chdir=terraform/infrastructure/_base apply
 
 # repo-wide checks, exactly what CI runs
-terraform fmt -check -recursive workspace
-cd workspace && tflint --init && tflint --recursive --format compact
+terraform fmt -check -recursive terraform
+cd terraform && tflint --init && tflint --recursive --format compact
 ```
 
-`workspace/.tflint.hcl` enables the bundled `terraform` ruleset with the `all`
+`terraform/.tflint.hcl` enables the bundled `terraform` ruleset with the `all`
 preset, which includes `terraform_documented_variables` and
 `terraform_documented_outputs`: every variable and output carries a
 `description`, and those descriptions populate the generated README tables.

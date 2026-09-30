@@ -1,14 +1,12 @@
-# Homelab Infrastructure
+# Arr Media Platform
 
-[![CI](https://github.com/RashunB/Homelab-Infra/actions/workflows/ci.yml/badge.svg)](https://github.com/RashunB/Homelab-Infra/actions/workflows/ci.yml)
+[![CI](https://github.com/RashunB/Arr-Media-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/RashunB/Arr-Media-Platform/actions/workflows/ci.yml)
 [![Terraform](https://img.shields.io/badge/Terraform-%3E%3D1.15-7B42BC?logo=terraform&logoColor=white)](https://developer.hashicorp.com/terraform)
 [![Ansible](https://img.shields.io/badge/Ansible-core-EE0000?logo=ansible&logoColor=white)](https://docs.ansible.com/)
 [![Proxmox VE](https://img.shields.io/badge/Proxmox-VE-E57000?logo=proxmox&logoColor=white)](https://www.proxmox.com/)
 [![SOPS](https://img.shields.io/badge/secrets-SOPS%20%2B%20age-2ea44f)](https://github.com/getsops/sops)
 
-Provision and configure a homelab on Proxmox VE with Terraform and Ansible —
-bare metal to a monitored, GPU-accelerated application stack, driven entirely
-by code.
+Provision and configure a homelab Arr Media Platform on Proxmox VE with Terraform and Ansible from bare metal to a monitored, GPU-enabled application stack.
 
 - **Terraform** provisions VMs on Proxmox VE.
 - **Ansible** configures them, using a dynamic inventory built from
@@ -157,7 +155,7 @@ flowchart TD
 
 ```
 .
-├── workspace/                  # Terraform  ->  see workspace/README.md
+├── terraform/                  # Terraform  ->  see terraform/README.md
 │   ├── modules/proxmox_vm/     #   reusable VM module (cloud-init, disks, PCI passthrough)
 │   ├── infrastructure/_base/   #   shared, long-lived: OS templates, GPU hardware mapping
 │   └── deployments/media/
@@ -179,7 +177,7 @@ flowchart TD
 Each half has its own README because they solve different problems
 and have different lifecycles:
 
-- **[`workspace/README.md`](workspace/README.md)** covers provisioning: state,
+- **[`terraform/README.md`](terraform/README.md)** covers provisioning: state,
   stack layering, the module contract, and GPU passthrough.
 - **[`ansible/README.md`](ansible/README.md)** covers configuration: inventory
   composition, the role catalog, variable conventions, and secret injection.
@@ -216,7 +214,7 @@ committed `.example` to copy:
 ```bash
 # Terraform inputs, one per stack
 for s in infrastructure/_base deployments/media/infrastructure deployments/media/application; do
-  cp "workspace/$s/terraform.tfvars.example" "workspace/$s/terraform.tfvars"
+  cp "terraform/$s/terraform.tfvars.example" "terraform/$s/terraform.tfvars"
 done
 
 # Bare-metal host addresses for Ansible
@@ -233,8 +231,8 @@ Each stack README's "Inputs" table lists what its `terraform.tfvars` requires.
 ### 3. Build the shared base (once)
 
 ```bash
-terraform -chdir=workspace/infrastructure/_base init
-terraform -chdir=workspace/infrastructure/_base apply
+terraform -chdir=terraform/infrastructure/_base init
+terraform -chdir=terraform/infrastructure/_base apply
 ```
 
 This downloads the Ubuntu 24.04 and Rocky 9 cloud images, converts them into
@@ -244,8 +242,8 @@ Proxmox templates, and registers the GPU hardware mapping. Both templates carry
 ### 4. Provision a deployment
 
 ```bash
-terraform -chdir=workspace/deployments/media/infrastructure init
-terraform -chdir=workspace/deployments/media/infrastructure apply
+terraform -chdir=terraform/deployments/media/infrastructure init
+terraform -chdir=terraform/deployments/media/infrastructure apply
 ```
 
 ### 5. Configure everything
@@ -264,8 +262,8 @@ joins the monitored fleet through group children. Static overlays in
 ### 6. Apply application-level config
 
 ```bash
-terraform -chdir=workspace/deployments/media/application init
-terraform -chdir=workspace/deployments/media/application apply
+terraform -chdir=terraform/deployments/media/application init
+terraform -chdir=terraform/deployments/media/application apply
 ```
 
 Runs last by design, because it configures services that Ansible has to have
@@ -282,9 +280,9 @@ through `pre-commit run --all-files`.
 |---|---|
 | `ansible-lint` | Role and playbook correctness, idempotency smells, FQCN usage |
 | `yaml-lint` | YAML style across the whole repo |
-| `terraform-static` | `terraform fmt -check -recursive` plus recursive TFLint with the `all` preset (`workspace/.tflint.hcl`), including required descriptions on every variable and output |
+| `terraform-static` | `terraform fmt -check -recursive` plus recursive TFLint with the `all` preset (`terraform/.tflint.hcl`), including required descriptions on every variable and output |
 | `terraform-validate` | Matrix `init -backend=false` + `validate` across all three stacks |
-| `trivy` | IaC misconfiguration scanning of `workspace/` |
+| `trivy` | IaC misconfiguration scanning of `terraform/` |
 | `gitleaks` | Secret scanning across the **full git history**, not just the diff |
 | `actionlint` | The workflow files themselves |
 | `hooks` | Whitespace/EOF hygiene, private key detection, verifies every `*.sops.yaml` is actually encrypted |

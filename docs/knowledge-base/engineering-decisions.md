@@ -108,7 +108,7 @@ resources hold the elevated credential.
 **Failure mode**: nothing breaks functionally in the short term. The cost
 shows up at credential rotation or compromise: with `root` everywhere,
 answering "what can this credential touch" means reading every resource
-block. With the alias pattern, `grep -rn "proxmox.root" workspace/` returns
+block. With the alias pattern, `grep -rn "proxmox.root" terraform/` returns
 the complete list. Inside the module, the VM clone resource is the only
 consumer. [Provisioning](provisioning.md#deployment-inputs) covers how
 `proxmox_password` and `proxmox_api_token` reach each stack.

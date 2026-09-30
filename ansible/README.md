@@ -4,7 +4,7 @@ Configuration layer. Everything that happens *inside* a host lives here: package
 installation, storage, users, container runtimes, and the Docker Compose
 workloads themselves.
 
-Terraform in [`../workspace`](../workspace/README.md) creates the machines this
+Terraform in [`../terraform`](../terraform/README.md) creates the machines this
 layer configures. The two never call each other; they
 meet at Proxmox VM tags.
 

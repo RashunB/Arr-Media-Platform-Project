@@ -21,9 +21,9 @@ pull request runs all of them.
 |---|---|---|
 | `ansible-lint` | `ansible/ansible-lint` action, `working_directory: ansible`, `requirements_file: requirements.yml`, `args: '-c ../.ansible-lint'` | Any rule violation under the `production` profile (the strictest built-in profile), plus the opt-in rules in `.ansible-lint`'s `enable_list`: `args`, `empty-string-compare`, `no-log-password`, `no-same-owner`, `galaxy-version-incorrect`, `yaml` |
 | `yaml-lint` | `yamllint -f github .` across the whole repo, Python 3.12, `yamllint==1.37.1` | Any enabled rule in `.yamllint`: `anchors`, `braces`, `brackets`, `colons`, `commas`, `document-start`, `empty-lines`, `hyphens`, `indentation`, `key-duplicates`, `new-line-at-end-of-file`, `new-lines`, `trailing-spaces`. `comments` and `truthy` run at `warning` level and do not fail the job; `line-length`, `key-ordering`, `octal-values`, and `quoted-strings` are off |
-| `terraform-static` | `terraform fmt -check -recursive workspace`, then `tflint --init && tflint --recursive --format compact` from `workspace/` | Any file that differs from canonical `terraform fmt` output, or any TFLint violation. `workspace/.tflint.hcl` enables the bundled `terraform` ruleset with `preset = "all"`, which includes `terraform_documented_variables`, `terraform_documented_outputs`, `terraform_naming_convention`, and `terraform_standard_module_structure` on top of the recommended rules |
-| `terraform-validate` | Matrix over `workspace/infrastructure/_base`, `workspace/deployments/media/infrastructure`, and `workspace/deployments/media/application`; each runs `terraform init -backend=false` then `terraform validate` | Any syntax or type error Terraform's validator catches. `-backend=false` means the job needs **no real state, no Proxmox credentials, and no SOPS key**. `modules/proxmox_vm` has no standalone root config, so the stacks that call it exercise it transitively |
-| `trivy` | `aquasecurity/trivy-action`, `scan-type: config`, `scan-ref: workspace`, `trivy-config: trivy.yaml`, `exit-code: 1` | Any IaC misconfiguration Trivy's bundled checks catch across the scanners enabled in `trivy.yaml` (`dockerfile`, `helm`, `kubernetes`, `terraform`, and the Terraform plan formats). With `exit-code: 1` and no severity filter, **any** finding fails the job |
+| `terraform-static` | `terraform fmt -check -recursive terraform`, then `tflint --init && tflint --recursive --format compact` from `terraform/` | Any file that differs from canonical `terraform fmt` output, or any TFLint violation. `terraform/.tflint.hcl` enables the bundled `terraform` ruleset with `preset = "all"`, which includes `terraform_documented_variables`, `terraform_documented_outputs`, `terraform_naming_convention`, and `terraform_standard_module_structure` on top of the recommended rules |
+| `terraform-validate` | Matrix over `terraform/infrastructure/_base`, `terraform/deployments/media/infrastructure`, and `terraform/deployments/media/application`; each runs `terraform init -backend=false` then `terraform validate` | Any syntax or type error Terraform's validator catches. `-backend=false` means the job needs **no real state, no Proxmox credentials, and no SOPS key**. `modules/proxmox_vm` has no standalone root config, so the stacks that call it exercise it transitively |
+| `trivy` | `aquasecurity/trivy-action`, `scan-type: config`, `scan-ref: terraform`, `trivy-config: trivy.yaml`, `exit-code: 1` | Any IaC misconfiguration Trivy's bundled checks catch across the scanners enabled in `trivy.yaml` (`dockerfile`, `helm`, `kubernetes`, `terraform`, and the Terraform plan formats). With `exit-code: 1` and no severity filter, **any** finding fails the job |
 | `gitleaks` | `gitleaks/gitleaks-action`, checkout with `fetch-depth: 0` | Any pattern gitleaks recognizes as a secret, scanned across the **entire git history**, not only the current diff |
 | `actionlint` | `reviewdog/action-actionlint`, `reporter: github-check` | Malformed GitHub Actions workflow syntax, invalid expressions, misreferenced actions |
 | `hooks` | `pre-commit run --all-files` with `SKIP: ansible-lint, yamllint, terraform_fmt, terraform_docs, terraform_tflint, terraform_trivy, terraform_validate` | The hooks left after the skip list: `trailing-whitespace`, `end-of-file-fixer`, `check-added-large-files`, `detect-private-key` (from `pre-commit/pre-commit-hooks`), and `sops` (from `squat/pre-commit-sops`) |
@@ -60,7 +60,7 @@ parse ciphertext.
 ## `terraform_docs`
 
 `terraform_docs` regenerates each stack's `README.md` tables between the
-`<!-- BEGIN_TF_DOCS -->` markers from `workspace/.terraform-docs.yaml`. It
+`<!-- BEGIN_TF_DOCS -->` markers from `terraform/.terraform-docs.yaml`. It
 runs through local pre-commit, and the `hooks` job skips it, so CI does not
 diff generated tables. The `terraform-static` job covers the input side: the
 `all` TFLint preset requires a `description` on every variable and output,
@@ -73,7 +73,7 @@ and those descriptions are what `terraform_docs` renders.
 
 - `terraform_fmt`, `terraform_tflint`, `terraform_trivy`, and
   `terraform_validate` (`--tf-init-args=-lockfile=readonly`, excluding
-  `workspace/modules/`, consistent with the `terraform-validate` job's
+  `terraform/modules/`, consistent with the `terraform-validate` job's
   matrix). The `terraform_tflint` hook also passes `--enable-rule` for the
   documentation, naming, structure, and module-shallow-clone rules.
 - `terraform_docs`, which regenerates the README tables.
