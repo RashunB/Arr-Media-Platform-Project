@@ -6,9 +6,9 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
-        exclude: ^workspace/.*/README\.md$
+        exclude: ^terraform/.*/README\.md$
       - id: end-of-file-fixer
-        exclude: ^workspace/.*/README\.md$
+        exclude: ^terraform/.*/README\.md$
       - id: check-added-large-files
       - id: detect-private-key
   - repo: https://github.com/ansible/ansible-lint
@@ -27,7 +27,7 @@ repos:
       - id: terraform_fmt
       - id: terraform_docs
         args:
-          - --args=--config=workspace/.terraform-docs.yaml
+          - --args=--config=terraform/.terraform-docs.yaml
           - --hook-config=--create-file-if-not-exist=true  # Boolean. true or false
       - id: terraform_tflint
         args:
@@ -37,14 +37,14 @@ repos:
           - --args=--enable-rule=terraform_standard_module_structure
           - --args=--enable-rule=terraform_naming_convention
       - id: terraform_trivy
-        files: ^workspace/
+        files: ^terraform/
         args:
           - --args=--skip-dirs="**/.terraform"
       - id: terraform_validate
         args:
           - --tf-init-args=-lockfile=readonly
         exclude:
-          ^workspace/modules/
+          ^terraform/modules/
   - repo: https://github.com/squat/pre-commit-sops
     rev: 0.1.0
     hooks:

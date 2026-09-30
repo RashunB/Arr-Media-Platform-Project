@@ -76,7 +76,7 @@ resource "proxmox_hardware_mapping_pci" "transcoding_gpu" {
   ]
 }
 ```
-(`workspace/infrastructure/_base/main-gpu.tf`, full file)
+(`terraform/infrastructure/_base/main-gpu.tf`, full file)
 
 This is a **cluster-scoped** Proxmox resource: a named hardware mapping, not
 a per-VM setting. `_base` defines it once. It identifies the physical device
@@ -87,7 +87,7 @@ means new values for this resource and only this resource.
 
 ## Hop 2: Terraform reads the mapping and builds the module input
 
-`workspace/deployments/media/infrastructure/main.tf` looks the mapping up
+`terraform/deployments/media/infrastructure/main.tf` looks the mapping up
 instead of redefining it:
 
 ```hcl
@@ -110,7 +110,7 @@ locals {
   }
 }
 ```
-(`workspace/deployments/media/infrastructure/main.tf`, excerpt)
+(`terraform/deployments/media/infrastructure/main.tf`, excerpt)
 
 This follows the pattern in [Engineering decisions](engineering-decisions.md)
 and [Provisioning](provisioning.md): `_base` *defines* shared, cluster-scoped
@@ -122,7 +122,7 @@ pcie=true, rombar=true}}`, passed straight through as
 
 ## Hop 3: the module's single-variable switch
 
-Inside `workspace/modules/proxmox_vm/main.tf`:
+Inside `terraform/modules/proxmox_vm/main.tf`:
 
 ```hcl
 gpu_passthrough = length(var.pcie_devices) > 0

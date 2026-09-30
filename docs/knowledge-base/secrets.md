@@ -73,7 +73,7 @@ twice:
 3. Terraform's `application` stack configures the *arr web UIs and
    Prowlarr's application links with
    `data.sops_file.media_platform.data["media_platform_sonarr_api_key"]`
-   and its siblings (`workspace/deployments/media/application/main.tf`).
+   and its siblings (`terraform/deployments/media/application/main.tf`).
 
 All three read one encrypted source, so rotating an API key is a single-file
 edit that stays consistent across the running containers and the

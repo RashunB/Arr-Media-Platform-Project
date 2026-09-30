@@ -7,14 +7,14 @@ created: 2026-09-17
 # Provisioning (Terraform)
 
 > [!info] Scope
-> `workspace/` in depth. The top-level layering diagram and quickstart
-> commands live in [workspace/README.md](../../workspace/README.md); this
+> `terraform/` in depth. The top-level layering diagram and quickstart
+> commands live in [terraform/README.md](../../terraform/README.md); this
 > page covers the layer beneath them.
 
 ## Three stacks, not one
 
 ```
-workspace/
+terraform/
 ├── modules/proxmox_vm/          # reusable VM factory (no state of its own)
 ├── infrastructure/_base/        # cluster-wide, rarely-changing primitives
 └── deployments/media/
@@ -27,7 +27,7 @@ workspace/
 module**, with separate state and a separate `init`/`plan`/`apply` lifecycle.
 `modules/proxmox_vm` is not a stack: it has no backend, and stacks call it
 through `module "media_vm" { source = "../../../modules/proxmox_vm" ... }` in
-`workspace/deployments/media/infrastructure/main.tf`.
+`terraform/deployments/media/infrastructure/main.tf`.
 
 The split follows the failure domains of the three layers:
 
@@ -44,7 +44,7 @@ The split follows the failure domains of the three layers:
 
 ## `infrastructure/_base`: what it owns
 
-`workspace/infrastructure/_base/main.tf` and `main-gpu.tf` define three
+`terraform/infrastructure/_base/main.tf` and `main-gpu.tf` define three
 resources of consequence:
 
 - `proxmox_download_file.ubuntu24` / `.rocky9` pull the upstream cloud images
@@ -90,7 +90,7 @@ locals {
   template_vm_id    = try(data.proxmox_virtual_environment_vms.templates.vms[0].vm_id, null)
 }
 ```
-(`workspace/modules/proxmox_vm/main.tf`, excerpt)
+(`terraform/modules/proxmox_vm/main.tf`, excerpt)
 
 No deployment stack hardcodes a VM ID. Rebuilding a template under a new VM
 ID requires no change in any consuming stack; the query resolves whichever
@@ -188,7 +188,7 @@ output "primary_ip" {
   value       = proxmox_virtual_environment_vm.vms[*].ipv4_addresses[1][0]
 }
 ```
-(`workspace/modules/proxmox_vm/outputs.tf`, full file)
+(`terraform/modules/proxmox_vm/outputs.tf`, full file)
 
 Both outputs are lists with one element per VM, so `vm_count > 1` exposes
 every VM's ID and address. The media deployment's Cloudflare record in
@@ -216,8 +216,8 @@ The `initialization.dns` block takes its resolvers from `var.dns_servers`
 ## Provider strategy: two aliases, one elevated
 
 Every Proxmox-facing stack declares the `proxmox` provider twice
-(`workspace/infrastructure/_base/providers.tf`,
-`workspace/deployments/media/infrastructure/providers.tf`):
+(`terraform/infrastructure/_base/providers.tf`,
+`terraform/deployments/media/infrastructure/providers.tf`):
 
 | Alias | Credential | Used for |
 |---|---|---|
@@ -283,7 +283,7 @@ listing its required inputs with placeholder values.
 
 ## Coupling between the application stack and Ansible
 
-`workspace/deployments/media/application/variables.tf` defaults
+`terraform/deployments/media/application/variables.tf` defaults
 `sabnzbd_port` to `6060`. The `media_platform` role's own default is
 `media_platform_sabnzbd_host_port: 8080`
 (`ansible/roles/media_platform/defaults/main.yml`), and
