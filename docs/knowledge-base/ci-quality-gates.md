@@ -104,12 +104,22 @@ curl -sSLo /tmp/terraform-docs.tar.gz \
 tar -xzf /tmp/terraform-docs.tar.gz -C /tmp terraform-docs
 sudo install /tmp/terraform-docs /usr/local/bin/terraform-docs
 
-# tflint v0.64.0, verified against its signed checksums
+# tflint v0.64.0
 curl -sSLO https://github.com/terraform-linters/tflint/releases/download/v0.64.0/tflint_linux_amd64.zip
 curl -sSLO https://github.com/terraform-linters/tflint/releases/download/v0.64.0/checksums.txt
 gh attestation verify checksums.txt -R terraform-linters/tflint
 sha256sum --ignore-missing -c checksums.txt
 unzip tflint_linux_amd64.zip && sudo install tflint /usr/local/bin/
+
+# gitleaks v8.30.1
+curl -sSLO https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+curl -sSLO https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_checksums.txt
+sha256sum --ignore-missing -c gitleaks_8.30.1_checksums.txt
+tar -xzf gitleaks_8.30.1_linux_x64.tar.gz -C /tmp gitleaks
+sudo install -m 0755 /tmp/gitleaks /usr/local/bin/gitleaks
+gitleaks version
+rm -f /tmp/gitleaks /tmp/gitleaks_8.30.1_linux_*.tar.gz /tmp/gitleaks_8.30.1_checksums.txt
+
 ```
 
 A different `terraform-docs` version can reorder or reformat the generated

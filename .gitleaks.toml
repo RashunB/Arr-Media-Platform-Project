@@ -1,0 +1,10 @@
+title = "Gitleaks config"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "global allow list"
+regexes = [
+  '''ENC\[AES256_GCM,data:.*'''
+]
