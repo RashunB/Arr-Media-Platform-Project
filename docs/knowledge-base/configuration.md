@@ -49,16 +49,16 @@ want_proxmox_nodes_ansible_host: true
 
 The API endpoint and credentials come from `vault/pve.sops.yaml`, a symlink to
 `secrets/pve.sops.yaml`, decrypted through a `community.sops.sops` lookup with
-a jq-style `extract` path. **The inventory file that queries Proxmox holds no
-plaintext credential or address.**
+a jq-style `extract` path. The inventory file that queries Proxmox holds no
+plaintext credential or address.
 
-`keyed_groups` with an **empty `separator` and `prefix`** drives the whole
+`keyed_groups` with an empty `separator` and `prefix` drives the whole
 tag-to-group mechanism: a Proxmox tag named `media_platform` becomes an
 Ansible group named exactly `media_platform`, with no prefix decoration. The
 `modules/proxmox_vm` composed tag list (see [Provisioning](provisioning.md))
 therefore turns directly into inventory membership.
 
-The plugin **computes** `ansible_host` rather than storing it, taking
+The plugin computes `ansible_host` rather than storing it, taking
 interface index `[1]` (not `[0]`) as the guest's primary address for both
 QEMU (`proxmox_agent_interfaces`) and LXC (`proxmox_lxc_interfaces`) guests.
 The Terraform module's `ipv4_addresses[1][0]` output makes the same
@@ -108,8 +108,8 @@ observability_pve
 proxmox_all_qemu
 ```
 
-`proxmox_all_qemu` is an **implicit group the `community.proxmox.proxmox`
-plugin creates** for every guest of type `qemu`, independent of tags. Every
+`proxmox_all_qemu` is an implicit group the `community.proxmox.proxmox`
+plugin creates for every guest of type `qemu`, independent of tags. Every
 VM Terraform creates lands in `observability_node` by virtue of being a QEMU
 guest. [Observability](observability.md) covers what that membership
 triggers.
@@ -192,7 +192,7 @@ playbook that imports `docker_base`.
 ## Role catalog: task flow and `argument_specs`
 
 Every first-party role ships `meta/argument_specs.yml`. Ansible validates role
-input against it **before the first task runs**, so a malformed variable fails
+input against it before the first task runs, so a malformed variable fails
 at role entry with a typed error, not partway through a play. These specs are
 the reference for what each role accepts.
 
@@ -219,7 +219,7 @@ import_tasks: filesystem.yml   # community.general.filesystem, looped
 import_tasks: mount.yml        # ansible.posix.mount, looped
 ```
 
-The whole storage layout is **one variable**,
+The whole storage layout is one variable,
 `lvm_storage_logical_volumes`: a list of dicts, each describing a full
 PV-to-VG-to-LV-to-filesystem-to-mount pipeline. Per-item `vg_state`,
 `lv_state`, `fs_state`, and `mount_state` keys let the same data structure
@@ -254,8 +254,8 @@ import_tasks: compose.yml           # renders docker-compose.yml + .env, docker_
 This role pre-seeds real application config so services come up already
 configured instead of opening a first-run setup wizard.
 
-- `sabnzbd.yml` and `bazarr.yml` template their config with **`force:
-  false`**. Ansible writes each file once and never overwrites it, so changes
+- `sabnzbd.yml` and `bazarr.yml` template their config with `force:
+  false`. Ansible writes each file once and never overwrites it, so changes
   made through the web UI survive later playbook runs.
 - `configarr.yml` writes its config with mode `0440`, read-only even for the
   owner. Configarr resolves secrets through `!env` indirection from the
@@ -263,7 +263,7 @@ configured instead of opening a first-run setup wizard.
   file never needs in-place edits.
 
 `gpu.yml` installs `linux-modules-extra-{{ ansible_kernel }}`, notifies the
-`Reboot` handler, and then **immediately** calls
+`Reboot` handler, and then immediately calls
 `ansible.builtin.meta: flush_handlers` at the end of the task file. The
 reboot happens within the same `media_platform` role run, before
 `compose.yml` starts containers that mount `/dev/dri`. Under Ansible's normal
@@ -291,7 +291,7 @@ Prometheus file-based service discovery mechanism.
 
 Role defaults carry the role name as a prefix (`media_platform_*`,
 `observability_node_*`, `observability_control_*`). A parent `group_vars`
-file holds each shared value **once, unprefixed**, and the child file maps it
+file holds each shared value once, unprefixed, and the child file maps it
 onto each role's prefixed interface:
 
 ```yaml
@@ -312,7 +312,7 @@ PVE host (`observability_node_alloy_journal_enabled`,
 `observability_node_smartctl_exporter_enabled`).
 
 The precedence is standard Ansible `group_vars` precedence (child group wins
-over parent). The *pattern*, unprefixed shared value to prefixed role
+over parent). The pattern, unprefixed shared value to prefixed role
 variable one hop apart, is this repo's own convention.
 
 ## Connection model
