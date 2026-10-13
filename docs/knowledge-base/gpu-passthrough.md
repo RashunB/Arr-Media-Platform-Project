@@ -6,11 +6,11 @@ created: 2026-09-17
 
 # GPU Passthrough (Intel VA-API)
 
-> [!info] Scope
-> End-to-end trace of the Intel GPU's path from a physical PCI slot on the
-> Proxmox host into a running Jellyfin container, across all three layers:
-> Proxmox hardware mapping, Terraform VM config, and the Ansible
-> `media_platform` role.
+Scope
+End-to-end trace of the Intel GPU's path from a physical PCI slot on the
+Proxmox host into a running Jellyfin container, across all three layers:
+Proxmox hardware mapping, Terraform VM config, and the Ansible
+`media_platform` role.
 
 ## Four hops
 

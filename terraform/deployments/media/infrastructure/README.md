@@ -22,7 +22,7 @@
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_media_vm"></a> [media\_vm](#module\_media\_vm) | ../../../modules/proxmox_vm | n/a |
+| <a name="module_media_vm"></a> [media\_vm](#module\_media\_vm) | git::https://github.com/RashunB/terraform-proxmox-module.git | 78217240834729f7601417de009d36aa8faaf3c6 |
 
 ## Resources
 

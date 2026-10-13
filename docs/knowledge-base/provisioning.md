@@ -6,10 +6,10 @@ created: 2026-09-17
 
 # Provisioning (Terraform)
 
-> [!info] Scope
-> `terraform/` in depth. The top-level layering diagram and quickstart
-> commands live in [terraform/README.md](../../terraform/README.md); this
-> page covers the layer beneath them.
+Scope
+`terraform/` in depth. The top-level layering diagram and quickstart
+commands live in [terraform/README.md](../../terraform/README.md); this
+page covers the layer beneath them.
 
 ## Three stacks, not one
 

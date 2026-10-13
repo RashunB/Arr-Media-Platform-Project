@@ -6,11 +6,11 @@ created: 2026-09-17
 
 # CI and Quality Gates
 
-> [!info] Local vs. CI
-> Pre-commit runs locally on demand. In CI, the `hooks` job in
-> `.github/workflows/ci.yml` runs `pre-commit run --all-files` server-side
-> with most hooks skipped through the `SKIP` env var, which enforces the
-> hygiene and SOPS checks on every push regardless of local setup.
+Local vs. CI
+Pre-commit runs locally on demand. In CI, the `hooks` job in
+`.github/workflows/ci.yml` runs `pre-commit run --all-files` server-side
+with most hooks skipped through the `SKIP` env var, which enforces the
+hygiene and SOPS checks on every push regardless of local setup.
 
 ## Every CI job and what fails it
 
