@@ -181,8 +181,7 @@ and have different lifecycles:
 - **[`terraform/README.md`](terraform/README.md)** covers provisioning: state,
   stack layering, the module contract, and GPU passthrough.
 - **[`ansible/README.md`](ansible/README.md)** covers configuration: inventory
-  composition, the role catalog, and variable conventions.
-  - Both uses SOPS for secrets management.
+  composition, the role catalog, variable conventions, and secret injection.
 
 ---
 
