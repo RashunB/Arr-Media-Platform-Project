@@ -21,19 +21,14 @@ page stands alone as the reference for a single area.
 ## [Provisioning](provisioning.md)
 
 The Terraform half in depth: the three-stack layering (`modules/proxmox_vm`,
-`infrastructure/_base`, `deployments/media/*`), the `proxmox_vm` module's
-contract (what it decides internally, such as machine type, BIOS, and EFI
-disk, versus what the caller supplies), tag-based template discovery with a
+`infrastructure/_base`, `deployments/media/*`), tag-based template discovery with a
 plan-time uniqueness check, list outputs that cover every VM, and the
-two-alias provider strategy. Also covers local state and the ephemeral SOPS
-reads that keep provider credentials out of it.
+two-alias provider strategy.
 
 ## [Configuration](configuration.md)
 
 The Ansible half in depth: how `community.proxmox.proxmox`'s `keyed_groups`
-turns a live Proxmox tag into an Ansible group, how `observability_node`
-membership follows automatically from the `proxmox_all_qemu` implicit group,
-and how `media_platform` membership comes from a static inventory file. Also
+turns Proxmox tags into Ansible groups and other contextual inventory entries. Also
 covers each first-party role's task order, its `argument_specs.yml`
 contract, and the `group_vars` re-export pattern that keeps role variables
 collision-free.
@@ -43,7 +38,7 @@ collision-free.
 The SOPS + `age` trust chain: what each file in `secrets/` holds (by key
 name, not value), which consumer reads which file, and the `.sops.yaml`
 recipient binding. Covers Terraform's two read modes, `ephemeral
-"sops_file"` for provider credentials (never in state) and `data
+"sops_file"` for provider credentials and `data
 "sops_file"` for the application stack's resource arguments, alongside
 Ansible's `community.sops` lookup and vars plugin, and maps each leak path
 to the gate that covers it.
@@ -53,8 +48,8 @@ to the gate that covers it.
 The monitoring stack's topology: control vs. node-local services, what each
 exporter scrapes, how Prometheus discovers node targets through per-exporter
 `file_sd` files that the control role renders from each node's own port
-variables, the Loki/Alloy log path, the Dozzle hub-and-agent wiring, and the
-exact sequence by which a freshly provisioned host joins monitoring.
+variables, the Loki/Alloy log path, the Dozzle hub-and-agent wiring, and how
+a freshly provisioned host joins monitoring.
 
 ## [GPU passthrough](gpu-passthrough.md)
 

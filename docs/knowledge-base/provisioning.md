@@ -23,10 +23,10 @@ terraform/
 ```
 
 `_base`, `deployments/media/infrastructure`, and
-`deployments/media/application` are each **their own Terraform root
-module**, with separate state and a separate `init`/`plan`/`apply` lifecycle.
-`modules/proxmox_vm` is not a stack: it has no backend, and stacks call it
-through `module "media_vm" { source = "../../../modules/proxmox_vm" ... }` in
+`deployments/media/application` are each their own Terraform root
+module, with separate state and a separate `init`/`plan`/`apply` lifecycle.
+`modules/proxmox_vm` is a module called by
+`module "media_vm" { source = "../../../modules/proxmox_vm" ... }` in
 `terraform/deployments/media/infrastructure/main.tf`.
 
 The split follows the failure domains of the three layers:
@@ -49,7 +49,7 @@ resources of consequence:
 
 - `proxmox_download_file.ubuntu24` / `.rocky9` pull the upstream cloud images
   into the Proxmox file datastore with `overwrite = false`, so a re-apply
-  never re-downloads a multi-gigabyte image.
+  doesn't re-download a multi-gigabyte image.
 - `proxmox_virtual_environment_vm.ubuntu24_template` / `.rocky9_template`
   convert each image into a Proxmox template (`template = true`,
   `started = false`), tagged `["terraform", "template", "ubuntu24",
@@ -57,12 +57,12 @@ resources of consequence:
   carries `default`, which makes it the implicit choice when a deployment
   leaves `template_os_tag` at its default.
 - `proxmox_hardware_mapping_pci.transcoding_gpu` (`main-gpu.tf`) is a single,
-  **cluster-scoped** PCI hardware mapping. [GPU passthrough](gpu-passthrough.md)
-  traces the full mechanism. `_base` *defines* the mapping; every other stack
-  *reads* it as a data source.
+  cluster-scoped PCI hardware mapping. [GPU passthrough](gpu-passthrough.md)
+  traces the full mechanism. `_base` defines the mapping; every other stack
+  reads it as a data source.
 
 Both templates carry `lifecycle { prevent_destroy = true }`. The module
-clones with `full = false`, a **linked** clone, which depends on the
+clones with `full = false`, a linked clone, which depends on the
 template's base disk for its lifetime. Destroying a template breaks every VM
 cloned from it, so `prevent_destroy` enforces a real storage dependency, not
 only the time cost of a rebuild.
