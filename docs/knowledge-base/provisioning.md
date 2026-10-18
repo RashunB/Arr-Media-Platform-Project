@@ -7,27 +7,29 @@ created: 2026-09-17
 # Provisioning (Terraform)
 
 Scope
-`terraform/` in depth. The top-level layering diagram and quickstart
-commands live in [terraform/README.md](../../terraform/README.md); this
-page covers the layer beneath them.
+`terraform/` and the `proxmox_vm` module in depth, one level beneath the
+layering diagram and quickstart commands in
+[terraform/README.md](../../terraform/README.md).
 
-## Three stacks, not one
+## Three stacks and an external module
 
 ```
 terraform/
-├── modules/proxmox_vm/          # reusable VM factory (no state of its own)
 ├── infrastructure/_base/        # cluster-wide, rarely-changing primitives
 └── deployments/media/
     ├── infrastructure/          # the VM + DNS record for this workload
     └── application/             # post-Ansible service configuration
+
+github.com/RashunB/terraform-proxmox-module
+└── proxmox_vm                   # VM factory (no state of its own), pinned by SHA
 ```
 
 `_base`, `deployments/media/infrastructure`, and
 `deployments/media/application` are each their own Terraform root
 module, with separate state and a separate `init`/`plan`/`apply` lifecycle.
-`modules/proxmox_vm` is a module called by
-`module "media_vm" { source = "../../../modules/proxmox_vm" ... }` in
-`terraform/deployments/media/infrastructure/main.tf`.
+The `proxmox_vm` module lives in its own repository, and
+`terraform/deployments/media/infrastructure/main.tf` calls it by git URL at a
+fixed commit.
 
 The split follows the failure domains of the three layers:
 
@@ -64,14 +66,36 @@ resources of consequence:
 Both templates carry `lifecycle { prevent_destroy = true }`. The module
 clones with `full = false`, a linked clone, which depends on the
 template's base disk for its lifetime. Destroying a template breaks every VM
-cloned from it, so `prevent_destroy` enforces a real storage dependency, not
-only the time cost of a rebuild.
+cloned from it, so `prevent_destroy` guards a real storage dependency on top of
+the time cost of a rebuild.
 
-## `modules/proxmox_vm`: the contract
+## `proxmox_vm`: the contract
 
-Every deployment goes through this module. `variables.tf`, `main.tf`, and
-`outputs.tf` together define what the module decides internally and what it
-takes as input.
+Every deployment goes through this module. Its `variables.tf`, `main.tf`, and
+`outputs.tf` in
+[RashunB/terraform-proxmox-module](https://github.com/RashunB/terraform-proxmox-module)
+define what the module decides internally and what it takes as input.
+
+### Versioning: a git source pinned to a commit
+
+```hcl
+module "media_vm" {
+  source = "git::https://github.com/RashunB/terraform-proxmox-module.git?ref=<sha>"
+  # ...
+}
+```
+(`terraform/deployments/media/infrastructure/main.tf`, excerpt)
+
+The module follows the same release model a platform team uses for shared
+modules. Its own repository carries its CI and generated README. Consumers
+reference a full commit SHA, so `terraform init` always resolves the same code,
+and every upgrade is a one-line `?ref=` diff that review and CI both see. Module
+changes land in the module repository first, and consuming stacks move their
+pin afterwards.
+
+The module declares provider version floors (`bpg/proxmox >= 0.113.1`) and
+leaves exact pins to the calling stack's `providers.tf` and lockfile. A module
+that pinned exactly would force every consumer onto its provider version.
 
 ### Template discovery by tag, with a uniqueness check
 
@@ -90,7 +114,7 @@ locals {
   template_vm_id    = try(data.proxmox_virtual_environment_vms.templates.vms[0].vm_id, null)
 }
 ```
-(`terraform/modules/proxmox_vm/main.tf`, excerpt)
+(`main.tf` in `terraform-proxmox-module`, excerpt)
 
 No deployment stack hardcodes a VM ID. Rebuilding a template under a new VM
 ID requires no change in any consuming stack; the query resolves whichever
@@ -129,9 +153,8 @@ Final tag set = `vm_default_tag_list` (default `["terraform"]`) + the
 caller's `vm_tag_list` + `vm_group` + `vm_name_prefix`, deduplicated. The
 `community.proxmox.proxmox` inventory plugin in
 [Configuration](configuration.md) reads these tags back as Ansible group
-names. This is the entire Terraform-to-Ansible handoff: it runs through
-Proxmox's own tag storage, not through any file either tool writes for the
-other.
+names. That is the entire Terraform-to-Ansible handoff. Proxmox's own tag
+storage carries it, and neither tool writes a file for the other.
 
 ### The GPU-passthrough switch
 
@@ -185,23 +208,24 @@ output "vm_id" {
 
 output "primary_ip" {
   description = "First non-loopback IPv4 address(es) of VM(s)"
-  value       = proxmox_virtual_environment_vm.vms[*].ipv4_addresses[1][0]
+  value       = var.ip_config_address != "dhcp" ? toset(var.ip_config_address) : proxmox_virtual_environment_vm.vms[*].ipv4_addresses[1][0]
 }
 ```
-(`terraform/modules/proxmox_vm/outputs.tf`, full file)
+(`outputs.tf` in `terraform-proxmox-module`, full file)
 
 Both outputs are lists with one element per VM, so `vm_count > 1` exposes
-every VM's ID and address. The media deployment's Cloudflare record in
-`main-cf.tf` consumes `module.media_vm.primary_ip[0]`.
+every VM's ID and address. The media deployment runs DHCP, the module default,
+and its Cloudflare record in `main-dns.tf` consumes
+`module.media_vm.primary_ip[0]`.
 
-`ipv4_addresses[1][0]` takes index `1` deliberately: index `0` on a Proxmox
-guest is loopback, so `[1]` is the first real interface's first address.
+On DHCP, `ipv4_addresses[1][0]` takes index `1` deliberately: index `0` on a
+Proxmox guest is loopback, so `[1]` is the first real interface's first address.
 The Ansible inventory plugin's `compose` block makes the same assumption
 (see [Configuration](configuration.md)).
 
 ### Cloud-init rendering
 
-`proxmox_virtual_environment_file.cloud_config` renders
+`proxmox_virtual_environment_file.cloud_config` renders the module's
 `templates/cloud-init.yml.tpl` per VM through `templatefile(...)`, injecting
 `hostname`, `domain`, `default_user`, and `ssh_public_key`. The template
 creates the default user with **passwordless sudo**
@@ -210,8 +234,16 @@ and starting it through `runcmd`. The `primary_ip` output depends on the
 guest agent reporting addresses back to Proxmox.
 
 The `initialization.dns` block takes its resolvers from `var.dns_servers`
-(default `["1.1.1.1", "8.8.8.8"]`); the media stack passes its own
+(default `["1.1.1.1", "8.8.8.8"]`), and the media stack passes its own
 `dns_servers` variable through.
+
+### Network
+
+`network_device_bridge` (default `vmbr0`) and `network_device_model` (default
+`virtio`) set the VM's NIC. `ip_config_address` defaults to `dhcp`. A static
+value switches `initialization.ip_config` to that address and sets the gateway
+from `ip_config_gateway`. The media stack passes none of the four and runs on
+the defaults.
 
 ## Provider strategy: two aliases, one elevated
 
@@ -225,10 +257,10 @@ Every Proxmox-facing stack declares the `proxmox` provider twice
 | `proxmox.root` | `root@pam` username + password | Template creation, VM cloning |
 
 Proxmox restricts cloning and template creation to more privileged
-authentication than an API token carries. Rather than granting the whole
-stack root credentials, the module declares
+authentication than an API token carries. Only resources wired to the elevated
+alias use root credentials. The module declares
 `configuration_aliases = [proxmox.root]`, which forces every module call to
-wire the elevated alias explicitly:
+wire the alias explicitly:
 
 ```hcl
 providers = {

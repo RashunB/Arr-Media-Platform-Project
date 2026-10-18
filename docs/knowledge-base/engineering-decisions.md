@@ -7,9 +7,9 @@ created: 2026-09-17
 # Engineering Decisions
 
 Scope
-The root README's "Engineering decisions" section states each rule with a
-one-line rationale. This page adds the rejected alternative for each rule
-and the concrete failure in this repo if the rule were broken.
+Each rule from the root README's "Engineering decisions" section, one level
+deeper: the rejected alternative, the reasoning, and the concrete failure in
+this repo if the rule broke.
 
 ## Never call Ansible from Terraform, or create VMs from Ansible
 
@@ -36,12 +36,33 @@ which is local and gitignored (see [Provisioning](provisioning.md)). A run
 from a different machine would have no record of prior configuration and
 could re-trigger `ansible-playbook` runs that fight in-place config. The
 `media_platform` role's `force: false` templating for `sabnzbd.ini` and the
-Bazarr config assumes Ansible controls its own re-run cadence, not
-Terraform.
+Bazarr config assumes Ansible controls its own re-run cadence.
 
-## Discover templates by tag, not by VM ID
+## Version the VM module in its own repository, pinned by commit
 
-Rule: `modules/proxmox_vm` queries `proxmox_virtual_environment_vms`
+Rule: the `proxmox_vm` module lives in
+[RashunB/terraform-proxmox-module](https://github.com/RashunB/terraform-proxmox-module).
+Deployment stacks call it through a `git::` source with `?ref=<commit sha>`.
+
+Alternative: keep the module in-tree under `terraform/modules/` and call it
+by relative path (`source = "../../../modules/proxmox_vm"`). Every consumer
+then runs whatever the working tree holds.
+
+Reasoning: a relative path has no version. A module edit changes every
+consuming stack at once, on that stack's next `plan`, whether or not anyone
+reviewed it in that stack's context. A pinned git source gives the module a
+release boundary: the module repository carries its own CI and generated
+README, and each consumer opts into a new version with a one-line `?ref=`
+diff. A full SHA pins tighter than a tag, which can move after the fact.
+
+Failure mode: with an in-tree path, a module change made for one deployment
+(a new variable default, a reworked output) lands in every other deployment
+the next time someone plans it. With two deployments on different module
+needs, the only way to hold one back is to fork the module directory.
+
+## Discover templates by tag, never by VM ID
+
+Rule: the `proxmox_vm` module queries `proxmox_virtual_environment_vms`
 filtered on `["template", var.template_os_tag]` and `template = true`, never
 a hardcoded numeric VM ID. A precondition requires exactly one match.
 
@@ -135,8 +156,7 @@ later as "GPU passthrough doesn't work" instead of as an `apply`-time error.
 
 The same module shows where the pattern stops. `pcie` and `rombar` on each
 `hostpci` device are independent Proxmox settings that do not always travel
-together, so the module exposes them as separate fields rather than deriving
-one from the other. One variable with several effects fits settings that
+together, so the module exposes each as its own field. One variable with several effects fits settings that
 must always change together, and only those.
 
 ## Ship `meta/argument_specs.yml` with every first-party role

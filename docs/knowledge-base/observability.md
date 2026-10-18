@@ -9,8 +9,7 @@ created: 2026-09-17
 Scope
 Deep dive into `ansible/roles/observability_control` and
 `observability_node`: the scrape topology, the log path, and how a host
-joins monitoring. The root README's runtime-topology diagram is the map;
-this page is the territory underneath it.
+joins monitoring, beneath the root README's runtime-topology diagram.
 
 ## Control vs. node-local
 
@@ -160,8 +159,8 @@ sits in between. Journal collection (`loki.source.journal`) depends on
 `{alloy_role}_alloy_journal_enabled`, which only the PVE host turns on.
 
 Loki runs single-node, filesystem-backed, with an `inmemory` ring: no
-replication and no object storage, consistent with homelab scale. Loki HA
-would take a redesign, not a config flag.
+replication and no object storage, sized for homelab scale. Loki HA would take
+a redesign: object storage and a distributed ring.
 
 ## Dozzle: control hub, per-node agents
 

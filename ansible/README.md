@@ -36,13 +36,14 @@ keyed_groups:
 ```
 
 With an empty prefix and separator, a Proxmox tag becomes a group of the same
-name. Terraform's `proxmox_vm` module writes those tags at VM creation
-(`vm_tag_list`, `vm_group`, `vm_name_prefix`, plus a `terraform` marker tag), so
-a newly provisioned VM lands in the right groups with **no inventory edit at
-all**.
+name. The
+[`proxmox_vm` module](https://github.com/RashunB/terraform-proxmox-module)
+writes those tags at VM creation (`vm_tag_list`, `vm_group`, `vm_name_prefix`,
+plus a `terraform` marker tag), so a newly provisioned VM lands in its tag
+groups with **no inventory edit**.
 
-The plugin computes each host's address rather than recording it, handling both
-VM and container guests:
+The plugin computes each host's address at parse time, for both VM and
+container guests:
 
 ```yaml
 compose:
@@ -63,7 +64,8 @@ proxmox_all_qemu
 ```
 
 Every QEMU guest Terraform creates joins `observability_node` without an
-inventory edit.
+inventory edit. Workload groups are explicit: `11_media_platform.ini` lists
+`media-1` by name, so a second media host needs a line there.
 
 The plugin's own credentials come from SOPS at inventory-parse time via
 `community.sops` lookups, so even the inventory file contains no secret.
@@ -122,9 +124,9 @@ queued by a config change still fires when a later task in the play fails.
 
 ### Vendored
 
-The repo commits `geerlingguy.docker` and `geerlingguy.pip` under `roles/`
-rather than resolving them at runtime, so a play never depends on Galaxy being
-reachable and git history records the exact role version.
+The repo commits `geerlingguy.docker` and `geerlingguy.pip` under `roles/`, so
+a play never depends on Galaxy being reachable and git history records the
+exact role version.
 
 ### Role internals worth noting
 
@@ -137,14 +139,14 @@ set the desired state of each stage independently.
 group at a fixed UID/GID 6000 so container and host file ownership line up, then
 templates real application config (`sabnzbd.ini`, Bazarr's `config.yml`,
 Configarr's quality profiles) before first start, so services come up configured
-rather than needing a manual setup wizard. The `gpu.yml` task installs
+with no manual setup wizard. The `gpu.yml` task installs
 `intel-media-va-driver-non-free`, `vainfo`, and `intel-gpu-tools`, adds the
 service user to `video` and `render`, and flushes a reboot handler immediately
 so the GPU is usable within the same run.
 
 **`observability_control`** ships Grafana dashboards as JSON in `files/` and wires
-them through Grafana's provisioning directory, so dashboards are version
-controlled rather than clicked into existence and lost on a container rebuild.
+them through Grafana's provisioning directory, so dashboards live in git and
+survive a container rebuild.
 Prometheus uses file-based service discovery, with one templated target file per
 exporter type.
 
@@ -177,8 +179,7 @@ inherits everything from `observability`, then flips on `pve_exporter`,
 
 Every first-party role has `meta/argument_specs.yml`. Ansible validates role
 input against it before the first task runs, so a malformed variable produces a
-typed error at role entry rather than a confusing failure partway through a
-play. These specs are the authoritative reference for what each role accepts.
+typed error at role entry instead of a failure partway through a play. These specs are the authoritative reference for what each role accepts.
 
 ---
 
@@ -220,8 +221,9 @@ From `ansible.cfg`:
 | `forks` | `10` | Parallelism across the fleet |
 
 The public key lives in `secrets/ansible_id.pub` and the private key in
-`secrets/ansible_id.sops.yaml`. Terraform's cloud-init template seeds the public
-key into every guest, so no manual key distribution step exists.
+`secrets/ansible_id.sops.yaml`. The `proxmox_vm` module's cloud-init template
+seeds the public key into every guest, so no manual key distribution step
+exists.
 
 ---
 

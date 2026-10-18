@@ -52,8 +52,5 @@ ansible/inventory/host_vars/*.yml
 *.retry
 
 # Extra
-keys/
-rhce/
-.claude
 resources
 .vscode

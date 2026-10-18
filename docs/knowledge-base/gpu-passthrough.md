@@ -27,7 +27,7 @@ flowchart LR
         MODVAR["module.media_vm<br/>pcie_devices = local.pcie_devices"]
     end
 
-    subgraph MOD["modules/proxmox_vm"]
+    subgraph MOD["proxmox_vm module (terraform-proxmox-module)"]
         SWITCH["gpu_passthrough = length(pcie_devices) > 0"]
         MTYPE["machine=q35, bios=ovmf<br/>+ efi_disk block"]
         HOSTPCI["dynamic hostpci block<br/>on the VM resource"]
@@ -78,8 +78,8 @@ resource "proxmox_hardware_mapping_pci" "transcoding_gpu" {
 ```
 (`terraform/infrastructure/_base/main-gpu.tf`, full file)
 
-This is a **cluster-scoped** Proxmox resource: a named hardware mapping, not
-a per-VM setting. `_base` defines it once. It identifies the physical device
+The mapping is a **cluster-scoped** Proxmox resource with a name, separate from
+any VM's settings. `_base` defines it once. It identifies the physical device
 by PCI vendor:device ID (`8086:56a5`, Intel), bus path, IOMMU group, and
 subsystem ID. `node`, `path`, and `iommu_group` come from the host itself
 (`lspci`, `/sys/kernel/iommu_groups/`), so moving to different hardware
@@ -87,7 +87,7 @@ means new values for this resource and only this resource.
 
 ## Hop 2: Terraform reads the mapping and builds the module input
 
-`terraform/deployments/media/infrastructure/main.tf` looks the mapping up
+`terraform/deployments/media/infrastructure/main-gpu.tf` looks the mapping up
 instead of redefining it:
 
 ```hcl
@@ -110,19 +110,20 @@ locals {
   }
 }
 ```
-(`terraform/deployments/media/infrastructure/main.tf`, excerpt)
+(`terraform/deployments/media/infrastructure/main-gpu.tf`, excerpt)
 
-This follows the pattern in [Engineering decisions](engineering-decisions.md)
+The lookup follows the pattern in [Engineering decisions](engineering-decisions.md)
 and [Provisioning](provisioning.md): `_base` *defines* shared, cluster-scoped
 resources and every other stack *reads* them, so a deployment stack never
 owns (or destroys) a cluster resource. `pcie_devices` becomes a one-entry
 map, `{"hostpci0" = {device="hostpci0", mapping="transcoding_gpu",
-pcie=true, rombar=true}}`, passed straight through as
+pcie=true, rombar=true}}`, which `main.tf` passes straight through as
 `module "media_vm" { pcie_devices = local.pcie_devices }`.
 
 ## Hop 3: the module's single-variable switch
 
-Inside `terraform/modules/proxmox_vm/main.tf`:
+Inside `main.tf` of
+[RashunB/terraform-proxmox-module](https://github.com/RashunB/terraform-proxmox-module):
 
 ```hcl
 gpu_passthrough = length(var.pcie_devices) > 0
@@ -175,7 +176,7 @@ visible from Terraform.
 
 ```yaml
 ---
-- name: Esure GPU packages are installed
+- name: Ensure GPU packages are installed
   ansible.builtin.apt:
     name:
       - "linux-modules-extra-{{ ansible_kernel }}"
@@ -183,7 +184,7 @@ visible from Terraform.
     update_cache: true
   notify: Reboot
 
-- name: Esure GPU/Transcoding tools packages are installed
+- name: Ensure GPU/Transcoding tools packages are installed
   ansible.builtin.apt:
     name:
       - linux-firmware

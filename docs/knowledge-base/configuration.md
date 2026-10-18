@@ -49,11 +49,11 @@ plaintext credential or address.
 
 `keyed_groups` with an empty `separator` and `prefix` drives the whole
 tag-to-group mechanism: a Proxmox tag named `media_platform` becomes an
-Ansible group named exactly `media_platform`, with no prefix. The
-`modules/proxmox_vm` composed tag list (see [Provisioning](provisioning.md))
-therefore sets inventory membership.
+Ansible group named exactly `media_platform`, with no prefix. The tag list the
+`proxmox_vm` module composes (see [Provisioning](provisioning.md)) therefore
+sets inventory membership.
 
-The plugin computes `ansible_host` rather than storing it, taking
+The plugin computes `ansible_host` at parse time, taking
 interface index `[1]` as the guest's primary address for both
 QEMU (`proxmox_agent_interfaces`) and LXC (`proxmox_lxc_interfaces`) guests.
 The Terraform module's `ipv4_addresses[1][0]` output makes the same
@@ -229,7 +229,7 @@ import_tasks: compose.yml           # renders docker-compose.yml + .env, docker_
 This role pre-seeds real application config so services come up already
 configured instead of opening a first-run setup wizard.
 
-`gpu.yml` installs `linux-modules-extra-{{ ansible_kernel }}` to enable gpu usage and notifies the
+`gpu.yml` installs `linux-modules-extra-{{ ansible_kernel }}` for GPU support and notifies the
 `Reboot` handler.
 
 [GPU passthrough](gpu-passthrough.md) connects this to the Terraform-side PCI

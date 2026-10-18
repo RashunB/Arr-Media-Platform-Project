@@ -21,8 +21,8 @@ creation_rules:
 ```
 (`.sops.yaml`, full file)
 
-One rule and `age` recipient applied to all paths in the repo matching
-`*.sops.yaml`.
+One rule binds every path in the repo matching `*.sops.yaml` to a single `age`
+recipient.
 
 ## What each file holds, and who reads it
 
@@ -43,7 +43,7 @@ ciphertext in the file):
 | File | Keys | Consumer |
 |---|---|---|
 | `proxmox_id.sops.yaml` | `ssh_private_key` | Terraform, `_base` and `deployments/media/infrastructure`, through `ephemeral.sops_file.proxmox_id.data["ssh_private_key"]` in each stack's `providers.tf`. The `bpg/proxmox` provider uses this key over SSH against the Proxmox host, not a guest. |
-| `ansible_id.pub` | (plaintext public key) | Terraform's `deployments/media/infrastructure/main.tf` reads it with `file()` and passes it to the `proxmox_vm` module as `ssh_public_key`; the cloud-init template writes it into the guest's `authorized_keys`. |
+| `ansible_id.pub` | (plaintext public key) | The `deployments/media/infrastructure` stack reads it with `file()` and passes it to the `proxmox_vm` module as `ssh_public_key`. The module's cloud-init template writes it into the guest's `authorized_keys`. |
 | `ansible_id.sops.yaml` | `ssh_private_key` | Encrypted copy of the private key that `ansible.cfg`'s `private_key_file = ~/.ssh/ansible_id` expects on the control machine. No code decrypts it at runtime; it provides the key's canonical, versioned home. |
 | `cloudflare.sops.yaml` | `cloudflare_api_key` | Terraform only, through `ephemeral.sops_file.cloudflare` in `deployments/media/infrastructure/providers.tf` (provider auth). The DNS zone ID is a plain tfvar (`cloudflare_zone_id`). |
 | `pve.sops.yaml` | `pve_ansible_api_url`, `pve_ansible_api_user_name`, `pve_ansible_api_token_id`, `pve_ansible_api_token_secret` | Ansible's dynamic inventory plugin (`ansible/inventory/00_inv.proxmox.yml`), through `community.sops.sops` lookups against the `vault/pve.sops.yaml` symlink |
