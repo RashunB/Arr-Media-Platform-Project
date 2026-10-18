@@ -7,14 +7,14 @@
 [![Proxmox VE](https://img.shields.io/badge/Proxmox-ea7233?logo=proxmox&logoColor=white)](https://www.proxmox.com/)
 [![SOPS](https://img.shields.io/badge/secrets-SOPS%20%2B%20age-2ea44f)](https://github.com/getsops/sops)
 
-Provision and configure a homelab Arr Media Platform on Proxmox VE with Terraform and Ansible from bare metal to a monitored, GPU-enabled application stack.
+A homelab built to production practice. Terraform and Ansible take Proxmox VE
+from bare metal to a monitored, GPU-enabled media application stack.
 
-- **Terraform** provisions VMs on Proxmox VE.
-- **Ansible** configures them, using a dynamic inventory built from
-  Terraform-applied tags — no hardcoded host list to maintain.
-- CI lints, validates, security-scans, and secret-scans every change before it
-  merges.
-- No plaintext secret ever touches git.
+Terraform provisions VMs on Proxmox VE. Ansible configures them through a
+dynamic inventory built from the tags Terraform applies, so guest addresses
+never live in a hand-maintained file. CI lints, validates, and scans every
+change for misconfigurations and secrets before it merges. No plaintext secret
+touches git.
 
 [Quickstart](#quickstart) brings up a deployment end to end.
 
@@ -24,9 +24,9 @@ Provision and configure a homelab Arr Media Platform on Proxmox VE with Terrafor
 
 | | |
 |---|---|
-| **Provisioning** | Terraform against the Proxmox VE API, layered into a shared base, a reusable VM module, and per-deployment stacks |
+| **Provisioning** | Terraform against the Proxmox VE API: a shared base, per-deployment stacks, and a VM module versioned in its own repository |
 | **Configuration** | Ansible with 7 first-party roles, all validated by `argument_specs` |
-| **Inventory** | Dynamic, from live Proxmox tags. Terraform writes the tags, Ansible reads them. No host list to maintain |
+| **Inventory** | Dynamic, from live Proxmox tags. Terraform writes the tags, Ansible reads them as groups and computes each guest's address |
 | **Secrets** | SOPS with `age`, consumed natively by both Terraform (provider) and Ansible (vars plugin) |
 | **Observability** | Prometheus, Loki, Grafana, Alloy, cAdvisor, node/smartctl/PVE exporters, hub-and-spoke across every host |
 | **Hardware** | Intel GPU passed through to the VM via PCI hardware mapping for VA-API transcoding |
@@ -122,7 +122,7 @@ flowchart TB
 flowchart TD
     DEV["Commit<br/>secrets/*.sops.yaml stays encrypted"]
     PC["pre-commit<br/>sops · detect-private-key · lint"]
-    BLOCK["Blocked — fix and re-push"]
+    BLOCK["Blocked: fix and re-push"]
     PUSH["git push"]
     CI["GitHub Actions<br/>8 quality gates"]
     GATE{"All gates pass?"}
@@ -157,7 +157,6 @@ flowchart TD
 ```
 .
 ├── terraform/                  # Terraform  ->  see terraform/README.md
-│   ├── modules/proxmox_vm/     #   reusable VM module (cloud-init, disks, PCI passthrough)
 │   ├── infrastructure/_base/   #   shared, long-lived: OS templates, GPU hardware mapping
 │   └── deployments/media/
 │       ├── infrastructure/     #   the media VM + Cloudflare DNS record
@@ -175,13 +174,16 @@ flowchart TD
 └── trivy.yaml / .ansible-lint / .yamllint
 ```
 
-Each half has its own README because they solve different problems
-and have different lifecycles:
+The `proxmox_vm` module that builds every VM lives in its own repository,
+[RashunB/terraform-proxmox-module](https://github.com/RashunB/terraform-proxmox-module).
+Deployment stacks consume it by git URL pinned to a commit SHA, the same way a
+platform team publishes a module for other teams to consume.
 
-- **[`terraform/README.md`](terraform/README.md)** covers provisioning: state,
-  stack layering, the module contract, and GPU passthrough.
-- **[`ansible/README.md`](ansible/README.md)** covers configuration: inventory
-  composition, the role catalog, variable conventions, and secret injection.
+Each half has its own README because the two solve different problems on
+different lifecycles. [terraform/README.md](terraform/README.md) covers
+provisioning: state, stack layering, the module contract, and GPU passthrough.
+[ansible/README.md](ansible/README.md) covers configuration: inventory
+composition, the role catalog, variable conventions, and secret injection.
 
 ---
 
@@ -284,22 +286,20 @@ through `pre-commit run --all-files`.
 | `terraform-static` | `terraform fmt -check -recursive` plus recursive TFLint with the `all` preset (`terraform/.tflint.hcl`), including required descriptions on every variable and output |
 | `terraform-validate` | Matrix `init -backend=false` + `validate` across all three stacks |
 | `trivy` | IaC misconfiguration scanning of `terraform/` |
-| `gitleaks` | Secret scanning across the **full git history**, not just the diff |
+| `gitleaks` | Secret scanning across the **full git history** |
 | `actionlint` | The workflow files themselves |
 | `hooks` | Whitespace/EOF hygiene, private key detection, verifies every `*.sops.yaml` is actually encrypted |
 
-Every third-party action pins a commit SHA rather than a tag.
+Every third-party action pins a full commit SHA.
 
 ---
 
 ## Secrets management
 
-- No plaintext secret enters git. `.sops.yaml` binds every
-  `*.sops.yaml` file in the repo to a single `age` recipient.
-- Both Terraform and Ansible read the encrypted files directly, with no
-  separate decrypt step and no `.env` to leak. Decrypted values reach disk in
-  one place only: the application stack's local, gitignored Terraform state
-  (see below).
+`.sops.yaml` binds every `*.sops.yaml` file in the repo to a single `age`
+recipient. Terraform and Ansible both read the encrypted files directly, with
+no separate decrypt step and no `.env` to leak. Decrypted values reach disk in
+one place only: the application stack's local, gitignored Terraform state.
 
 ```
 secrets/
@@ -312,19 +312,15 @@ secrets/
 └── media_platform.sops.yaml   # Application API keys and service credentials
 ```
 
-- **Terraform** reads them with the `carlpett/sops` provider. The infrastructure
-  stacks use `ephemeral "sops_file"`, which keeps provider credentials out of
-  state entirely. The application stack uses a `data "sops_file"` source because
-  its secrets feed resource arguments, so those values are stored in that
-  stack's local state, which `.gitignore` excludes.
-- **Ansible** reads them with the `community.sops` vars plugin and lookup, wired
-  in through symlinks under `inventory/group_vars/`.
-- **CI** enforces it: the `sops` pre-commit hook fails on any unencrypted
-  `*.sops.yaml`, `detect-private-key` blocks stray keys, and `gitleaks` audits
-  the entire history.
+| Consumer | Mechanism |
+|---|---|
+| Terraform, infrastructure stacks | `ephemeral "sops_file"` from the `carlpett/sops` provider. Provider credentials never reach state |
+| Terraform, application stack | `data "sops_file"`. Its secrets feed resource arguments, so that stack's local, gitignored state holds them |
+| Ansible | `community.sops` vars plugin and lookup, wired in through symlinks under `inventory/group_vars/` and `vault/` |
+| CI | The `sops` pre-commit hook fails on any unencrypted `*.sops.yaml`, `detect-private-key` blocks stray keys, and `gitleaks` audits the entire history |
 
-- Separate API tokens per consumer: keeps blast radius small and makes
-  credential rotation a one-file change.
+Each consumer holds its own Proxmox API token, which limits blast radius and
+makes credential rotation a one-file change.
 
 ---
 
@@ -333,48 +329,46 @@ secrets/
 Rules this repo follows, and the reasoning behind each.
 
 **Never call Ansible from Terraform, or create VMs from Ansible.** Provisioning
-and configuration stay in separate tools with independent state — no
-`local-exec` calling `ansible-playbook`, no Ansible module creating VMs.
-- **How:** the seam is Proxmox VM tags. Terraform's `vm_tag_list` becomes a
-  `keyed_groups` entry in Ansible's inventory plugin, which becomes a playbook
-  target. To add a host to a role, change its tag — not an inventory file.
+and configuration stay in separate tools with independent state. No
+`local-exec` calls `ansible-playbook`, and no Ansible module creates VMs. The
+seam is Proxmox VM tags: the module's tag list becomes a `keyed_groups` entry in
+Ansible's inventory plugin, and static overlays compose workload groups on top.
 
-**Discover templates by tag, not by VM ID.** The `proxmox_vm` module queries
+**Version the VM module in its own repository, pinned by commit.** Deployment
+stacks call `proxmox_vm` through a `git::` source at a full SHA. A module
+change reaches a stack only when that stack moves its `?ref=`, so every upgrade
+is an explicit, reviewable diff.
+
+**Discover templates by tag, never by VM ID.** The `proxmox_vm` module queries
 `proxmox_virtual_environment_vms` filtered on
 `["template", var.template_os_tag]` and `template = true`, and a precondition
-fails the plan unless exactly one template matches.
-- **Why:** rebuilding a template doesn't require touching every deployment
-  stack that consumes it.
+fails the plan unless exactly one template matches. Rebuilding a template
+touches no consuming stack.
 
 **Keep `infrastructure` and `application` as separate Terraform stacks per
-deployment.**
-- **Why:** they have different dependency graphs — infrastructure talks to
-  Proxmox and Cloudflare, application talks to service APIs that only exist
-  after Ansible has started the containers.
-- **Benefit:** a failed application apply can't block a VM rebuild, and plan
-  times stay honest.
+deployment.** The two have different dependency graphs. Infrastructure talks to
+Proxmox and Cloudflare. Application talks to service APIs that exist only after
+Ansible starts the containers. A failed application apply can't block a VM
+rebuild, and plan times stay honest.
 
 **Use two Proxmox provider aliases: a scoped API token by default, `root`
-username/password only where required.**
-- **Why:** VM cloning and template creation need privileges the API token
-  can't hold. Confining the elevated credential to exactly those resources
-  keeps it out of the rest of the repo.
+username/password only where required.** VM cloning and template creation need
+privileges an API token can't hold. Confining the elevated credential to those
+resources keeps it out of the rest of the repo.
 
-**Let `pcie_devices` drive the machine type — don't set it manually.** A
-non-empty `pcie_devices` switches the VM to `q35` + `ovmf` and attaches an EFI
-disk automatically.
-- **Why:** PCIe passthrough doesn't work on the `i440fx` + SeaBIOS default.
-  One variable controls both, so there's no incompatible combination to get
-  wrong.
+**Let `pcie_devices` drive the machine type.** A non-empty `pcie_devices`
+switches the VM to `q35` + `ovmf` and attaches an EFI disk. PCIe passthrough
+fails on the `i440fx` + SeaBIOS default, and one variable controlling all three
+leaves no incompatible combination to get wrong.
 
-**Ship `meta/argument_specs.yml` with every first-party role.**
-- **Why:** bad input fails at role entry with a typed error instead of
-  halfway through a play. It's also what lets `lvm_storage` safely accept a
-  nested list-of-dicts describing entire volume groups.
+**Ship `meta/argument_specs.yml` with every first-party role.** Bad input fails
+at role entry with a typed error, before any task touches the host. The spec is
+what lets `lvm_storage` safely accept a nested list of dicts describing entire
+volume groups.
 
 **Prefix role defaults (`media_platform_*`, `observability_node_*`) and map
-shared values onto them from `group_vars`.**
-- **Why:** one place to change a port, no collisions between roles.
+shared values onto them from `group_vars`.** Each port changes in one place,
+and roles never collide on a variable name.
 
 ---
 

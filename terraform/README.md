@@ -13,17 +13,19 @@ other half of the repo, in [`../ansible`](../ansible/README.md).
 
 ```
 terraform/
-├── modules/
-│   └── proxmox_vm/                 # reusable, versioned-in-place VM factory
 ├── infrastructure/
 │   └── _base/                      # shared, long-lived, cluster-wide primitives
 └── deployments/
     └── media/
         ├── infrastructure/         # the VM(s) and their DNS, per deployment
         └── application/            # service configuration, applied after Ansible
+
+github.com/RashunB/terraform-proxmox-module
+└── proxmox_vm                      # VM factory, consumed by git URL at a pinned SHA
 ```
 
-Three layers, each with a distinct blast radius and change frequency.
+Each layer has its own blast radius and change frequency. The VM module sits
+outside this repo and has its own release cadence.
 
 ### `infrastructure/_base` (shared, rarely changes)
 
@@ -39,42 +41,45 @@ Each template carries `template` plus an OS tag (Ubuntu 24.04 also carries
 `default`) and `lifecycle { prevent_destroy = true }`. Downloads set
 `overwrite = false` so a re-apply never silently re-pulls a multi-gigabyte image.
 
-Apply this stack first. Nothing else works without it.
+Apply this module or have a target VM/node prepared. Not applying this will cause the rest of the infrastructure deployments to fail.
 
-### `modules/proxmox_vm` (the contract)
+### `proxmox_vm` (the module contract)
 
-A single module every deployment goes through, rather than hand-rolled VM
-resources per stack. It handles:
+Every deployment builds its VMs through one module, maintained in
+[RashunB/terraform-proxmox-module](https://github.com/RashunB/terraform-proxmox-module).
+A deployment stack references it by commit SHA:
 
-- **Template discovery by tag.** Queries `proxmox_virtual_environment_vms`
-  filtered on `["template", var.template_os_tag]` and `template = true`, then
-  clones the match. A `lifecycle.precondition` on the VM resource requires
-  exactly one match and fails the plan with the names of every candidate
-  otherwise. No deployment stack hardcodes a VM ID.
-- **Cloud-init rendering.** Generates a per-VM snippet from
-  `templates/cloud-init.yml.tpl` (override with `cloud_init_user_data_path`),
-  injecting hostname, domain, default user, and the SSH public key.
-- **Indexed naming.** `vm_count` + `vm_count_offset` produce `prefix-1`,
-  `prefix-2`, and so on, so a second VM in an existing group starts at the right
-  index instead of colliding.
-- **Tag composition.** Merges `vm_default_tag_list` (`terraform`), the caller's
-  `vm_tag_list`, `vm_group`, and `vm_name_prefix` into a deduplicated set. These
-  tags are what Ansible's dynamic inventory later reads.
-- **Additional disks.** A `map(object(...))` keyed by interface name, supporting
-  both newly-created disks and attaching existing ones via `path_in_datastore`,
-  with `size`/`iothread`/`discard` conditionally nulled when attaching.
-- **DNS resolvers.** `dns_servers` sets the resolvers written into each VM's
-  cloud-init network config (default `["1.1.1.1", "8.8.8.8"]`).
-- **Conditional PCIe passthrough.** See below. Each `pcie_devices` entry sets
-  `pcie` and `rombar` independently; both default to `true`.
+```hcl
+module "media_vm" {
+  source = "git::https://github.com/RashunB/terraform-proxmox-module.git?ref=<sha>"
+  # ...
+}
+```
 
-Outputs `vm_id` and `primary_ip` are lists with one element per VM (the IPv4
-address is the first non-loopback address reported by the guest agent). The
+The SHA pin makes every module upgrade an explicit, reviewable diff in the
+consuming stack. Module changes land in the module repository first, then the
+`?ref=` here moves to the new commit. The module sets provider version floors
+(`>= 0.113.1`) and leaves exact pins to the root stacks that call it.
+
+The module handles:
+
+| Concern | Behavior |
+|---|---|
+| Template discovery | Queries `proxmox_virtual_environment_vms` filtered on `["template", var.template_os_tag]` and `template = true`, then clones the match. A `lifecycle.precondition` requires exactly one match and fails the plan with every candidate's name otherwise. No stack hardcodes a VM ID |
+| Cloud-init | Renders a per-VM snippet from the module's `templates/cloud-init.yml.tpl` (override with `cloud_init_user_data_path`), injecting hostname, domain, default user, and the SSH public key |
+| Naming | `vm_count` + `vm_count_offset` produce `prefix-1`, `prefix-2`, and so on, so a second deploytment in an existing group starts at the next index |
+| Tags | Merges `vm_default_tag_list` (`terraform`), the caller's `vm_tag_list`, `vm_group`, and `vm_name_prefix` into a deduplicated set. Ansible's dynamic inventory reads these tags |
+| Disks | `additional_disks`, a `map(object(...))` keyed by interface name. An entry creates a new disk or, with `path_in_datastore`, attaches an existing one |
+| Network | `network_device_bridge` (default `vmbr0`), `network_device_model` (default `virtio`), and `dns_servers` (default `["1.1.1.1", "8.8.8.8"]`). Addressing defaults to DHCP |
+| PCIe passthrough | `pcie_devices`, covered below. Each entry sets `pcie` and `rombar` independently |
+
+Outputs `vm_id` and `primary_ip` are lists with one element per VM. On DHCP,
+`primary_ip` is the first non-loopback address the guest agent reports. The
 media deployment's Cloudflare record uses `primary_ip[0]`.
 
 #### GPU passthrough is one variable
 
-Passing a non-empty `pcie_devices` map flips three things at once:
+A non-empty `pcie_devices` map flips three settings at once:
 
 ```hcl
 machine = local.gpu_passthrough ? "q35" : "pc"
@@ -82,29 +87,30 @@ bios    = local.gpu_passthrough ? "ovmf" : "seabios"
 # ...plus a dynamically-created efi_disk block
 ```
 
-PCIe passthrough requires `q35` and OVMF/UEFI, which in turn requires an EFI
-disk. Coupling them to a single input removes the most common way to get a
+PCIe passthrough requires `q35` and OVMF/UEFI, and OVMF requires an EFI disk.
+Coupling all three to one input removes the most common way to build a
 passthrough VM wrong.
 
 ### `deployments/<name>/` (per workload)
 
-Each deployment is split into two stacks because they have different
-dependencies and different failure modes.
+Each deployment splits into two stacks with different dependencies and
+different failure modes.
 
-**`infrastructure/`** calls the `proxmox_vm` module and creates the VM, then
+**`infrastructure/`** calls the `proxmox_vm` module to create the VM, then
 creates a Cloudflare `A` record named by `cloudflare_record_name` and pointing
-at `module.media_vm.primary_ip[0]`. It
-looks the GPU mapping up as a *data source* rather than redefining it, so the
-mapping stays owned by `_base`.
+at `module.media_vm.primary_ip[0]`. Files split by concern: `main.tf` holds the
+module call, `main-gpu.tf` builds `pcie_devices` from the GPU mapping, and
+`main-dns.tf` holds the record. The stack reads the GPU mapping as a data
+source, so `_base` keeps ownership of it.
 
-**`application/`** configures the running services themselves through their own
-providers (`devopsarr/prowlarr`, `devopsarr/sonarr`, `devopsarr/radarr`):
-host settings, authentication, root folders, the SABnzbd download client, and
-the Prowlarr application links that sync indexers into Sonarr and Radarr.
+**`application/`** configures the running services through their own providers
+(`devopsarr/prowlarr`, `devopsarr/sonarr`, `devopsarr/radarr`): host settings,
+authentication, root folders, the SABnzbd download client, and the Prowlarr
+application links that sync indexers into Sonarr and Radarr.
 
-This stack **runs after Ansible**, because its providers point at HTTP
-endpoints that only exist once the containers are up. Keeping it separate means
-a provider that cannot reach a service does not block a VM rebuild.
+The application stack **runs after Ansible**, because its providers point at
+HTTP endpoints that exist only once the containers are up. A provider that
+cannot reach a service never blocks a VM rebuild.
 
 ---
 
@@ -114,15 +120,14 @@ Both Proxmox-facing stacks declare the provider twice:
 
 | Alias | Credential | Used for |
 |---|---|---|
-| `proxmox` (default) | Scoped API token | Everything that a token has rights to |
+| `proxmox` (default) | Scoped API token | Everything a token has rights to |
 | `proxmox.root` | Username + password | Template creation and VM cloning |
 
 Proxmox does not permit API tokens to perform some cloning and template
-operations. Rather than giving the whole stack root credentials, each stack
-passes the elevated alias explicitly and only to the resources that need it. The
-module declares this requirement through `configuration_aliases =
-[proxmox.root]`, so a module call without the alias fails at `init` rather than
-at `apply`.
+operations. Each stack passes the elevated alias explicitly, and only to the
+resources that need it. The module declares the requirement through
+`configuration_aliases = [proxmox.root]`, so a module call without the alias
+fails at `init` instead of partway through `apply`.
 
 SSH connectivity for the provider's file operations uses a private key from an
 `ephemeral "sops_file"` resource, which Terraform decrypts in memory and never
@@ -138,17 +143,17 @@ it (`*.tfstate`, `*.tfstate.*`, `.terraform/`). The repo **does** commit provide
 lockfiles (`.terraform.lock.hcl`), so every apply and every CI run resolves
 identical provider builds.
 
-CI validates but never applies; applying from CI requires a locking remote
+CI validates and never applies. Applying from CI requires a locking remote
 backend.
 
 ---
 
 ## Inputs and secrets
 
-`.gitignore` excludes `*.tfvars` files, so each stack reads its inputs from a local
-`terraform.tfvars`. A stack's required inputs are the variables without defaults
-in its `variables.tf`, and each stack commits a `terraform.tfvars.example` to copy
-from.
+`.gitignore` excludes `*.tfvars` files, so each stack reads its inputs from a
+local `terraform.tfvars`. A stack's required inputs are the variables without
+defaults in its `variables.tf`, and each stack commits a
+`terraform.tfvars.example` to copy from.
 
 `infrastructure/_base` and `deployments/media/infrastructure` both need:
 
@@ -164,14 +169,15 @@ datastore_files   = "<file-datastore>"
 
 Both also accept `proxmox_insecure` (default `true`).
 
-The deployment stack additionally requires `vm_name_prefix`, `vm_group`,
+The deployment stack also requires `vm_name_prefix`, `vm_group`,
 `vm_default_user`, `cloudflare_zone_id`, and `cloudflare_record_name`, and
 accepts `vm_count`, `additional_disks`, `dns_servers`, `cpu`, `memory`, and
-`personal_domain` with defaults. `deployments/media/application` requires only `arr_host`.
+`personal_domain` with defaults. `deployments/media/application` requires only
+`arr_host`.
 
-Credentials never pass through variables. Each stack reads them from the
-encrypted files in [`../secrets/`](../secrets) through the `carlpett/sops`
-provider:
+The Proxmox API token and password are the only credentials that travel as
+variables, marked `sensitive`. Every other credential comes from the encrypted
+files in [`../secrets/`](../secrets) through the `carlpett/sops` provider:
 
 | Stack | Reads | Mechanism |
 |---|---|---|
@@ -182,8 +188,8 @@ provider:
 
 Ephemeral values feed provider configuration only and never reach state. The
 application stack passes its secrets into resource arguments (API keys, web UI
-credentials), and the `devopsarr` providers expose those as `sensitive` rather
-than write-only, so that stack keeps a `data` source and its state holds the
+credentials). The `devopsarr` providers mark those `sensitive` and offer no
+write-only variant, so that stack keeps a `data` source and its state holds the
 values.
 
 `plan` and `apply` require `SOPS_AGE_KEY_FILE` pointing at the private key that
@@ -206,34 +212,35 @@ cd terraform && tflint --init && tflint --recursive --format compact
 
 `terraform/.tflint.hcl` enables the bundled `terraform` ruleset with the `all`
 preset, which includes `terraform_documented_variables` and
-`terraform_documented_outputs`: every variable and output carries a
+`terraform_documented_outputs`. Every variable and output carries a
 `description`, and those descriptions populate the generated README tables.
 
-Order matters: `_base` -> `deployments/*/infrastructure` -> Ansible ->
+Apply order: `_base` -> `deployments/*/infrastructure` -> Ansible ->
 `deployments/*/application`.
 
 ---
 
 ## Per-stack input/output reference
 
-Every stack and module directory has its own `README.md`.
+Every stack directory has its own `README.md`.
 [terraform-docs](https://terraform-docs.io) generates the tables between the
 `<!-- BEGIN_TF_DOCS -->` markers from
 [`.terraform-docs.yaml`](.terraform-docs.yaml), and the `terraform_docs`
 pre-commit hook regenerates them. The hook leaves prose above the marker intact.
 
-- [`modules/proxmox_vm`](modules/proxmox_vm/README.md)
 - [`infrastructure/_base`](infrastructure/_base/README.md)
 - [`deployments/media/infrastructure`](deployments/media/infrastructure/README.md)
 - [`deployments/media/application`](deployments/media/application/README.md)
 
-The markers enclose generated output only.
+The module's own input and output reference lives in its repository's
+[README](https://github.com/RashunB/terraform-proxmox-module#readme).
 
 ---
 
 ## Conventions
 
-- Provider versions use exact pins; `required_version` sets a floor (`>= 1.15`).
+- Root stacks pin exact provider versions. The module sets floors.
+  `required_version` sets a floor everywhere (`>= 1.15`).
 - The repo commits lockfiles. Validation runs with `-lockfile=readonly`.
 - Variables carrying credentials set `sensitive = true`.
 - `_base` **defines** shared, cluster-scoped resources, and every other stack

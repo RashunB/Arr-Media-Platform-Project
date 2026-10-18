@@ -1,5 +1,5 @@
 ---
-- name: Esure GPU packages are installed
+- name: Ensure GPU packages are installed
   ansible.builtin.apt:
     name:
       - "linux-modules-extra-{{ ansible_kernel }}"
@@ -7,7 +7,7 @@
     update_cache: true
   notify: Reboot
 
-- name: Esure GPU/Transcoding tools packages are installed
+- name: Ensure GPU/Transcoding tools packages are installed
   ansible.builtin.apt:
     name:
       - linux-firmware

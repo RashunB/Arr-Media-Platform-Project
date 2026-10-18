@@ -1,0 +1,16 @@
+{
+  "enabledPlugins": {
+    "ansible-skills@ansible-skills-marketplace": true,
+    "terraform-patterns@claude-code-skills": true,
+    "observability-monitoring@claude-code-workflows": true,
+    "deployment-strategies@claude-code-workflows": true,
+    "comprehensive-review@claude-code-workflows": true,
+    "documentation-generation@claude-code-workflows": true,
+    "documentation-standards@claude-code-workflows": true,
+    "code-review@claude-plugins-official": true,
+    "claude-code-setup@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "self-improving-agent@claude-code-skills": true,
+    "reflect-skill@claude-code-skills": true
+  }
+}
