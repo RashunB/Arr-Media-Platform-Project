@@ -6,11 +6,9 @@ created: 2026-09-17
 
 # Configuration (Ansible)
 
-> [!info] Scope
-> `ansible/` in depth: the dynamic inventory mechanism, each first-party
-> role's task flow, and variable precedence in practice. The role catalog
-> table and quickstart commands live in
-> [ansible/README.md](../../ansible/README.md).
+Files in `ansible/` cover the dynamic inventory mechanism, each first-party
+role's task flow, and variable precedence. The role catalog
+table and quickstart commands live in [ansible/README.md](../../ansible/README.md).
 
 ## The inventory: how a Proxmox tag becomes an Ansible group
 
@@ -34,9 +32,6 @@ keyed_groups:
     separator: ""
     prefix: ""
 
-# groups:
-  # media: "'media' in (proxmox_tags_parsed|list)"
-
 compose:
   ansible_host: >-
     proxmox_agent_interfaces[1]['ip-addresses'][0].split('/')[0]
@@ -49,17 +44,17 @@ want_proxmox_nodes_ansible_host: true
 
 The API endpoint and credentials come from `vault/pve.sops.yaml`, a symlink to
 `secrets/pve.sops.yaml`, decrypted through a `community.sops.sops` lookup with
-a jq-style `extract` path. The inventory file that queries Proxmox holds no
+an `extract` path. The inventory file that queries Proxmox holds no
 plaintext credential or address.
 
 `keyed_groups` with an empty `separator` and `prefix` drives the whole
 tag-to-group mechanism: a Proxmox tag named `media_platform` becomes an
-Ansible group named exactly `media_platform`, with no prefix decoration. The
+Ansible group named exactly `media_platform`, with no prefix. The
 `modules/proxmox_vm` composed tag list (see [Provisioning](provisioning.md))
-therefore turns directly into inventory membership.
+therefore sets inventory membership.
 
 The plugin computes `ansible_host` rather than storing it, taking
-interface index `[1]` (not `[0]`) as the guest's primary address for both
+interface index `[1]` as the guest's primary address for both
 QEMU (`proxmox_agent_interfaces`) and LXC (`proxmox_lxc_interfaces`) guests.
 The Terraform module's `ipv4_addresses[1][0]` output makes the same
 assumption (see [Provisioning](provisioning.md)): index `0` is loopback.
@@ -72,8 +67,7 @@ sources, so the two definitions layer rather than conflict.
 ### `host_vars/`: per-host connection details
 
 `01_baremetal.ini` lists host names only. Each bare-metal host's address and
-connection user live in `ansible/inventory/host_vars/<host>.yml`, which
-`.gitignore` excludes, so no LAN address enters the repo. Committed
+connection user live in `ansible/inventory/host_vars/<host>.yml`. Committed
 `control.yml.example` and `pve.yml.example` files show the expected keys:
 
 ```yaml
@@ -84,19 +78,13 @@ ansible_user: root
 (`ansible/inventory/host_vars/pve.yml.example`, full file)
 
 `group_vars/observability` derives `control_host_ip` and `pve_node_ip` from
-`hostvars[...]['ansible_host']`, so every role that needs these addresses
-reads them from `host_vars/` indirectly.
-
-The commented `groups:` block holds example Jinja-conditional group rules
-from an earlier iteration. Every line of it, including the `groups:` key, is
-commented, so it has no effect; `keyed_groups` plus the static overlay files
-below define all group membership.
+`hostvars[...]['ansible_host']`.
 
 ### The static overlay files
 
 | File | Role |
 |---|---|
-| `01_baremetal.ini` | The two physical hosts Proxmox cannot report about itself, `control` and `pve`, by name only; addresses and `ansible_user` come from `host_vars/` |
+| `01_baremetal.ini` | The two physical hosts, `control` and `pve`, by name only; addresses and `ansible_user` come from `host_vars/` |
 | `10_observability.ini` | Composes `observability_node`, `observability_control`, and `observability` from dynamic and static groups |
 | `11_media_platform.ini` | `[media_platform]` containing `media-1` |
 
@@ -193,8 +181,7 @@ playbook that imports `docker_base`.
 
 Every first-party role ships `meta/argument_specs.yml`. Ansible validates role
 input against it before the first task runs, so a malformed variable fails
-at role entry with a typed error, not partway through a play. These specs are
-the reference for what each role accepts.
+fast with a typed error. These specs are the reference for what each role accepts.
 
 ### `docker_base`
 
@@ -221,22 +208,10 @@ import_tasks: mount.yml        # ansible.posix.mount, looped
 
 The whole storage layout is one variable,
 `lvm_storage_logical_volumes`: a list of dicts, each describing a full
-PV-to-VG-to-LV-to-filesystem-to-mount pipeline. Per-item `vg_state`,
-`lv_state`, `fs_state`, and `mount_state` keys let the same data structure
-tear storage down as easily as create it: setting the states to `absent` and
+PV to mount pipeline. Per-item `vg_state`, `lv_state`, `fs_state`,
+and `mount_state` keys let the same data structure tear storage
+down as easily as create it: setting the states to `absent` and
 re-running removes it.
-
-> [!tip] `required: true` with an empty-list default
-> `meta/argument_specs.yml` marks `lvm_storage_logical_volumes`
-> `required: true`, and `defaults/main.yml` sets it to `[]`.
-> `argument_specs` validation checks that a final value exists after
-> defaults apply, not that the caller supplied one. With no override, the
-> role satisfies its required variable and does nothing, because looping
-> over an empty list is a no-op in every task file.
-
-`ansible/inventory/group_vars/media_platform` is the current consumer: a
-single VG (`vg.media`) built from two `scsi-SQEMU...` disk-by-id paths, ext4,
-mounted at `/opt/media_platform`.
 
 ### `media_platform`
 
@@ -254,21 +229,8 @@ import_tasks: compose.yml           # renders docker-compose.yml + .env, docker_
 This role pre-seeds real application config so services come up already
 configured instead of opening a first-run setup wizard.
 
-- `sabnzbd.yml` and `bazarr.yml` template their config with `force:
-  false`. Ansible writes each file once and never overwrites it, so changes
-  made through the web UI survive later playbook runs.
-- `configarr.yml` writes its config with mode `0440`, read-only even for the
-  owner. Configarr resolves secrets through `!env` indirection from the
-  container's environment at runtime (see [Secrets](secrets.md)), so the
-  file never needs in-place edits.
-
-`gpu.yml` installs `linux-modules-extra-{{ ansible_kernel }}`, notifies the
-`Reboot` handler, and then immediately calls
-`ansible.builtin.meta: flush_handlers` at the end of the task file. The
-reboot happens within the same `media_platform` role run, before
-`compose.yml` starts containers that mount `/dev/dri`. Under Ansible's normal
-handler timing the reboot would wait until the end of the play, and the new
-kernel modules would not load before the containers start.
+`gpu.yml` installs `linux-modules-extra-{{ ansible_kernel }}` to enable gpu usage and notifies the
+`Reboot` handler.
 
 [GPU passthrough](gpu-passthrough.md) connects this to the Terraform-side PCI
 passthrough and the Jellyfin container's device mount.
@@ -281,9 +243,8 @@ followed by a final `compose.yml` task that renders the full
 `docker-compose.yml` and runs `docker_compose_v2` with `state: present`.
 
 `observability_control` also ships Grafana dashboards as static JSON under
-`files/grafana/provisioning/dashboards/` and wires them through Grafana's
-file-based provisioning (`provider.yml` in the same directory), so dashboards
-live in version control rather than in a container volume.
+`files/grafana/provisioning/dashboards/`.
+
 [Observability](observability.md) covers the full topology and the
 Prometheus file-based service discovery mechanism.
 
@@ -303,17 +264,13 @@ observability_control_prometheus_host_port: "{{ prometheus_host_port }}"
 ```
 
 A port change is a one-line edit in `group_vars/observability` that
-propagates to every role, template, and scrape config that references it,
+propagates to everything that references it,
 while the roles keep collision-free, self-documenting variable names.
 `group_vars/observability_pve` shows the override pattern: it inherits
 everything from `observability` and turns on exactly three booleans for the
 PVE host (`observability_node_alloy_journal_enabled`,
 `observability_node_pve_exporter_enabled`,
 `observability_node_smartctl_exporter_enabled`).
-
-The precedence is standard Ansible `group_vars` precedence (child group wins
-over parent). The pattern, unprefixed shared value to prefixed role
-variable one hop apart, is this repo's own convention.
 
 ## Connection model
 

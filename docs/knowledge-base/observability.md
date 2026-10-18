@@ -6,11 +6,11 @@ created: 2026-09-17
 
 # Observability Stack
 
-> [!info] Scope
-> Deep dive into `ansible/roles/observability_control` and
-> `observability_node`: the scrape topology, the log path, and how a host
-> joins monitoring. The root README's runtime-topology diagram is the map;
-> this page is the territory underneath it.
+Scope
+Deep dive into `ansible/roles/observability_control` and
+`observability_node`: the scrape topology, the log path, and how a host
+joins monitoring. The root README's runtime-topology diagram is the map;
+this page is the territory underneath it.
 
 ## Control vs. node-local
 

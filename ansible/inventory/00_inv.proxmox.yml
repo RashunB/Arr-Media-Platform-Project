@@ -11,9 +11,6 @@ keyed_groups:
     separator: ""
     prefix: ""
 
-# groups:
-  # media: "'media' in (proxmox_tags_parsed|list)"
-
 compose:
   ansible_host: >-
     proxmox_agent_interfaces[1]['ip-addresses'][0].split('/')[0]

@@ -20,7 +20,7 @@ locals {
 }
 
 module "media_vm" {
-  source = "../../../modules/proxmox_vm"
+  source = "git::https://github.com/RashunB/terraform-proxmox-module.git?ref=78217240834729f7601417de009d36aa8faaf3c6" #"../../../modules/proxmox_vm"
 
   vm_name_prefix            = var.vm_name_prefix
   template_os_tag           = var.template_os_tag
