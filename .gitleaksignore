@@ -1,3 +1,7 @@
 # Bazarr plex.encryption_key committed in fe21e68, blanked in af010f8.
 # Plex was never configured, so the key never encrypted anything; containers rebuilt since.
 fe21e68bc3b87fc76f9862528a39b21d66c8b60d:ansible/roles/media_platform/templates/bazarr_config.yml.j2:generic-api-key:193
+
+# Bazaar history was rewritten to accomodate some github repo changes.
+# Plex was never configured, so the key never encrypted anything; containers rebuilt since.
+0a7320cb42aaf9ec15dffbe98243138d2155cd70:ansible/roles/media_platform/templates/bazarr_config.yml.j2:generic-api-key:193
